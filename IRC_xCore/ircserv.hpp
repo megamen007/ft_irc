@@ -10,6 +10,8 @@
 #include <netinet/in.h>  // Contains definitions for Internet Protocol family , Defines the sockaddr_in structure, used for IPv4 addresses. , Contains macros like INADDR_ANY and functions like htons() .
 #include <poll.h>
 #include <fcntl.h>
+#include <arpa/inet.h>
+
 
 
 class Client
@@ -48,17 +50,25 @@ class Server
         void socket_Binding(int socket_fd, sockaddr_in serveradd);
         void socket_non_blocking(int socket_fd);
         void socket_listening(int socket_fd);
-        void socket_Accepting();
-        void socket_polling(int socket_fd);
-        void socket_receiving();
+        void socket_Accepting(int socket_fd);
+        void server_socket_polling(int socket_fd);
+        void client_socket_polling(int client_fd);
+        void socket_receiving(int client_fd);
 
         // Signal functions:
 
         static void Signal_Handler(int signal_num);
 
         //Removing functions:
-        void Remove_Clients();
+        void Remove_Client(int client_fd);
+        void remove_c_from_pollfd(int id);
+        void remove_c_from_Vector(int id);
         void Close_filedescriptors();
+        void close_all_clients();
+        void close_server_socket();
+
+        //Parsing received DATA
+        void Parcing_data_core(char buffer);
 
         ~Server();
 }
