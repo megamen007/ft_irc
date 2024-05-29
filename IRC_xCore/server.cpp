@@ -164,9 +164,144 @@ void Server::socket_receiving(int client_fd)
     {
         std::cout << " Received " << r << "bytes ... " << std::endl;
         std::cout << " Received Data :  " << buffer << std::endl;
-        Parcing_data_core( * buffer);
+        Parcing_data_core(buffer);
     }
     
+}
+
+std::string Server::trimming_raw_data(std::string raw_data)
+{
+    int start = 0;
+    int end = raw_data.size();
+
+    while (start < end && raw_data[start] == ' ')
+    start++;
+
+    while (end > start && raw_data[end - 1] == ' ')
+    end--;
+
+    return raw_data.substr(start, end - start);  
+}
+
+std::string Server::extaract_cmd(std::string trimmed_data)
+{
+    int start = 0;
+    int end = trimmed_data.size();
+    
+
+    while (start < end && trimmed_data[start] == ' ')
+    start++;
+    int middle = start;
+    
+    while (middle < end && trimmed_data[middle] != ' ' )
+    middle++;
+
+    return trimmed_data.substr(start, middle - start); 
+}
+std::string Server::extract_arg(std::string trimmed_data)
+{
+    int start = 0;
+    int end = trimmed_data.size();
+    
+
+    while (start < end && trimmed_data[start] == ' ')
+    start++;
+    int middle = start;
+    
+    while (middle < end && trimmed_data[middle] != ' ' )
+    middle++;
+
+    return trimmed_data.substr(middle, end - middle);
+}
+
+void Commands_errors(std::string cmd)
+{
+    std::vector <std::string> valid_Commands = {"KICK","INVITE","TOPIC","MODE"};
+
+    if (std::find(valid_Commands.begin(), valid_Commands.end(), cmd) == valid_Commands.end())
+        throw(std::runtime_error(" Invalid command : " + cmd));
+}
+
+int arguments_counter(std::string arg)
+{
+    int start = 0, counter = 0;
+    int end = arg.size();
+
+    while(start < end  && arg[start] == ' ')
+        start++;
+
+    while (start < end )
+    {
+        counter++;
+        while(start < end && arg[start] != ' ')
+        start++;
+        while(start < end  && arg[start] == ' ')
+        start++;
+    }
+    return counter;
+}
+
+void Server::multiple_args_errors(std::string cmd ,std::string arg)
+{
+
+}
+
+void Server::missing_arg_error(std::string cmd)
+{
+    if (cmd.compare("KICK") == 0)
+    {
+        // Missing target user/channel argument.
+        throw(std::runtime_error(cmd + "Missing target user/channel argument."));
+    }
+    else if (cmd.compare("TOPIC") == 0)
+    {
+        // Missing topic argument/channel argument.
+        throw(std::runtime_error(cmd + "Missing topic argument / channel argument."));
+    }
+    else if (cmd.compare("INVITE") == 0)
+    {
+        // Missing target user/channel argument.
+        throw(std::runtime_error(cmd + "Missing target user/channel argument."));
+    }
+    else if (cmd.compare("MODE") == 0)
+    {
+        // Missing target user/channel argument.
+        throw(std::runtime_error(cmd + "Missing target user/channel argument."));
+    }
+}
+
+void Arguments_errors(std::string cmd ,std::string arg)
+{
+    int x;
+    x = arguments_counter(arg);
+    if (x == 0)
+        missing_arg_error(cmd);
+    if (x == 1)
+        one_arg_errors(cmd, arg);
+    else 
+        multiple_args_errors(cmd, arg);
+}
+void Server::checking_trimmed_data_errors(std::string trimmed_data)
+{
+    //example "  KICK     -p  -o"
+    std::string cmd , arg;
+
+    cmd =  extaract_cmd(trimmed_data);
+    arg = trimming_raw_data(extract_arg(trimmed_data));
+    Commands_errors(cmd);
+    Arguments_errors(cmd , arg);
+}
+void Server::Parcing_data_core(char *buffer)
+{
+    std::string raw_data, trimmed_data ;
+    raw_data = buffer;
+    trimmed_data = trimming_raw_data(raw_data);
+    checking_trimmed_data_errors(trimmed_data);
+    // creating_list_container();
+    // filling_list_container();
+    // roles_check();
+    // executing_commands();
+
 }
 
 void Server::socket_Accepting(int socket_fd)

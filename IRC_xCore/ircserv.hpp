@@ -11,6 +11,8 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
+#include <algorithm>
+
 
 
 
@@ -33,6 +35,7 @@ class Server
     private:
         int Port;
         int Serverfd;
+        static bool Operator_status;
         static bool Signal_status;
         std::vector<Client> Clients;
         std::vector<struct pollfd> fds;
@@ -68,10 +71,25 @@ class Server
         void close_server_socket();
 
         //Parsing received DATA
-        void Parcing_data_core(char buffer);
+        void Parcing_data_core(char *buffer);
+        std::string trimming_raw_data(std::string buffer);
+        void checking_trimmed_data_errors(std::string trimmed_data);
+        std::string extaract_cmd(std::string trimmed_data);
+        std::string   extract_arg(std::string trimmed_data);
+        void Commands_errors(std::string trimmed_cmd);
+        void Arguments_errors(std::string trimmed_cmd, std::string trimmed_arg);
+        void one_arg_errors(std::string trimmed_cmd, std::string arg);
+        void multiple_args_errors(std::string trimmed_cmd, std::string arg);
+        int arguments_counter(std::string arg) ;
+        void missing_arg_error(std::string trimmed_cmd);
+        // void creating_list_container();
+        // void filling_list_container();
+        // void roles_check();
+        // void executing_commands();
 
         ~Server();
 }
 ;
+
 
 #endif
