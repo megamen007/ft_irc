@@ -13,9 +13,6 @@
 #include <arpa/inet.h>
 #include <algorithm>
 
-
-
-
 class Client
 {
     private:
@@ -39,22 +36,24 @@ class Server
         static bool Signal_status;
         std::vector<Client> Clients;
         std::vector<struct pollfd> fds;
+        std::vector <std::string> msg;
+
     
     public:
         Server();
 
         void Launching_server();
-        void Server_cycle(int socket_fd);
+        void Server_cycle();
 
 
         // Socket functions:
-        int socket_creation();
-        sockaddr_in socket_infos(int socket_fd);
-        void socket_Binding(int socket_fd, sockaddr_in serveradd);
-        void socket_non_blocking(int socket_fd);
-        void socket_listening(int socket_fd);
-        void socket_Accepting(int socket_fd);
-        void server_socket_polling(int socket_fd);
+        void socket_creation();
+        sockaddr_in socket_infos();
+        void socket_Binding(sockaddr_in serveradd);
+        void socket_non_blocking();
+        void socket_listening();
+        void socket_Accepting();
+        void server_socket_polling();
         void client_socket_polling(int client_fd);
         void socket_receiving(int client_fd);
 
@@ -82,10 +81,21 @@ class Server
         void multiple_args_errors(std::string trimmed_cmd, std::string arg);
         int arguments_counter(std::string arg) ;
         void missing_arg_error(std::string trimmed_cmd);
-        // void creating_list_container();
-        // void filling_list_container();
+        void creating_msg_container(std::string trimmed_cmd);
+        std::vector <std::string> filling_msg_container(std::string trimmed_cmd);
         // void roles_check();
-        // void executing_commands();
+        void executing_commands();
+
+
+        // Commands to Executes :
+        // kick_func();  
+        // invite_func();
+        // mode_func(); 
+        // topic_func();
+        // join_func();
+        // privemsg_func();
+
+
 
         ~Server();
 }

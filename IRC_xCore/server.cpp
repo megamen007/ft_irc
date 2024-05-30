@@ -61,20 +61,18 @@ void  Server::Remove_Client(int id)
     remove_c_from_Vector(id);
 }
 
-int Server::socket_creation()
+void Server::socket_creation()
 {
     // 1 - socket creation 
-    int socket_fd ;
     // socket(domaine , type , protocol);
-    socket_fd =  socket(AF_INET, SOCK_STREAM, 0);
-    if (socket_fd < 0)
+    Serverfd =  socket(AF_INET, SOCK_STREAM, 0);
+    if (Serverfd < 0)
     {
         throw(std::runtime_error(" Socket Creation failed "));
     }
-    return socket_fd;
 }
 
-sockaddr_in Server::socket_infos(int socket_fd)
+sockaddr_in Server::socket_infos()
 {
     // 2 - defining server address  i can use setsockopt also for this 
     sockaddr_in serveradd;
@@ -85,48 +83,48 @@ sockaddr_in Server::socket_infos(int socket_fd)
     serveradd.sin_addr.s_addr = INADDR_ANY ; // it is used when we dont want to bind our network to any particular IP and make it listen to all available IPs
     
     int enabling_reuse = 1;
-    int infos_status = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &enabling_reuse, sizeof(enabling_reuse));
+    int infos_status = setsockopt(Serverfd, SOL_SOCKET, SO_REUSEADDR, &enabling_reuse, sizeof(enabling_reuse));
     if (infos_status < 0)
     {
         throw(std::runtime_error(" failed to make the local address reusable "));
     }
     return serveradd;
 }
-void Server::socket_non_blocking(int socket_fd)
+void Server::socket_non_blocking()
 {
-    int non_blocking_status = fcntl(socket_fd, F_SETFL, O_NONBLOCK);
+    int non_blocking_status = fcntl(Serverfd, F_SETFL, O_NONBLOCK);
     if (non_blocking_status < 0)
     {
         throw(std::runtime_error(" failed to make the socket non blocking "));
     }
 }
-void Server::socket_Binding(int socket_fd, sockaddr_in serveradd)
+void Server::socket_Binding(sockaddr_in serveradd)
 {
     // 3 - Binding server socket 
     // bind function : The bind function in socket programming is used to associate a socket with a specific network address, such as an IP address and port number, on the local machine.
     // syntax : bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-    int bind_status = bind( socket_fd , (struct sockaddr*) &serveradd , sizeof(serveradd)) < 0)
-    if (bind_status)
+    int bind_status = bind(Serverfd , (struct sockaddr*) &serveradd , sizeof(serveradd));
+    if (bind_status < 0)
     {
         throw(std::runtime_error(" Bind Failed ..."));
     }
 }
 
-void Server::socket_listening(int socket_fd)
+void Server::socket_listening()
 {
     // 4 - listen for incoming connections 
-    int listening_status = listen(socket_fd ,  SOMAXCONN);
+    int listening_status = listen(Serverfd ,  SOMAXCONN);
     if ( listening_status < 0)
     {
         throw(std::runtime_error(" listen Failed ..."));
     }
 }
 
-void Server::server_socket_polling(int socket_fd)
+void Server::server_socket_polling()
 {
     struct pollfd Poll;
 
-    Poll.fd = socket_fd;
+    Poll.fd = Serverfd;
     Poll.events = POLL_IN;
     Poll.revents = 0;
 
@@ -241,11 +239,17 @@ int arguments_counter(std::string arg)
     return counter;
 }
 
-void Server::multiple_args_errors(std::string cmd ,std::string arg)
+void Server::Arguments_errors(std::string cmd ,std::string arg)
 {
-
+    int x;
+    x = arguments_counter(arg);
+    if (x == 0)
+        missing_arg_error(cmd);
+    // if (x == 1)
+    //     one_arg_errors(cmd, arg);
+    // else 
+    //     multiple_args_errors(cmd, arg);
 }
-
 void Server::missing_arg_error(std::string cmd)
 {
     if (cmd.compare("KICK") == 0)
@@ -269,18 +273,6 @@ void Server::missing_arg_error(std::string cmd)
         throw(std::runtime_error(cmd + "Missing target user/channel argument."));
     }
 }
-
-void Arguments_errors(std::string cmd ,std::string arg)
-{
-    int x;
-    x = arguments_counter(arg);
-    if (x == 0)
-        missing_arg_error(cmd);
-    if (x == 1)
-        one_arg_errors(cmd, arg);
-    else 
-        multiple_args_errors(cmd, arg);
-}
 void Server::checking_trimmed_data_errors(std::string trimmed_data)
 {
     //example "  KICK     -p  -o"
@@ -291,26 +283,83 @@ void Server::checking_trimmed_data_errors(std::string trimmed_data)
     Commands_errors(cmd);
     Arguments_errors(cmd , arg);
 }
+
+std::vector <std::string> Server::filling_msg_container(std::string trimmed_data)
+{
+    std::vector <std::string> eternal;
+    std::string cmd , arg;
+
+    cmd =  extaract_cmd(trimmed_data);
+    arg = trimming_raw_data(extract_arg(trimmed_data));
+
+    eternal.push_back(cmd);
+    if (arguments_counter(arg) == 1)
+        eternal.push_back(arg);
+    else if (arguments_counter(arg) > 1)
+    {
+        int start = 0;
+        int end = arg.find(' ');
+        while(end != -1)
+        {
+            eternal.push_back(trimming_raw_data(arg.substr(start, end - start)));
+            start = end + 1;
+            end = arg.find(' ', start);
+        }
+        eternal.push_back(trimming_raw_data(arg.substr(start, end - start)));
+    }
+    return msg;
+} 
+void Server::creating_msg_container(std::string trimmed_data)
+{
+    msg =  filling_msg_container(trimmed_data);
+}
+
+// void Server::executing_commands()
+// {
+//     if(Operator_status == 1)
+//     {
+//         // operator priveleges :
+//         if (msg[0].compare("KICK") == 0)
+//             // kick_func();  
+//         else if (msg[0].compare("INVITE") == 0) 
+//             // invite_func();
+//         else if (msg[0].compare("MODE") == 0) 
+//             // mode_func(); 
+//         else if (msg[0].compare("TOPIC") == 0)
+//             // topic_func();
+//         else if (msg[0].compare("JOIN") == 0) 
+//         // normal User priveleges :
+//             // join_func();
+//         else if (msg[0].compare("PRIVEMSG") == 0) 
+//             // privemsg_func();
+//     }
+//     else 
+//     { 
+//         // normal User priveleges :
+//         if (msg[0].compare("JOIN") == 0) 
+//             // join_func();
+//         else if (msg[0].compare("PRIVEMSG") == 0) 
+//             // privemsg_func()
+//     }
+// }
 void Server::Parcing_data_core(char *buffer)
 {
     std::string raw_data, trimmed_data ;
     raw_data = buffer;
     trimmed_data = trimming_raw_data(raw_data);
     checking_trimmed_data_errors(trimmed_data);
-    // creating_list_container();
-    // filling_list_container();
+    creating_msg_container(trimmed_data);
     // roles_check();
-    // executing_commands();
-
+    executing_commands();
 }
 
-void Server::socket_Accepting(int socket_fd)
+void Server::socket_Accepting()
 {
     Client Exodia;
     struct sockaddr_in clientadd;
     socklen_t len = sizeof(clientadd);
 
-    int coming_fd = accept(socket_fd, (sockaddr *)&(clientadd), &len);
+    int coming_fd = accept(Serverfd, (sockaddr *)&(clientadd), &len);
 
     if (coming_fd == -1)
     {
@@ -331,7 +380,7 @@ void Server::socket_Accepting(int socket_fd)
     
     std::cout << " Client connected " << std::endl;
 }
-void Server::Server_cycle(int socket_fd)
+void Server::Server_cycle()
 {
     while(Server::Signal_status == false)
     {
@@ -345,8 +394,8 @@ void Server::Server_cycle(int socket_fd)
         {
             if (fds[i].revents & POLLIN)
             {
-                if (fds[i].fd == socket_fd)
-                    socket_Accepting(socket_fd);
+                if (fds[i].fd == Serverfd)
+                    socket_Accepting();
                 else 
                     socket_receiving(fds[i].fd);
             }
@@ -359,24 +408,19 @@ void Server::Server_cycle(int socket_fd)
 void Server::Launching_server()
 {
     this->Port = 8080;
-    int soc_fd = socket_creation();
-    sockaddr_in freemon = socket_infos(soc_fd);
-    socket_non_blocking(soc_fd);
-    socket_Binding(soc_fd, freemon);
-    socket_listening(soc_fd);
-    server_socket_polling(soc_fd);
+    socket_creation();
+    sockaddr_in freemon = socket_infos();
+    socket_non_blocking();
+    socket_Binding(freemon);
+    socket_listening();
+    server_socket_polling();
 
     std::cout << " Your Server Sir is in the Listening mode waiting for incoming connections ... " << std::endl;
     std::cout << " Waiting to accept Connections " << std::endl;
 
-    Server_cycle(soc_fd);
+    Server_cycle();
 }
-
-// void Server::Parcing_data_core(char *buffer)
-// {
-
-// }
 
 
 // Brain storming :
-// dont forget to delete the socket_fd in socket creation fn and replace it with serverfd that is declared in server class , and also remove it from function that can actually call it without the need of an argument related to them . 
+// dont forget to delete the Serverfd in socket creation fn and replace it with serverfd that is declared in server class , and also remove it from function that can actually call it without the need of an argument related to them . 
