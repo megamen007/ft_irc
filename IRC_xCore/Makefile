@@ -2,11 +2,11 @@ CC = c++
 
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98
 
-CLIENT_SRC = A.cpp
+CLIENT_SRC = Client.cpp
 CLIENT_OBJ = $(CLIENT_SRC:.cpp=.o)
 NAME_CLIENT = client
 
-SERVER_SRC = B.cpp 
+SERVER_SRC = server.cpp 
 SERVER_OBJ = $(SERVER_SRC:.cpp=.o)
 NAME_SERVER = server
 

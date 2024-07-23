@@ -13,18 +13,46 @@
 #include <arpa/inet.h>
 #include <algorithm>
 
+// class Channel {
+//     private:
+//         std::string Name;
+//         bool invite_status;
+//         int limit;
+//         std::string topic;
+//         std::string pass;
+//         std::vector <Client&> users;
+//         std::vector <Client&> operators;
+//     public:
+//         Channel();
+//         ~Channel();
+//         Channel(const Channel& other);
+//         Channel& operator=(const Channel &other);
+//         std::string getName();
+//         void setName(std::string Name);
+//         int getLimit();
+//         void setLimit(int limit);
+//         std::string getTopic();
+//         void setTopic(std::string topic);
+//         void setPass(int pass);
+//         int getPass();
+// };
+
 class Client
 {
     private:
-        int clientfd;
+        std::string  name;
+        // int clientfd;
         std::string clientIP; 
-    
+        // channels (normal ones);
+        // channels (invited only);
+        // bool Operator_status;
+
     public:
-        Client();
-        void set_clientfd(int clientfd);
-        void set_clientIP(std::string clientIP);
-        int get_clientfd();
-        ~Client();
+        // Client();
+        // void set_clientfd(int clientfd);
+        // void set_clientIP(std::string clientIP);
+        // int get_clientfd();
+        // ~Client();
 };
 
 class Server
@@ -32,15 +60,15 @@ class Server
     private:
         int Port;
         int Serverfd;
-        static bool Operator_status;
-        static bool Signal_status;
+        bool Signal_status;
         std::vector<Client> Clients;
         std::vector<struct pollfd> fds;
         std::vector <std::string> msg;
 
     
     public:
-        Server();
+
+        // Server();
 
         void Launching_server();
         void Server_cycle();
@@ -58,33 +86,37 @@ class Server
         void socket_receiving(int client_fd);
 
         // Signal functions:
-
         static void Signal_Handler(int signal_num);
 
         //Removing functions:
-        void Remove_Client(int client_fd);
-        void remove_c_from_pollfd(int id);
-        void remove_c_from_Vector(int id);
-        void Close_filedescriptors();
-        void close_all_clients();
-        void close_server_socket();
+        // void Remove_Client(int client_fd);
+        // void remove_c_from_pollfd(int id);
+        // void remove_c_from_Vector(int id);
+        // void Close_filedescriptors();
+        // void close_all_clients();
+        // void close_server_socket();
 
         //Parsing received DATA
-        void Parcing_data_core(char *buffer);
-        std::string trimming_raw_data(std::string buffer);
-        void checking_trimmed_data_errors(std::string trimmed_data);
-        std::string extaract_cmd(std::string trimmed_data);
-        std::string   extract_arg(std::string trimmed_data);
-        void Commands_errors(std::string trimmed_cmd);
-        void Arguments_errors(std::string trimmed_cmd, std::string trimmed_arg);
-        void one_arg_errors(std::string trimmed_cmd, std::string arg);
-        void multiple_args_errors(std::string trimmed_cmd, std::string arg);
-        int arguments_counter(std::string arg) ;
-        void missing_arg_error(std::string trimmed_cmd);
-        void creating_msg_container(std::string trimmed_cmd);
-        std::vector <std::string> filling_msg_container(std::string trimmed_cmd);
+        // void Parcing_data_core(char *buffer);
+        // std::string trimming_raw_data(std::string buffer);
+        // void checking_trimmed_data_errors(std::string trimmed_data);
+        // std::string extaract_cmd(std::string trimmed_data);
+        // std::string   extract_arg(std::string trimmed_data);
+        // void Commands_errors(std::string trimmed_cmd);
+        // void Arguments_errors(std::string trimmed_cmd, std::string trimmed_arg);
+        // void one_arg_errors(std::string trimmed_cmd, std::string arg);
+        // void multiple_args_errors(std::string trimmed_cmd, std::string arg);
+        // int arguments_counter(std::string arg) ;
+        // void missing_arg_error(std::string trimmed_cmd);
+        // void creating_msg_container(std::string trimmed_cmd);
+        // std::vector <std::string> filling_msg_container(std::string trimmed_cmd);
         // void roles_check();
-        void executing_commands();
+        // void executing_commands();
+
+        // Connection Registrations Commands :
+        // Pass_func();
+        // Nick_func();
+        // User-func();
 
 
         // Commands to Executes :
@@ -97,9 +129,8 @@ class Server
 
 
 
-        ~Server();
+        // ~Server();
 }
 ;
-
 
 #endif
