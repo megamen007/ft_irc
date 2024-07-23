@@ -41,7 +41,7 @@ class Client
 {
     private:
         std::string  name;
-        // int clientfd;
+        int clientfd;
         std::string clientIP; 
         // channels (normal ones);
         // channels (invited only);
@@ -51,7 +51,7 @@ class Client
         // Client();
         // void set_clientfd(int clientfd);
         // void set_clientIP(std::string clientIP);
-        // int get_clientfd();
+        int get_clientfd();
         // ~Client();
 };
 
@@ -89,25 +89,27 @@ class Server
         static void Signal_Handler(int signal_num);
 
         //Removing functions:
-        // void Remove_Client(int client_fd);
-        // void remove_c_from_pollfd(int id);
-        // void remove_c_from_Vector(int id);
-        // void Close_filedescriptors();
-        // void close_all_clients();
-        // void close_server_socket();
+        void Remove_Client(int client_fd);
+        void remove_c_from_pollfd(int id);
+        void remove_c_from_Vector(int id);
+        void Close_filedescriptors();
+        void close_all_clients();
+        void close_server_socket();
 
-        //Parsing received DATA
-        // void Parcing_data_core(char *buffer);
-        // std::string trimming_raw_data(std::string buffer);
-        // void checking_trimmed_data_errors(std::string trimmed_data);
-        // std::string extaract_cmd(std::string trimmed_data);
-        // std::string   extract_arg(std::string trimmed_data);
-        // void Commands_errors(std::string trimmed_cmd);
-        // void Arguments_errors(std::string trimmed_cmd, std::string trimmed_arg);
-        // void one_arg_errors(std::string trimmed_cmd, std::string arg);
-        // void multiple_args_errors(std::string trimmed_cmd, std::string arg);
-        // int arguments_counter(std::string arg) ;
-        // void missing_arg_error(std::string trimmed_cmd);
+        // Parsing received DATA
+        void Parcing_data_core(char *buffer);
+        std::string trimming_raw_data(std::string buffer);
+        void checking_trimmed_data_errors(std::string trimmed_data);
+        std::string extaract_cmd(std::string trimmed_data);
+        std::string   extract_arg(std::string trimmed_data);
+        std::string extract_flags(std::string trimmed_data);
+        void Commands_errors(std::string& cmd);
+        void Arguments_errors(std::string trimmed_cmd, std::string trimmed_arg, std::string flags);
+        void flags_errors(std::string cmd ,std::string flags);
+        void one_arg_errors(std::string trimmed_cmd);
+        void multiple_args_errors(std::string trimmed_cmd, std::string arg);
+        int arguments_counter(std::string arg) ;
+        void missing_arg_error(std::string trimmed_cmd, std::string arg);
         // void creating_msg_container(std::string trimmed_cmd);
         // std::vector <std::string> filling_msg_container(std::string trimmed_cmd);
         // void roles_check();

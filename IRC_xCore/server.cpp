@@ -1,5 +1,12 @@
 #include "ircserv.hpp"
 
+// getters & setters :
+
+int Client::get_clientfd()
+{
+    return clientfd;
+}
+
 // void Server::Signal_Handler(int signum)
 // {
 //     (void)signum; // why ?
@@ -8,58 +15,58 @@
 //     Server::Signal_status = true;
 // }
 
-// void Server::remove_c_from_pollfd(int id)
-// {
-//     int i = 0 ;
-//     while(i < fds.size() )
-//     {
-//         if (fds[i].fd == id)
-//             fds.erase(fds.begin() + i);
-//         i++;
-//     }
-// }
-// void Server::remove_c_from_Vector(int id)
-// {
-//     int i = 0 ;
-//     while(i < Clients.size() )
-//     {
-//         if (Clients[i].get_clientfd() == id)
-//             Clients.erase(Clients.begin() + i);
-//         i++;
-//     }
-// }
+void Server::remove_c_from_pollfd(int id)
+{
+    size_t i = 0 ;
+    while(i < fds.size() )
+    {
+        if (fds[i].fd == id)
+            fds.erase(fds.begin() + i);
+        i++;
+    }
+}
+void Server::remove_c_from_Vector(int id)
+{
+    size_t i = 0 ;
+    while(i < Clients.size() )
+    {
+        if (Clients[i].get_clientfd() == id)
+            Clients.erase(Clients.begin() + i);
+        i++;
+    }
+}
+void  Server::Remove_Client(int id)
+{
+    remove_c_from_pollfd(id);
+    remove_c_from_Vector(id);
+}
 
-// void Server::close_all_clients()
-// {
-//     int i = 0;
-//     while( i < Clients.size())
-//     {
-//         std::cout << " Client " << Clients[i].get_clientfd() << " Disconnected ..." << std::endl;
-//         close(Clients[i].get_clientfd());
-//         i++;
-//     }
-// }
+void Server::close_all_clients()
+{
+    size_t i = 0;
+    while( i < Clients.size())
+    {
+        std::cout << " Client " << Clients[i].get_clientfd() << " Disconnected ..." << std::endl;
+        close(Clients[i].get_clientfd());
+        i++;
+    }
+}
 
-// void Server::close_server_socket()
-// {
-//     if (Serverfd != -1)
-//     {
-//         std::cout << " Server  Disconnected " << std::endl;
-//         close(Serverfd);
-//     }
-// }
+void Server::close_server_socket()
+{
+    if (Serverfd != -1)
+    {
+        std::cout << " Server  Disconnected " << std::endl;
+        close(Serverfd);
+    }
+}
 
-// void Server::Close_filedescriptors()
-// {
-//     close_all_clients();
-//     close_server_socket();
-// }
+void Server::Close_filedescriptors()
+{
+    close_all_clients();
+    close_server_socket();
+}
 
-// void  Server::Remove_Client(int id)
-// {
-//     remove_c_from_pollfd(id);
-//     remove_c_from_Vector(id);
-// }
 
 void Server::socket_creation()
 {
@@ -136,7 +143,7 @@ void Server::client_socket_polling(int client_fd)
     struct pollfd NPoll;
 
     NPoll.fd = client_fd;
-    NPoll.events = POLL_IN;
+    NPoll.events = POLLIN;
     NPoll.revents = 0;
     
     fds.push_back(NPoll);
@@ -150,7 +157,7 @@ void Server::socket_receiving(int client_fd)
     if (r < 0)
     {
         perror(" --> receiving stage failed ... ");
-        // Remove_Client(client_fd);
+        Remove_Client(client_fd);
         close(client_fd);
     }
     else if (r == 0)
@@ -160,110 +167,157 @@ void Server::socket_receiving(int client_fd)
     }
     else 
     {
-        std::cout << " Received " << r << "bytes ... " << std::endl;
+        std::cout << " Received " << r << "  bytes ... " << std::endl;
         std::cout << " Received Data :  " << buffer << std::endl;
-        // Parcing_data_core(buffer);
+        Parcing_data_core(buffer);
     }
     
 }
 
-// std::string Server::trimming_raw_data(std::string raw_data)
-// {
-//     int start = 0;
-//     int end = raw_data.size();
+std::string Server::trimming_raw_data(std::string raw_data)
+{
+    int start = 0;
+    int end = raw_data.size();
 
-//     while (start < end && raw_data[start] == ' ')
-//     start++;
+    while (start < end && raw_data[start] == ' ')
+    start++;
 
-//     while (end > start && raw_data[end - 1] == ' ')
-//     end--;
+    while (end > start && raw_data[end - 1] == ' ')
+    end--;
 
-//     return raw_data.substr(start, end - start);  
-// }
+    return raw_data.substr(start, end - start);  
+}
 
-// std::string Server::extaract_cmd(std::string trimmed_data)
-// {
-//     int start = 0;
-//     int end = trimmed_data.size();
+std::string Server::extaract_cmd(std::string trimmed_data)
+{
+    int start = 0;
+    int end = trimmed_data.size();
     
 
-//     while (start < end && trimmed_data[start] == ' ')
-//     start++;
-//     int middle = start;
+    while (start < end && trimmed_data[start] == ' ')
+    start++;
+    int middle = start;
     
-//     while (middle < end && trimmed_data[middle] != ' ' )
-//     middle++;
+    while (middle < end && trimmed_data[middle] != ' ' )
+    middle++;
 
-//     return trimmed_data.substr(start, middle - start); 
-// }
+    return trimmed_data.substr(start, middle - start); 
+}
 
-// std::string Server::extract_arg(std::string trimmed_data)
-// {
-//     int start = 0;
-//     int end = trimmed_data.size();
+std::string Server::extract_arg(std::string trimmed_data)
+{
+    int start = 0;
+    int end = trimmed_data.size();
     
 
-//     while (start < end && trimmed_data[start] == ' ')
-//     start++;
-//     int middle = start;
+    while (start < end && trimmed_data[start] == ' ')
+        start++;
+    int middle = start;
     
-//     while (middle < end && trimmed_data[middle] != ' ' )
-//     middle++;
+    while (middle < end && trimmed_data[middle] != ' ' )
+        middle++;
 
-//     return trimmed_data.substr(middle, end - middle);
-// }
+    return trimmed_data.substr(middle, end - middle);
+}
+" KICK  -i fbvd fvdvds fsbvsfbv"
+std::string Server::extract_flags(std::string trimmed_data)
+{
+    int start = 0;
+    int end = trimmed_data.size();
+    while (start < end && (trimmed_data[start] != '-' || trimmed_data[start] == ' '))
+        start++;
+    int middle = start;
 
-// void Commands_errors(std::string cmd)
-// {
-//     std::vector <std::string> valid_Commands = {"KICK","INVITE","TOPIC","MODE"};
+    return trimmed_data.substr(middle, end - middle);
+}
 
-//     if (std::find(valid_Commands.begin(), valid_Commands.end(), cmd) == valid_Commands.end())
-//         throw(std::runtime_error(" Invalid command : " + cmd));
-// }
+void Server::Commands_errors(std::string& cmd)
+{
+    const char* validCommands[] = {"KICK","INVITE","TOPIC","MODE","PASS","USER","PRIVEMSG","JOIN","NICK"};
+    const std::vector <std::string> valid_Commands (validCommands, validCommands + 9);
 
-// int arguments_counter(std::string arg)
-// {
-//     int start = 0, counter = 0;
-//     int end = arg.size();
+    if (std::find(valid_Commands.begin(), valid_Commands.end(), cmd) == valid_Commands.end())
+        std::cout << " the command that u write is incorrect , please rewrite ur command  "<< std::endl;
 
-//     while(start < end  && arg[start] == ' ')
-//         start++;
+    else 
+        std::cout << " clean grammar , good boy " << std::endl;
+}
 
-//     while (start < end )
-//     {
-//         counter++;
-//         while(start < end && arg[start] != ' ')
-//         start++;
-//         while(start < end  && arg[start] == ' ')
-//         start++;
-//     }
-//     return counter;
-// }
+int Server::arguments_counter(std::string arg)
+{
+    int start = 0, counter = 0;
+    int end = arg.size();
 
-// void Server::Arguments_errors(std::string cmd ,std::string arg)
-// {
-//     int x;
-//     x = arguments_counter(arg);
-//     if (x == 0)
-//         missing_arg_error(cmd);
-//     // if (x == 1)
-//     //     one_arg_errors(cmd, arg);
-//     // else 
-//     //     multiple_args_errors(cmd, arg);
-// }
+    while(start < end  && arg[start] == ' ')
+        start++;
 
-// 
+    while (start < end )
+    {
+        counter++;
+        while(start < end && arg[start] != ' ')
+        start++;
+        while(start < end  && arg[start] == ' ')
+        start++;
+    }
+    return counter;
+}
+void Server::missing_arg_error(std::string cmd, std::string arg)
+{
+    if ((cmd.compare("MODE") == 0) && (arg.compare("-i") || arg.compare("-t") || arg.compare("-k") || arg.compare("-o") || arg.compare("-l")) == 0)
+        std::cout << " this command necessary need some certain flag like : -i , -t , -k , -o, -l" << std::endl;
+}
 
-// void Server::checking_trimmed_data_errors(std::string trimmed_data)
-// {
-//     //example "  KICK     -p  -o"
-//     std::string cmd , arg;
+void Server::one_arg_errors(std::string cmd)
+{
+    if (cmd.compare("TOPIC") == 0)
+        std::cout << " this command necessary doesn't need any flags " << std::endl;
+    else if (cmd.compare("KICK") == 0)
+        std::cout << " this command necessary doesn't need any flags " << std::endl;
+    else if (cmd.compare("NICK") == 0)
+        std::cout << " this command necessary doesn't need any flags " << std::endl;
+    else if (cmd.compare("PASS") == 0)
+        std::cout << " this command necessary doesn't need any flags " << std::endl;
+    else if (cmd.compare("USER") == 0)
+        std::cout << " this command necessary doesn't need any flags " << std::endl;
+    else if (cmd.compare("JOIN") == 0)
+        std::cout << " this command necessary doesn't need any flags " << std::endl;
+    else if (cmd.compare("PRIVEMSG") == 0)
+        std::cout << " this command necessary doesn't need any flags " << std::endl;
+    else if (cmd.compare("INVITE") == 0)
+        std::cout << " this command necessary doesn't need any flags " << std::endl;
+}
+void Server::Arguments_errors(std::string cmd ,std::string arg, std::string flags)
+{
+    int x;
+    x = arguments_counter(flags);
+    std::cout << x << std::endl;
+    if (x == 0)
+        missing_arg_error(cmd , arg);
+    if (x == 1)
+        one_arg_errors(cmd);
+}
+void Server::flags_errors(std::string cmd, std::string flags)
+{
+        if ((flags[1] != 'i' || flags[1] != 't'|| flags[1] != 'k' || flags[1] != 'o' || flags[1] != 'l') && (cmd.compare("MODE") == 0)) 
+            std::cout << "the flag that u enter doesn't match the available flags list , please rertry an available one " << std::endl;
+}
+void Server::checking_trimmed_data_errors(std::string trimmed_data)
+{
+    //example "  KICK     -p  -o"
+    std::string cmd , arg, flags;
 
-//     cmd =  extaract_cmd(trimmed_data);
-//     arg = trimming_raw_data(extract_arg(trimmed_data));
-//     Commands_errors(cmd);
-//     Arguments_errors(cmd , arg);
-// }
+    std::cout << " ---> trimmed_data : " << trimmed_data << std::endl ;
+
+    cmd =  extaract_cmd(trimmed_data);
+    std::cout << " cmd : " << cmd << std::endl;
+    arg = trimming_raw_data(extract_arg(trimmed_data));
+    std::cout << " args : " << arg << std::endl;
+    flags = trimming_raw_data(extract_flags(trimmed_data));
+    std::cout << " flags : " << flags << std::endl;
+    Commands_errors(cmd);
+    Arguments_errors(cmd , arg , flags);
+    flags_errors(cmd , flags);
+}
 
 // std::vector <std::string> Server::filling_msg_container(std::string trimmed_data)
 // {
@@ -310,7 +364,6 @@ void Server::socket_receiving(int client_fd)
 //         else if (msg[0].compare("TOPIC") == 0)
 //             // topic_func();
 //         else if (msg[0].compare("JOIN") == 0) 
-//         // normal User priveleges :
 //             // join_func();
 //         else if (msg[0].compare("PRIVEMSG") == 0) 
 //             // privemsg_func();
@@ -322,18 +375,25 @@ void Server::socket_receiving(int client_fd)
 //             // join_func();
 //         else if (msg[0].compare("PRIVEMSG") == 0) 
 //             // privemsg_func()
+//         else if (msg[0].compare("NICK") == 0) 
+//             // nick_func(); 
+//         else if (msg[0].compare("USER") == 0)
+//             // user_func();
+//         else if (msg[0].compare("PASS") == 0) 
+//             // pass_func();
 //     }
 // }
-// void Server::Parcing_data_core(char *buffer)
-// {
-//     std::string raw_data, trimmed_data ;
-//     raw_data = buffer;
-//     trimmed_data = trimming_raw_data(raw_data);
-//     checking_trimmed_data_errors(trimmed_data);
-//     creating_msg_container(trimmed_data);
-//     // roles_check();
-//     executing_commands();
-// }
+
+void Server::Parcing_data_core(char *buffer)
+{
+    std::string raw_data, trimmed_data ;
+    raw_data = buffer;
+    trimmed_data = trimming_raw_data(raw_data);
+    checking_trimmed_data_errors(trimmed_data);
+    // creating_msg_container(trimmed_data);
+    // roles_check();
+    // executing_commands();
+}
 
 void Server::socket_Accepting()
 {
@@ -350,7 +410,7 @@ void Server::socket_Accepting()
     if (non_blocking_status < 0)
         throw(std::runtime_error(" ---> failed to make the socket non blocking "));
 
-    // client_socket_polling(coming_fd);
+    client_socket_polling(coming_fd);
 
     // Exodia.set_clientfd(coming_fd);
     // Exodia.set_clientIP(inet_ntoa(clientadd.sin_addr));
@@ -362,7 +422,7 @@ void Server::Server_cycle()
 {
     while(Server::Signal_status == false)
     {
-        if((poll(&fds[0], fds.size(), -1) == -1) && Server::Signal_status == false)
+        if((poll(fds.data(), fds.size(), -1) == -1) && Server::Signal_status == false)
         {
             throw(std::runtime_error(" ---> poll stage failed "));
         }
@@ -380,7 +440,7 @@ void Server::Server_cycle()
             i++;
         }
     }
-    // Close_filedescriptors();
+    Close_filedescriptors();
 }
 
 void Server::Launching_server()
