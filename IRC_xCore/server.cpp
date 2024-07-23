@@ -203,6 +203,20 @@ std::string Server::extaract_cmd(std::string trimmed_data)
 
     return trimmed_data.substr(start, middle - start); 
 }
+std::string Server::extract_arg_v2(std::string trimmed_data)
+{
+    int start = 0;
+    int end = trimmed_data.size();
+    
+    while (start < end && trimmed_data[start] == ' ')
+        start++;
+    int middle = start;
+    
+    while (middle < end && trimmed_data[middle] != ' ' )
+        middle++;
+    
+    return trimmed_data.substr(middle, end - middle);
+}
 
 std::string Server::extract_arg(std::string trimmed_data)
 {
@@ -210,25 +224,38 @@ std::string Server::extract_arg(std::string trimmed_data)
     int end = trimmed_data.size();
     
 
+    while (start < end && trimmed_data[start] != '-')
+        start++;
+
     while (start < end && trimmed_data[start] == ' ')
         start++;
     int middle = start;
     
     while (middle < end && trimmed_data[middle] != ' ' )
         middle++;
-
+    
     return trimmed_data.substr(middle, end - middle);
 }
-" KICK  -i fbvd fvdvds fsbvsfbv"
+// " KICK  -i fbvd fvdvds fsbvsfbv"
 std::string Server::extract_flags(std::string trimmed_data)
 {
     int start = 0;
     int end = trimmed_data.size();
-    while (start < end && (trimmed_data[start] != '-' || trimmed_data[start] == ' '))
-        start++;
-    int middle = start;
 
-    return trimmed_data.substr(middle, end - middle);
+    while (start < end && trimmed_data[start] != '-')
+        start++;
+    
+    // Check if start is at the end or if the next character is not within valid flags
+    if (start == end || (trimmed_data[start + 1] != 'i' && trimmed_data[start + 1] != 't' &&
+                         trimmed_data[start + 1] != 'o' && trimmed_data[start + 1] != 'k' &&
+                         trimmed_data[start + 1] != 'l'))
+    {
+        return "Invalid flag";
+    }
+    else 
+    {
+        return trimmed_data.substr(start, 2); // Extract the dash and the flag character
+    }
 }
 
 void Server::Commands_errors(std::string& cmd)
@@ -298,22 +325,30 @@ void Server::Arguments_errors(std::string cmd ,std::string arg, std::string flag
 }
 void Server::flags_errors(std::string cmd, std::string flags)
 {
-        if ((flags[1] != 'i' || flags[1] != 't'|| flags[1] != 'k' || flags[1] != 'o' || flags[1] != 'l') && (cmd.compare("MODE") == 0)) 
-            std::cout << "the flag that u enter doesn't match the available flags list , please rertry an available one " << std::endl;
+    std::cout << flags << std::endl ;
+    std::cout << cmd << std::endl;
+        if ( (flags.compare("Invalid flag") == 0) && (cmd.compare("MODE") == 0)) 
+            std::cout << " the flags that u enter doesn't match the available flag list , please try another flag " << std::endl;
+        else if ((flags.compare("Invalid flag" ) == 0) && ((cmd.compare("KICK") == 0 ) || (cmd.compare("JOIN") == 0 ) ||
+        (cmd.compare("USER") == 0 ) || (cmd.compare("PASS") == 0 ) || (cmd.compare("TOPIC") == 0 ) || (cmd.compare("PRIVEMSG") == 0 ) ||
+        (cmd.compare("MODE") == 0 ) || (cmd.compare("NICK") == 0 )))
+            std::cout << " the flag u mentioned doesn't seems compatible with the Command that u entered , please retry with another compatible Commande " << std::endl;
 }
 void Server::checking_trimmed_data_errors(std::string trimmed_data)
 {
-    //example "  KICK     -p  -o"
-    std::string cmd , arg, flags;
+        std::string cmd , arg, flags;
 
     std::cout << " ---> trimmed_data : " << trimmed_data << std::endl ;
 
     cmd =  extaract_cmd(trimmed_data);
-    std::cout << " cmd : " << cmd << std::endl;
-    arg = trimming_raw_data(extract_arg(trimmed_data));
-    std::cout << " args : " << arg << std::endl;
+    // std::cout << " cmd : " << cmd << std::endl;
     flags = trimming_raw_data(extract_flags(trimmed_data));
-    std::cout << " flags : " << flags << std::endl;
+    // std::cout << " flags : " << flags << std::endl;
+    if (flags.compare("Invalid flag") == 0)
+        arg = trimming_raw_data(extract_arg_v2(trimmed_data));
+    else if (!(flags.compare("Invalid flag") == 0))
+        arg = trimming_raw_data(extract_arg(trimmed_data));
+    std::cout << " args : " << arg << std::endl;
     Commands_errors(cmd);
     Arguments_errors(cmd , arg , flags);
     flags_errors(cmd , flags);
@@ -350,39 +385,39 @@ void Server::checking_trimmed_data_errors(std::string trimmed_data)
 //     msg =  filling_msg_container(trimmed_data);
 // }
 
-// void Server::executing_commands()
-// {
-//     if(Operator_status == 1)
-//     {
-//         // operator priveleges :
-//         if (msg[0].compare("KICK") == 0)
-//             // kick_func();  
-//         else if (msg[0].compare("INVITE") == 0) 
-//             // invite_func();
-//         else if (msg[0].compare("MODE") == 0) 
-//             // mode_func(); 
-//         else if (msg[0].compare("TOPIC") == 0)
-//             // topic_func();
-//         else if (msg[0].compare("JOIN") == 0) 
-//             // join_func();
-//         else if (msg[0].compare("PRIVEMSG") == 0) 
-//             // privemsg_func();
-//     }
-//     else 
-//     { 
-//         // normal User priveleges :
-//         if (msg[0].compare("JOIN") == 0) 
-//             // join_func();
-//         else if (msg[0].compare("PRIVEMSG") == 0) 
-//             // privemsg_func()
-//         else if (msg[0].compare("NICK") == 0) 
-//             // nick_func(); 
-//         else if (msg[0].compare("USER") == 0)
-//             // user_func();
-//         else if (msg[0].compare("PASS") == 0) 
-//             // pass_func();
-//     }
-// }
+void Server::executing_commands()
+{
+    if(Operator_status == 1)
+    {
+        // operator priveleges :
+        if (msg[0].compare("KICK") == 0)
+            // kick_func();  
+        else if (msg[0].compare("INVITE") == 0) 
+            // invite_func();
+        else if (msg[0].compare("MODE") == 0) 
+            // mode_func(); 
+        else if (msg[0].compare("TOPIC") == 0)
+            // topic_func();
+        else if (msg[0].compare("JOIN") == 0) 
+            // join_func();
+        else if (msg[0].compare("PRIVEMSG") == 0) 
+            // privemsg_func();
+    }
+    else 
+    { 
+        // normal User priveleges :
+        if (msg[0].compare("JOIN") == 0) 
+            // join_func();
+        else if (msg[0].compare("PRIVEMSG") == 0) 
+            // privemsg_func()
+        else if (msg[0].compare("NICK") == 0) 
+            // nick_func(); 
+        else if (msg[0].compare("USER") == 0)
+            // user_func();
+        else if (msg[0].compare("PASS") == 0) 
+            // pass_func();
+    }
+}
 
 void Server::Parcing_data_core(char *buffer)
 {
@@ -390,9 +425,9 @@ void Server::Parcing_data_core(char *buffer)
     raw_data = buffer;
     trimmed_data = trimming_raw_data(raw_data);
     checking_trimmed_data_errors(trimmed_data);
-    // creating_msg_container(trimmed_data);
-    // roles_check();
-    // executing_commands();
+    creating_msg_container(trimmed_data);
+    roles_management();
+    executing_commands();
 }
 
 void Server::socket_Accepting()

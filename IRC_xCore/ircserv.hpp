@@ -102,6 +102,7 @@ class Server
         void checking_trimmed_data_errors(std::string trimmed_data);
         std::string extaract_cmd(std::string trimmed_data);
         std::string   extract_arg(std::string trimmed_data);
+        std::string   extract_arg_v2(std::string trimmed_data);
         std::string extract_flags(std::string trimmed_data);
         void Commands_errors(std::string& cmd);
         void Arguments_errors(std::string trimmed_cmd, std::string trimmed_arg, std::string flags);
