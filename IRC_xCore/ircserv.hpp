@@ -61,6 +61,7 @@ class Server
         int Port;
         int Serverfd;
         bool Signal_status;
+        int flags_status;
         std::vector<Client> Clients;
         std::vector<struct pollfd> fds;
         std::vector <std::string> msg;
@@ -107,10 +108,10 @@ class Server
         void Commands_errors(std::string& cmd);
         void Arguments_errors(std::string trimmed_cmd, std::string trimmed_arg, std::string flags);
         void flags_errors(std::string cmd ,std::string flags);
-        void one_arg_errors(std::string trimmed_cmd);
+        void one_flag_errors(std::string trimmed_cmd);
         void multiple_args_errors(std::string trimmed_cmd, std::string arg);
         int arguments_counter(std::string arg) ;
-        void missing_arg_error(std::string trimmed_cmd, std::string arg);
+        void missing_flag_error(std::string trimmed_cmd, std::string arg);
         // void creating_msg_container(std::string trimmed_cmd);
         // std::vector <std::string> filling_msg_container(std::string trimmed_cmd);
         // void roles_check();

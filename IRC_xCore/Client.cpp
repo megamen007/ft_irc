@@ -15,21 +15,32 @@ int main ()
     server_addr.sin_port = htons(8080);
     server_addr.sin_addr.s_addr = INADDR_ANY;
 
-    // sending connection request 
-    connect(client_fd, (struct sockaddr* )& server_addr, sizeof(server_addr));
-
-    //sending & receiving data 
-    const char  *msg = " Hello ";
-    int s = send(client_fd, msg , strlen(msg), 0);
-    if (s < 0)
-    {
-        perror(" receiving Failed Boss ...");
+    // Sending connection request
+    if (connect(client_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+        perror("Connection failed");
         close(client_fd);
         return 1;
     }
-    else 
+
+    while (true) 
     {
-        std::cout << s <<  " bytes was sent ..." << std::endl;
+        // Sending data
+        std::string msg;
+        std::cout << "Enter message to send (or 'exit' to quit): ";
+        std::getline(std::cin, msg);
+        
+        if (msg == "exit")
+            break;
+
+        int s = send(client_fd, msg.c_str(), msg.length(), 0);
+        if (s < 0) {
+            perror("Send failed");
+            close(client_fd);
+            return 1;
+        } 
+        else
+            std::cout << s << " bytes were sent." << std::endl;
     }
-    return 0;
+    close(client_fd);
+
 }

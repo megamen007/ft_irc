@@ -154,7 +154,8 @@ void Server::socket_receiving(int client_fd)
     char buffer[1024] = {0}; // to check cpp 98 ;
     memset(buffer, 0, sizeof(buffer));
     int r = recv(client_fd, buffer, sizeof(buffer), 0); 
-    if (r < 0)
+    std::cout << " receive state : " << r << std::endl;
+    if (r < 0) 
     {
         perror(" --> receiving stage failed ... ");
         Remove_Client(client_fd);
@@ -242,15 +243,33 @@ std::string Server::extract_flags(std::string trimmed_data)
     int start = 0;
     int end = trimmed_data.size();
 
-    while (start < end && trimmed_data[start] != '-')
+    while (start < end && (trimmed_data[start] != '-' && trimmed_data[start] != '+'))
+    {
+
+        std::cout << " start  == " <<  start << std::endl ;
+        std::cout << " start  == " <<  trimmed_data[start] << std::endl ;
         start++;
+    }
     
+    // if (trimmed_data[start] == '-')
+    //         flags_status = 0;
+    // else if (trimmed_data[start] == '+')
+    //         flags_status = 1;
+
+       std::cout << " start  == " <<  start << std::endl ;
+        std::cout << " start  == " <<  trimmed_data[start] << std::endl ;
+
     // Check if start is at the end or if the next character is not within valid flags
+    std::cout << " start - 1 == " <<  trimmed_data[start - 1] << std::endl ;
+    std::cout << " start + 1 == " <<  trimmed_data[start + 1] << std::endl ;
+    std::cout << " trimmed_data[start + 1]  == " <<  trimmed_data[start + 1] << std::endl ;
+
+
     if (start == end || (trimmed_data[start + 1] != 'i' && trimmed_data[start + 1] != 't' &&
                          trimmed_data[start + 1] != 'o' && trimmed_data[start + 1] != 'k' &&
                          trimmed_data[start + 1] != 'l'))
     {
-        return "Invalid flag";
+        return "Invalid flag"; // dont forget the case when u will face an empty flags in some commands .
     }
     else 
     {
@@ -288,13 +307,15 @@ int Server::arguments_counter(std::string arg)
     }
     return counter;
 }
-void Server::missing_arg_error(std::string cmd, std::string arg)
+
+
+void Server::missing_flag_error(std::string cmd, std::string arg)
 {
     if ((cmd.compare("MODE") == 0) && (arg.compare("-i") || arg.compare("-t") || arg.compare("-k") || arg.compare("-o") || arg.compare("-l")) == 0)
         std::cout << " this command necessary need some certain flag like : -i , -t , -k , -o, -l" << std::endl;
 }
 
-void Server::one_arg_errors(std::string cmd)
+void Server::one_flag_errors(std::string cmd)
 {
     if (cmd.compare("TOPIC") == 0)
         std::cout << " this command necessary doesn't need any flags " << std::endl;
@@ -319,9 +340,9 @@ void Server::Arguments_errors(std::string cmd ,std::string arg, std::string flag
     x = arguments_counter(flags);
     std::cout << x << std::endl;
     if (x == 0)
-        missing_arg_error(cmd , arg);
+        missing_flag_error(cmd , arg);
     if (x == 1)
-        one_arg_errors(cmd);
+        one_flag_errors(cmd);
 }
 void Server::flags_errors(std::string cmd, std::string flags)
 {
@@ -341,83 +362,53 @@ void Server::checking_trimmed_data_errors(std::string trimmed_data)
     std::cout << " ---> trimmed_data : " << trimmed_data << std::endl ;
 
     cmd =  extaract_cmd(trimmed_data);
-    // std::cout << " cmd : " << cmd << std::endl;
+    std::cout << " cmd : " << cmd << std::endl;
     flags = trimming_raw_data(extract_flags(trimmed_data));
-    // std::cout << " flags : " << flags << std::endl;
+    std::cout << " flags : " << flags << std::endl;
     if (flags.compare("Invalid flag") == 0)
         arg = trimming_raw_data(extract_arg_v2(trimmed_data));
     else if (!(flags.compare("Invalid flag") == 0))
         arg = trimming_raw_data(extract_arg(trimmed_data));
     std::cout << " args : " << arg << std::endl;
+    std::cout << " flags_status : " << flags_status << std::endl; 
     Commands_errors(cmd);
     Arguments_errors(cmd , arg , flags);
     flags_errors(cmd , flags);
 }
 
-// std::vector <std::string> Server::filling_msg_container(std::string trimmed_data)
+// void Server::executing_commands()
 // {
-//     std::vector <std::string> eternal;
-//     std::string cmd , arg;
-
-//     cmd =  extaract_cmd(trimmed_data);
-//     arg = trimming_raw_data(extract_arg(trimmed_data));
-
-//     eternal.push_back(cmd);
-//     if (arguments_counter(arg) == 1)
-//         eternal.push_back(arg);
-//     else if (arguments_counter(arg) > 1)
+//     if(Operator_status == 1)
 //     {
-//         int start = 0;
-//         int end = arg.find(' ');
-//         while(end != -1)
-//         {
-//             eternal.push_back(trimming_raw_data(arg.substr(start, end - start)));
-//             start = end + 1;
-//             end = arg.find(' ', start);
-//         }
-//         eternal.push_back(trimming_raw_data(arg.substr(start, end - start)));
+//         // operator priveleges :
+//         if (msg[0].compare("KICK") == 0)
+//             // kick_func();  
+//         else if (msg[0].compare("INVITE") == 0) 
+//             // invite_func();
+//         else if (msg[0].compare("MODE") == 0) 
+//             // mode_func(); 
+//         else if (msg[0].compare("TOPIC") == 0)
+//             // topic_func();
+//         else if (msg[0].compare("JOIN") == 0) 
+//             // join_func();
+//         else if (msg[0].compare("PRIVEMSG") == 0) 
+//             // privemsg_func();
 //     }
-//     return msg;
-// } 
-
-// void Server::creating_msg_container(std::string trimmed_data)
-// {
-//     msg =  filling_msg_container(trimmed_data);
+//     else 
+//     { 
+//         // normal User priveleges :
+//         if (msg[0].compare("JOIN") == 0) 
+//             // join_func();
+//         else if (msg[0].compare("PRIVEMSG") == 0) 
+//             // privemsg_func()
+//         else if (msg[0].compare("NICK") == 0) 
+//             // nick_func(); 
+//         else if (msg[0].compare("USER") == 0)
+//             // user_func();
+//         else if (msg[0].compare("PASS") == 0) 
+//             // pass_func();
+//     }
 // }
-
-void Server::executing_commands()
-{
-    if(Operator_status == 1)
-    {
-        // operator priveleges :
-        if (msg[0].compare("KICK") == 0)
-            // kick_func();  
-        else if (msg[0].compare("INVITE") == 0) 
-            // invite_func();
-        else if (msg[0].compare("MODE") == 0) 
-            // mode_func(); 
-        else if (msg[0].compare("TOPIC") == 0)
-            // topic_func();
-        else if (msg[0].compare("JOIN") == 0) 
-            // join_func();
-        else if (msg[0].compare("PRIVEMSG") == 0) 
-            // privemsg_func();
-    }
-    else 
-    { 
-        // normal User priveleges :
-        if (msg[0].compare("JOIN") == 0) 
-            // join_func();
-        else if (msg[0].compare("PRIVEMSG") == 0) 
-            // privemsg_func()
-        else if (msg[0].compare("NICK") == 0) 
-            // nick_func(); 
-        else if (msg[0].compare("USER") == 0)
-            // user_func();
-        else if (msg[0].compare("PASS") == 0) 
-            // pass_func();
-    }
-}
 
 void Server::Parcing_data_core(char *buffer)
 {
@@ -425,9 +416,9 @@ void Server::Parcing_data_core(char *buffer)
     raw_data = buffer;
     trimmed_data = trimming_raw_data(raw_data);
     checking_trimmed_data_errors(trimmed_data);
-    creating_msg_container(trimmed_data);
-    roles_management();
-    executing_commands();
+    // creating_msg_container(trimmed_data);
+    // roles_management(); // need to walk through 
+    // executing_commands(); // need to start coding nick , pass , user , join and creating chanells ;
 }
 
 void Server::socket_Accepting()
@@ -475,7 +466,7 @@ void Server::Server_cycle()
             i++;
         }
     }
-    Close_filedescriptors();
+    // Close_filedescriptors();
 }
 
 void Server::Launching_server()
