@@ -59,6 +59,7 @@ class Server
 {
     private:
         int Port;
+        std::string Pass;
         int Serverfd;
         bool Signal_status;
         int flags_status;
@@ -71,7 +72,7 @@ class Server
 
         // Server();
 
-        void Launching_server();
+        void Launching_server(int port, std::string password);
         void Server_cycle();
 
 
@@ -133,6 +134,8 @@ class Server
 
 
 
+        // Handling_User_Authentification
+        bool Port_valid(std::string port); 
         // ~Server();
 }
 ;

@@ -1,3 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
+/*   Updated: 2024/09/07 01:18:20 by mboudrio         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+
 #include "ircserv.hpp"
 
 // getters & setters :
@@ -79,7 +92,7 @@ void Server::socket_creation()
     }
 }
 
-sockaddr_in Server::socket_infos()
+sockaddr_in Server:: socket_infos()
 {
     // 2 - defining server address  i can use setsockopt also for this 
     sockaddr_in serveradd;
@@ -381,31 +394,31 @@ void Server::checking_trimmed_data_errors(std::string trimmed_data)
 //     if(Operator_status == 1)
 //     {
 //         // operator priveleges :
-//         if (msg[0].compare("KICK") == 0)
+//         if ((msg[0].compare("KICK") || msg[0].compare("kick") == 0)
 //             // kick_func();  
-//         else if (msg[0].compare("INVITE") == 0) 
+//         else if ((msg[0].compare("INVITE" || msg[0].compare("invite") == 0) 
 //             // invite_func();
-//         else if (msg[0].compare("MODE") == 0) 
+//         else if ((msg[0].compare("MODE" || msg[0].compare("mode") == 0) 
 //             // mode_func(); 
-//         else if (msg[0].compare("TOPIC") == 0)
+//         else if ((msg[0].compare("TOPIC" || msg[0].compare("topic") == 0)
 //             // topic_func();
-//         else if (msg[0].compare("JOIN") == 0) 
+//         else if ((msg[0].compare("JOIN") || msg[0].compare("join") == 0) 
 //             // join_func();
-//         else if (msg[0].compare("PRIVEMSG") == 0) 
+//         else if ((msg[0].compare("PRIVEMSG") || msg[0].compare("privemsg") == 0) 
 //             // privemsg_func();
 //     }
 //     else 
 //     { 
 //         // normal User priveleges :
-//         if (msg[0].compare("JOIN") == 0) 
+//         if ((msg[0].compare("JOIN") || msg[0].compare("join") == 0) 
 //             // join_func();
-//         else if (msg[0].compare("PRIVEMSG") == 0) 
+//         else if ((msg[0].compare("PRIVEMSG")  || msg[0].compare("privemsg") == 0) 
 //             // privemsg_func()
-//         else if (msg[0].compare("NICK") == 0) 
+//         else if ((msg[0].compare("NICK") || msg[0].compare("nick")  == 0) 
 //             // nick_func(); 
-//         else if (msg[0].compare("USER") == 0)
+//         else if ((msg[0].compare("USER")  || msg[0].compare("user") == 0)
 //             // user_func();
-//         else if (msg[0].compare("PASS") == 0) 
+//         else if ((msg[0].compare("PASS") || msg[0].compare("pass") == 0) 
 //             // pass_func();
 //     }
 // }
@@ -440,7 +453,7 @@ void Server::socket_Accepting()
 
     // Exodia.set_clientfd(coming_fd);
     // Exodia.set_clientIP(inet_ntoa(clientadd.sin_addr));
-    // Clients.push_back(Exodia);
+    Clients.push_back(Exodia);
     
     std::cout << " ---> Client connected " << std::endl;
 }
@@ -469,9 +482,10 @@ void Server::Server_cycle()
     // Close_filedescriptors();
 }
 
-void Server::Launching_server()
+void Server::Launching_server(int port, std::string password)
 {
-    this->Port = 8080;
+    this->Port = port;
+    this->Pass = password;
     socket_creation();
     sockaddr_in freemon = socket_infos();
     socket_non_blocking();
@@ -484,9 +498,24 @@ void Server::Launching_server()
     Server_cycle();
 }
 
-int main()
+bool Port_valid(std::string port)
+{
+    if (port.find_first_not_of("0123456789") == std::string::npos)
+        return false;
+    int portnum = std::atoi(port.c_str());
+    if (portnum >= 1024 && portnum <= 65535)
+        return true;
+    else
+        return false;
+}
+
+int main(int ac, char **av)
 {
     Server Excalibur ;
+    if (ac != 3)
+    {
+        std::cout << "Usage: " << av[0] << " <port number> <password> " << std::endl;
+    }
     std::cout << " your server is Launching sir wait a moment ..." << std::endl ;
     try
     {
@@ -494,7 +523,13 @@ int main()
         // signal(SIGINT, Server::Signal_Handler);
 
         //Launching the Server:
-        Excalibur.Launching_server();
+        if (!Port_valid(av[1]))
+            std::cout << " Your Port Number is Incorrect or Invalid " << std::endl;
+        else if (!*av[2])
+            std::cout << " You didnt enter a password " << std::endl;
+        else if (std::strlen(av[2]) > 20)
+            std::cout <<  "Your Password is More than 20 Character try a shorter version king " << std::endl;
+        Excalibur.Launching_server(av[1], av[2]);
         
     }
     catch(const std::exception& e)
