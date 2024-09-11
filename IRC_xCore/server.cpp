@@ -6,19 +6,115 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/09/07 01:18:20 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/09/11 05:25:02 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "ircserv.hpp"
 
-// getters & setters :
+// Client setters & getters
 
+Client::Client()
+{
+    this->nickname = "";
+    this->clientIP = "";
+    this->clientfd = -1;
+    this->Operator_status = false;
+    this->username = "";
+}
+std::string Client::getnickname()
+{
+    return this->nickname;  
+}
+std::string Client::getusername()
+{
+    return this->username;
+}
+std::string Client::getIPaddress()
+{
+    return this->clientIP;
+}
 int Client::get_clientfd()
 {
-    return clientfd;
+    return this->clientfd;
 }
+
+void Client::setfd(int fd)
+{
+    this->clientfd = fd;
+}
+void Client::setnickname( std::string & nickName)
+{
+    this->nickname = nickName;
+}
+void Client::setusername(std::string & userName)
+{
+    this->username = userName;
+}
+void Client::setIPaddress(std::string Ipadd)
+{
+    this->clientIP = Ipadd;
+}
+
+Client &Client::operator=(Client const &src)
+{
+    if (this != &src)
+    {
+        this->nickname = src.nickname;
+        this->username = src.username;
+        this->clientfd = src.clientfd;
+        this->clientIP = src.clientIP;
+        this->Operator_status = src.Operator_status;
+    }
+    return *this;
+}
+
+
+
+/// ///////////////////////////////////////
+
+
+Server &Server::operator=(Server const &src)
+{
+    if (this != &src)
+    {
+        this->Port = src.Port;
+        this->Serverfd = src.Serverfd;
+        this->Pass = src.Pass;
+        this->Clients = src.Clients;
+        // this->Channels = src.Channels;
+        this->fds = src.fds;
+    }
+    return *this;
+}
+
+// server setters :
+
+void Server::setFd(int fd)
+{
+    this->Serverfd = fd;
+}
+
+void Server::setPassword(std::string password)
+{
+    this->Pass = password;
+}
+
+void Server::setPort(int port)
+{
+    this->Port = port; 
+}
+
+void Server::AddClient(Client newClient)
+{
+    this->Clients.push_back(newClient);
+}
+// void Server::AddChannel(Channel newChannel)
+// {
+//     this->channels.push_back(newChannel);
+// }
+// getters 
 
 // void Server::Signal_Handler(int signum)
 // {
@@ -183,7 +279,7 @@ void Server::socket_receiving(int client_fd)
     {
         std::cout << " Received " << r << "  bytes ... " << std::endl;
         std::cout << " Received Data :  " << buffer << std::endl;
-        Parcing_data_core(buffer);
+        Parcing_data_core(client_fd,buffer);
     }
     
 }
@@ -370,7 +466,7 @@ void Server::flags_errors(std::string cmd, std::string flags)
 }
 void Server::checking_trimmed_data_errors(std::string trimmed_data)
 {
-        std::string cmd , arg, flags;
+    std::string cmd , arg, flags;
 
     std::cout << " ---> trimmed_data : " << trimmed_data << std::endl ;
 
@@ -389,49 +485,54 @@ void Server::checking_trimmed_data_errors(std::string trimmed_data)
     flags_errors(cmd , flags);
 }
 
-// void Server::executing_commands()
+// void Server::executing_commands(int fd, std::string Cmd)
 // {
 //     if(Operator_status == 1)
 //     {
 //         // operator priveleges :
-//         if ((msg[0].compare("KICK") || msg[0].compare("kick") == 0)
+//         if (msg[0].compare("KICK") == 0 || msg[0].compare("kick") == 0)
 //             // kick_func();  
-//         else if ((msg[0].compare("INVITE" || msg[0].compare("invite") == 0) 
+//         else if (msg[0].compare("INVITE") == 0 || msg[0].compare("invite") == 0) 
 //             // invite_func();
-//         else if ((msg[0].compare("MODE" || msg[0].compare("mode") == 0) 
+//         else if (msg[0].compare("MODE") == 0 || msg[0].compare("mode") == 0) 
 //             // mode_func(); 
-//         else if ((msg[0].compare("TOPIC" || msg[0].compare("topic") == 0)
+//         else if (msg[0].compare("TOPIC") == 0 || msg[0].compare("topic") == 0)
 //             // topic_func();
-//         else if ((msg[0].compare("JOIN") || msg[0].compare("join") == 0) 
+//         else if (msg[0].compare("JOIN") == 0 || msg[0].compare("join") == 0) 
 //             // join_func();
-//         else if ((msg[0].compare("PRIVEMSG") || msg[0].compare("privemsg") == 0) 
+//         else if (msg[0].compare("PRIVEMSG") == 0 || msg[0].compare("privemsg") == 0) 
 //             // privemsg_func();
+//         else if (msg[0].compare("NICK") == 0 || msg[0].compare("nick")  == 0) 
+//             // nick_func(); 
+//         else if (msg[0].compare("USER") == 0  || msg[0].compare("user") == 0)
+//             // user_func();
+//         else if (msg[0].compare("PASS") == 0 || msg[0].compare("pass") == 0) 
+//             // pass_func();
 //     }
 //     else 
 //     { 
 //         // normal User priveleges :
-//         if ((msg[0].compare("JOIN") || msg[0].compare("join") == 0) 
+//         if (msg[0].compare("JOIN") == 0 || msg[0].compare("join") == 0) 
 //             // join_func();
-//         else if ((msg[0].compare("PRIVEMSG")  || msg[0].compare("privemsg") == 0) 
+//         else if (msg[0].compare("PRIVEMSG") == 0  || msg[0].compare("privemsg") == 0) 
 //             // privemsg_func()
-//         else if ((msg[0].compare("NICK") || msg[0].compare("nick")  == 0) 
+//         else if (msg[0].compare("NICK") == 0 || msg[0].compare("nick")  == 0) 
 //             // nick_func(); 
-//         else if ((msg[0].compare("USER")  || msg[0].compare("user") == 0)
+//         else if (msg[0].compare("USER") == 0  || msg[0].compare("user") == 0)
 //             // user_func();
-//         else if ((msg[0].compare("PASS") || msg[0].compare("pass") == 0) 
+//         else if (msg[0].compare("PASS") == 0 || msg[0].compare("pass") == 0) 
 //             // pass_func();
 //     }
 // }
 
-void Server::Parcing_data_core(char *buffer)
+void Server::Parcing_data_core(int client_fd, std::string buffer)
 {
     std::string raw_data, trimmed_data ;
     raw_data = buffer;
     trimmed_data = trimming_raw_data(raw_data);
     checking_trimmed_data_errors(trimmed_data);
     // creating_msg_container(trimmed_data);
-    // roles_management(); // need to walk through 
-    // executing_commands(); // need to start coding nick , pass , user , join and creating chanells ;
+    // executing_commands(client_fd , trimmed_data); // need to start coding nick , pass , user , join and creating chanells ;
 }
 
 void Server::socket_Accepting()
@@ -509,6 +610,13 @@ bool Port_valid(std::string port)
         return false;
 }
 
+// Authentification Commands :
+// PASS :
+
+void Server::Pass_func(int fd, std::string cmd)
+{
+      Client *clio =  get_clientfd(fd);  
+}
 int main(int ac, char **av)
 {
     Server Excalibur ;
@@ -529,7 +637,7 @@ int main(int ac, char **av)
             std::cout << " You didnt enter a password " << std::endl;
         else if (std::strlen(av[2]) > 20)
             std::cout <<  "Your Password is More than 20 Character try a shorter version king " << std::endl;
-        Excalibur.Launching_server(av[1], av[2]);
+        Excalibur.Launching_server(std::atoi(av[1]), av[2]);
         
     }
     catch(const std::exception& e)
