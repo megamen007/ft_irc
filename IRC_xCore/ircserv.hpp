@@ -23,6 +23,8 @@ class Client
         // channels (normal ones);
         // channels (invited only);
         bool Operator_status;
+        bool registration_status;
+        bool loged_status;
 
     public:
         // Client::Client();
@@ -32,11 +34,19 @@ class Client
         void Client::setnickname( std::string & nickName);
         void Client::setusername(std::string & userName);
         void Client::setIPaddress(std::string Ipadd);
+        void Client::setregistred(bool reg);
+        void Client::setoperatorstatus(bool oper);
+        void Client::setlogedstatus(bool log);
+
+
+
         std::string Client::getnickname();
         std::string Client::getusername();
         std::string Client::getIPaddress();
+        bool Client::getregistred();
+        bool Client::getoperatorstatus();
+        bool Client::getlogedstatus();
         int Client::get_clientfd();
-
 
         Client::~Client(){};
 };
@@ -87,11 +97,12 @@ class Server
 {
     private:
         int Port;
-        std::string Pass;
+        std::string Password;
         int Serverfd;
         bool Signal_status;
         int flags_status;
         std::vector<Client> Clients;
+        std::vector<Channel> Channels;
         std::vector<struct pollfd> fds;
         std::vector <std::string> msg;
 
@@ -104,6 +115,13 @@ class Server
 
         // Getters
 
+        int Server::getPort();
+        int Server::getFd();
+        Client *Server::getClient(int fd);
+        Client *Server::getClientnick(std::string nickname);
+        Channel *Server::getChannel(std::string name);
+
+
         // Setters
         void Server::setFd(int fd);
         void Server::setPort(int port);
@@ -111,8 +129,8 @@ class Server
         void Server::AddClient(Client newClient);
         
         // void Server::AddChannel(Channel newChannel);
-        
-
+        bool Server::Nick_name_already_used(std::string& nickname);
+        bool Server::Valid_nick_name(std::string &nickname);
 
         void Launching_server(int port, std::string password);
         void Server_cycle();
@@ -162,8 +180,8 @@ class Server
 
         // Connection Registrations Commands :
         void Server::Pass_func(int fd, std::string cmd);
-        // Nick_func();
-        // User-func();
+        void Server::Nick_func(int fd, std::string cmd);
+        // void Server::User_func(int fd, std::string cmd);
 
 
         // Commands to Executes :

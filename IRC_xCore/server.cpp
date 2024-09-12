@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/09/11 05:25:02 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/09/12 08:18:05 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,21 @@ int Client::get_clientfd()
     return this->clientfd;
 }
 
+bool Client::getregistred()
+{
+    return this->registration_status;
+}
+
+bool Client::getoperatorstatus()
+{
+    return this->Operator_status;
+}
+
+bool Client::getlogedstatus()
+{
+    return this->loged_status;
+}
+
 void Client::setfd(int fd)
 {
     this->clientfd = fd;
@@ -55,6 +70,21 @@ void Client::setusername(std::string & userName)
 void Client::setIPaddress(std::string Ipadd)
 {
     this->clientIP = Ipadd;
+}
+
+void Client::setregistred(bool reg)
+{
+    this->registration_status = reg;
+}
+
+void Client::setregistred(bool oper)
+{
+    this->Operator_status = oper;
+}
+
+void Client::setlogedstatus(bool log)
+{
+    this->loged_status = log;
 }
 
 Client &Client::operator=(Client const &src)
@@ -81,7 +111,7 @@ Server &Server::operator=(Server const &src)
     {
         this->Port = src.Port;
         this->Serverfd = src.Serverfd;
-        this->Pass = src.Pass;
+        this->Password = src.Password;
         this->Clients = src.Clients;
         // this->Channels = src.Channels;
         this->fds = src.fds;
@@ -98,7 +128,7 @@ void Server::setFd(int fd)
 
 void Server::setPassword(std::string password)
 {
-    this->Pass = password;
+    this->Password = password;
 }
 
 void Server::setPort(int port)
@@ -110,6 +140,57 @@ void Server::AddClient(Client newClient)
 {
     this->Clients.push_back(newClient);
 }
+
+//  server getters :
+
+int Server::getPort()
+{
+    return this->Port;
+}
+
+int Server::getFd()
+{
+    return this->Serverfd;
+}
+
+Client *Server::getClient(int fd)
+{
+    int i = 0;
+    while(i < this->Clients.size())
+    {
+        if(this->Clients[i].get_clientfd() == fd)
+            return &this->Clients[i];
+        i++;
+    }
+    return NULL;
+}
+Client *Server::getClientnick(std::string nickname)
+{
+    int i = 0;
+    while(i < this->Clients.size())
+    {
+        if(this->Clients[i].getnickname() == nickname)
+            return &this->Clients[i];
+        i++;
+    }
+    return NULL;
+
+}
+
+Channel *Server::getChannel(std::string name)
+{
+    int i = 0;
+    while(i < this->Channels.size())
+    {
+        if(this->Channels[i].GetName() == name)
+            return &Channels[i];
+        i++;
+    }
+    return NULL;
+}
+
+
+
 // void Server::AddChannel(Channel newChannel)
 // {
 //     this->channels.push_back(newChannel);
@@ -386,17 +467,17 @@ std::string Server::extract_flags(std::string trimmed_data)
     }
 }
 
-void Server::Commands_errors(std::string& cmd)
-{
-    const char* validCommands[] = {"KICK","INVITE","TOPIC","MODE","PASS","USER","PRIVEMSG","JOIN","NICK"};
-    const std::vector <std::string> valid_Commands (validCommands, validCommands + 9);
+// void Server::Commands_errors(std::string& cmd)
+// {
+//     const char* validCommands[] = {"KICK","INVITE","TOPIC","MODE","PASS","USER","PRIVEMSG","JOIN","NICK"};
+//     const std::vector <std::string> valid_Commands (validCommands, validCommands + 9);
 
-    if (std::find(valid_Commands.begin(), valid_Commands.end(), cmd) == valid_Commands.end())
-        std::cout << " the command that u write is incorrect , please rewrite ur command  "<< std::endl;
+//     if (std::find(valid_Commands.begin(), valid_Commands.end(), cmd) == valid_Commands.end())
+//         std::cout << " the command that u write is incorrect , please rewrite ur command  "<< std::endl;
 
-    else 
-        std::cout << " clean grammar , good boy " << std::endl;
-}
+//     else 
+//         std::cout << " clean grammar , good boy " << std::endl;
+// }
 
 int Server::arguments_counter(std::string arg)
 {
@@ -480,7 +561,7 @@ void Server::checking_trimmed_data_errors(std::string trimmed_data)
         arg = trimming_raw_data(extract_arg(trimmed_data));
     std::cout << " args : " << arg << std::endl;
     std::cout << " flags_status : " << flags_status << std::endl; 
-    Commands_errors(cmd);
+    // Commands_errors(cmd);
     Arguments_errors(cmd , arg , flags);
     flags_errors(cmd , flags);
 }
@@ -490,37 +571,37 @@ void Server::checking_trimmed_data_errors(std::string trimmed_data)
 //     if(Operator_status == 1)
 //     {
 //         // operator priveleges :
-//         if (msg[0].compare("KICK") == 0 || msg[0].compare("kick") == 0)
+//         if (Cmd.compare("KICK") == 0 || Cmd.compare("kick") == 0)
 //             // kick_func();  
-//         else if (msg[0].compare("INVITE") == 0 || msg[0].compare("invite") == 0) 
+//         else if (Cmd.compare("INVITE") == 0 || Cmd.compare("invite") == 0) 
 //             // invite_func();
-//         else if (msg[0].compare("MODE") == 0 || msg[0].compare("mode") == 0) 
+//         else if (Cmd.compare("MODE") == 0 || Cmd.compare("mode") == 0) 
 //             // mode_func(); 
-//         else if (msg[0].compare("TOPIC") == 0 || msg[0].compare("topic") == 0)
+//         else if (Cmd.compare("TOPIC") == 0 || Cmd.compare("topic") == 0)
 //             // topic_func();
-//         else if (msg[0].compare("JOIN") == 0 || msg[0].compare("join") == 0) 
+//         else if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0) 
 //             // join_func();
-//         else if (msg[0].compare("PRIVEMSG") == 0 || msg[0].compare("privemsg") == 0) 
+//         else if (Cmd.compare("PRIVEMSG") == 0 || Cmd.compare("privemsg") == 0) 
 //             // privemsg_func();
-//         else if (msg[0].compare("NICK") == 0 || msg[0].compare("nick")  == 0) 
+//         else if (Cmd.compare("NICK") == 0 || Cmd.compare("nick")  == 0) 
 //             // nick_func(); 
-//         else if (msg[0].compare("USER") == 0  || msg[0].compare("user") == 0)
+//         else if (Cmd.compare("USER") == 0  || Cmd.compare("user") == 0)
 //             // user_func();
-//         else if (msg[0].compare("PASS") == 0 || msg[0].compare("pass") == 0) 
+//         else if (Cmd.compare("PASS") == 0 || Cmd.compare("pass") == 0) 
 //             // pass_func();
 //     }
 //     else 
 //     { 
 //         // normal User priveleges :
-//         if (msg[0].compare("JOIN") == 0 || msg[0].compare("join") == 0) 
+//         if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0) 
 //             // join_func();
-//         else if (msg[0].compare("PRIVEMSG") == 0  || msg[0].compare("privemsg") == 0) 
+//         else if (Cmd.compare("PRIVEMSG") == 0  || Cmd.compare("privemsg") == 0) 
 //             // privemsg_func()
-//         else if (msg[0].compare("NICK") == 0 || msg[0].compare("nick")  == 0) 
+//         else if (Cmd.compare("NICK") == 0 || Cmd.compare("nick")  == 0) 
 //             // nick_func(); 
-//         else if (msg[0].compare("USER") == 0  || msg[0].compare("user") == 0)
+//         else if (Cmd.compare("USER") == 0  || Cmd.compare("user") == 0)
 //             // user_func();
-//         else if (msg[0].compare("PASS") == 0 || msg[0].compare("pass") == 0) 
+//         else if (Cmd.compare("PASS") == 0 || Cmd.compare("pass") == 0) 
 //             // pass_func();
 //     }
 // }
@@ -586,7 +667,7 @@ void Server::Server_cycle()
 void Server::Launching_server(int port, std::string password)
 {
     this->Port = port;
-    this->Pass = password;
+    this->Password = password;
     socket_creation();
     sockaddr_in freemon = socket_infos();
     socket_non_blocking();
@@ -611,12 +692,128 @@ bool Port_valid(std::string port)
 }
 
 // Authentification Commands :
-// PASS :
 
+// PASS :
 void Server::Pass_func(int fd, std::string cmd)
 {
-      Client *clio =  get_clientfd(fd);  
+    int position;
+    std::string pass;
+
+    Client *clio =  getClient(fd);
+
+    position = cmd.find_first_not_of("\t\v ");
+    if (cmd.empty())
+    {
+        // send a response ----> ERR_NOTENOUGHPARAM;
+    }
+    else if (!clio->getregistred())
+    {
+        pass = cmd;
+        if (pass == Password)
+        {
+            clio->setregistred(true);
+        }
+        // else
+        // send a response ---->  ERR_INCORPASS;
+    }
+    // else 
+    // send response ---->  ERR_ALREADYREGISTERED;
 }
+
+bool Server::Valid_nick_name(std::string& nickname)
+{
+    int i = 0;
+    if (!nickname.empty() && (nickname[0] == '&' || nickname[0] == '#' || nickname[0] == ':'))
+        return false;
+    while(i < nickname.size() )
+    {
+        if (!std::isalnum(nickname[i]) && nickname[i] != '_')
+            return false;
+    }
+    return true;
+}
+
+bool Server::Nick_name_already_used(std::string &nickname)
+{
+    int i = 0;
+    while(i < this->Clients.size())
+    {
+        if (this->Clients[i].getnickname() == nickname)
+            return true;
+        return false;
+    }
+}
+
+
+void Server::Nick_func(int fd, std::string cmd)
+{
+    int position;
+    std::string granpa; 
+    std::string used;
+    Client *clio = getClient(fd);
+    if (cmd.empty())
+    {
+        // send a response ----> ERR_NOTENOUGHPARAM;
+    }
+    if (Nick_name_already_used(cmd) && clio->getnickname() != cmd)
+    {
+        used = "212";
+        if(clio->getnickname().empty())
+            clio->setnickname(used);
+        // send response -----> ERR_NICKINUSE;
+            return;
+    }
+    if (!Valid_nick_name(cmd))
+    {
+        // send response -----> ERR_ERRONEUSNICK;
+        return;
+    }
+    else
+    {
+        if (clio && clio->getregistred())
+        {
+            granpa = clio->getnickname();
+            clio->setnickname(cmd);
+            if(!granpa.empty() && granpa != cmd)
+            {
+                if(granpa == "212" && !clio->getusername().empty())
+                {
+                    clio->setlogedstatus(true);
+                    // send response -----> RPL_CONNECTED;
+                    // send response -----> RPL_NICKCHANGE;
+                }
+                else
+                    // send response -----> RPL_NICKCHANGE;
+                return;
+            }
+        }
+        // else if (clio && !clio->getregistred())
+            // send response -----> ERR_NOTREGISTERED;
+    }
+    if (clio && clio->getregistred() && !clio->getusername().empty() && !clio->getnickname().empty() && clio->getnickname() != "212" && !clio->getlogedstatus()) 
+    {
+        clio->setlogedstatus(true);
+        // send response -----> RPL_CONNECTED;
+    }
+}
+
+// void Server::User_func(int fd, std::string cmd)
+// {
+//     Client *clio = getClient();
+//     // if (this line is used to maintaine the flag condition )
+//     if (!clio || !clio->getregistred())
+//         // send response -------> ERR_NOTREGISTERED;
+//     else if (clio && !clio->getusername().empty())
+//         // send response -------> ERR_ALREADYREGISTERED;
+//     else 
+//         clio->setusername(cmd)
+//         if (clio && clio->getregistred() && !clio->getusername().empty() && !clio->getnickname().empty() && clio->getnickname() != "212" && !clio->getlogedstatus())
+//         clio->setlogedstatus(true)l
+//         // send response ------>  RPL_CONNECTED;
+
+// }
+
+
 int main(int ac, char **av)
 {
     Server Excalibur ;
