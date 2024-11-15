@@ -10,7 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ircserv.hpp"
+#include "Channel.hpp"
+
+// Canonical Form:
 
 Channel::Channel()
 {
@@ -42,9 +44,10 @@ Channel::Channel(Channel const &src)
     *this = src;
 }
 
-Channel::~Channel(){};
+Channel::~Channel()
+{}
 
-// setters & getters
+// Channel setters:
 
 void Channel::SetInvitOnly(int invit_only)
 {
@@ -76,6 +79,9 @@ void Channel::SetName(std::string name)
     this->name = name;
 }
 
+
+// Channel getters:
+
 int Channel::GetInvitOnly()
 {
     return this->invite_status;
@@ -105,6 +111,8 @@ std::string Channel::GetTime()
 {
     return this->creation_time;
 }
+
+// Adding functions:
 
 void Channel::add_Client(Client newClient)
 {
