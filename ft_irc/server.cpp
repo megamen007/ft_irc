@@ -174,7 +174,7 @@ void Server::socket_receiving(int client_fd)
 
     if (r < 0) 
     {
-        perror(" --> receiving stage failed ... ");
+        std::cerr << " --> receiving stage failed ... " << std::endl;
         Remove_Client(client_fd);
         close(client_fd);
     }
@@ -191,12 +191,12 @@ void Server::socket_receiving(int client_fd)
     }
     
 }
-void Server::Parcing_and_Executing(int client_fd, std::string buffer)
-{
-    // ZAKARIA PART ( Parcing the buffer and checking it from Possible errors );
+// void Server::Parcing_and_Executing(int client_fd, std::string buffer)
+// {
+//     // ZAKARIA PART ( Parcing the buffer and checking it from Possible errors );
 
-    // OTHMAN PART ( where to execute the list of Command depending on the Parced Buffer)
-        // executing_commands(client_fd , trimmed_data); // need to start coding nick , pass , user , join and creating chanells ;
-}
+//     // OTHMAN PART ( where to execute the list of Command depending on the Parced Buffer)
+//         // executing_commands(client_fd , trimmed_data); // need to start coding nick , pass , user , join and creating chanells ;
+// }
 
 

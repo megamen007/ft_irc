@@ -60,7 +60,7 @@ int Server::getFd()
 
 Client *Server::getClient(int fd)
 {
-    int i = 0;
+    size_t i = 0;
     while(i < this->Clients.size())
     {
         if(this->Clients[i].get_clientfd() == fd)
@@ -71,7 +71,7 @@ Client *Server::getClient(int fd)
 }
 Client *Server::getClientnick(std::string nickname)
 {
-    int i = 0;
+    size_t i = 0;
     while(i < this->Clients.size())
     {
         if(this->Clients[i].getnickname() == nickname)
@@ -84,7 +84,7 @@ Client *Server::getClientnick(std::string nickname)
 
 Channel *Server::getChannel(std::string name)
 {
-    int i = 0;
+    size_t i = 0;
     while(i < this->Channels.size())
     {
         if(this->Channels[i].GetName() == name)

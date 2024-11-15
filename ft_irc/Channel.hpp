@@ -24,8 +24,8 @@ class Channel
         std::string topic;
         std::string password;
         std::string creation_time; 
-        std::vector <Client&> Clients;
-        std::vector <Client&> Operators;
+        std::vector <Client> Clients;
+        std::vector <Client> Operators;
 
     public:
 
