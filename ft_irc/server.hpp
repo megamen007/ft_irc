@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <cerrno>
 #include <sys/socket.h> // contains definitions of function and structures , socket(), bind(), listen(), and accept(). Defines the sockaddr structure, which is a generic structure for all socket addresses.
 #include <cstring> 
 #include <csignal>

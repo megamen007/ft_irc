@@ -170,28 +170,42 @@ void Server::socket_receiving(int client_fd)
     char buffer[1024];
     memset(buffer, 0, sizeof(buffer));
 
-    int r = recv(client_fd, buffer, sizeof(buffer), 0);
+    while(true)
+    {
+        int r = recv(client_fd, buffer, sizeof(buffer), 0);
 
-    std::cout << " receive state : " << r << std::endl;
-
-    if (r < 0) 
-    {
-        std::cerr << " --> receiving stage failed ... " << std::endl;
-        Remove_Client(client_fd);
-        close(client_fd);
-    }
-    else if (r == 0)
-    {
-        std::cout << " --> Connection closed by Icaruis ..." << std::endl;
-        close(client_fd);
-    }
-    else 
-    {
-        std::cout << " Received " << r << "  bytes ... " << std::endl;
-        std::cout << " Received Data :  " << buffer << std::endl;
-        // Parcing_and_Executing(client_fd,buffer);
-    }
+        if (r < 0) 
+        {
+            if (errno == EAGAIN || errno  == EWOULDBLOCK)
+                continue;
+            else
+            {
+                std::cerr << " --> receiving stage failed ... " << std::endl;
+                Remove_Client(client_fd);
+                close(client_fd);
+                break;
+            }
+        }
+        else if (r == 0)
+        {
+            std::cout << " --> Connection closed by Icaruis ..." << std::endl;
+            close(client_fd);
+            Remove_Client(client_fd);
+            break;
+        }
+        else 
+        {
+            std::cout << " Received " << r << "  bytes ... " << std::endl;
+            std::cout << " Received Data :  " << buffer << std::endl;
+            // Parcing_and_Executing(client_fd,buffer);
+        }
+        if (std::string(buffer) == "exit") 
+        {
+            std::cout << "Client requested to exit. Closing connection." << std::endl;
+            break;
+        }
     
+    }
 }
 // void Server::Parcing_and_Executing(int client_fd, std::string buffer)
 // {

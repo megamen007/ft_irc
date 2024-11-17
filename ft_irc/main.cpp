@@ -10,7 +10,6 @@ int main(int ac, char **av)
         std::cout << "Usage: " << av[0] << " <port number> <password> " << std::endl;
         return 1;
     }
-    std::cout << " your server is Launching sir wait a moment ..." << std::endl ;
     try
     {
         // list of signals that interrupt the irc server : 
@@ -32,8 +31,8 @@ int main(int ac, char **av)
             std::cout <<  "Your Password is More than 20 Character try a shorter version king " << std::endl;
             return 1;
         }
+        std::cout << " your server is Launching sir wait a moment ..." << std::endl ;
         Excalibur.Launching_server(std::atoi(av[1]), av[2]);
-        
     }
     catch(const std::exception& e)
     {
@@ -41,5 +40,5 @@ int main(int ac, char **av)
         std::cerr << e.what() << std::endl;
     }
 
-    std::cout << "Saddly we inform u that your Server Closed until another announcement be safe .. " << std::endl ;
+    std::cout << "Saddly we inform u that your Server Closed until another announcement be safe .. " << std::endl;
 }
