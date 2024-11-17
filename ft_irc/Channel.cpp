@@ -114,12 +114,12 @@ std::string Channel::GetTime()
 
 // Adding functions:
 
-void Channel::add_Client(Client newClient)
+void Channel::add_Client(Client &newClient)
 {
     Clients.push_back(newClient);
 }
 
-void Channel::add_Operator(Client newOperator)
+void Channel::add_Operator(Client &newOperator)
 {
     Operators.push_back(newOperator);
 }

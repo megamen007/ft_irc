@@ -3,14 +3,16 @@
 // Canonical Form:
 
 Server::Server()
-{}
-Server::Server(const Server& srv)
+{
+}
+Server::Server(const Server &srv)
 {
     *this = srv;
 }
 
 Server::~Server()
-{}
+{
+}
 
 Server &Server::operator=(Server const &src)
 {
@@ -26,7 +28,6 @@ Server &Server::operator=(Server const &src)
     return *this;
 }
 
-
 // Server setters :
 
 void Server::setFd(int fd)
@@ -41,9 +42,8 @@ void Server::setPassword(std::string password)
 
 void Server::setPort(int port)
 {
-    this->Port = port; 
+    this->Port = port;
 }
-
 
 //  Server getters :
 
@@ -52,18 +52,23 @@ int Server::getPort()
     return this->Port;
 }
 
-
 int Server::getFd()
 {
     return this->Serverfd;
 }
 
+int Server::get_Signal_Status()
+{
+    return this->Signal_status;
+}
+
+
 Client *Server::getClient(int fd)
 {
     size_t i = 0;
-    while(i < this->Clients.size())
+    while (i < this->Clients.size())
     {
-        if(this->Clients[i].get_clientfd() == fd)
+        if (this->Clients[i].get_clientfd() == fd)
             return &this->Clients[i];
         i++;
     }
@@ -72,22 +77,21 @@ Client *Server::getClient(int fd)
 Client *Server::getClientnick(std::string nickname)
 {
     size_t i = 0;
-    while(i < this->Clients.size())
+    while (i < this->Clients.size())
     {
-        if(this->Clients[i].getnickname() == nickname)
+        if (this->Clients[i].getnickname() == nickname)
             return &this->Clients[i];
         i++;
     }
     return NULL;
-
 }
 
 Channel *Server::getChannel(std::string name)
 {
     size_t i = 0;
-    while(i < this->Channels.size())
+    while (i < this->Channels.size())
     {
-        if(this->Channels[i].GetName() == name)
+        if (this->Channels[i].GetName() == name)
             return &Channels[i];
         i++;
     }
@@ -105,13 +109,13 @@ Channel *Server::getChannel(std::string name)
 //     this->Clients.push_back(newClient);
 // }
 
+// Checks Functions
 
-// Checks Functions 
-
-bool Port_valid(std::string port)
+bool Server::Port_valid(std::string port)
 {
     if (port.find_first_not_of("0123456789") == std::string::npos)
         return false;
+
     int portnum = std::atoi(port.c_str());
     if (portnum >= 1024 && portnum <= 65535)
         return true;
@@ -119,13 +123,12 @@ bool Port_valid(std::string port)
         return false;
 }
 
-
 // Close & Remove Functions
 
 void Server::remove_c_from_pollfd(int id)
 {
-    size_t i = 0 ;
-    while(i < fds.size() )
+    size_t i = 0;
+    while (i < fds.size())
     {
         if (fds[i].fd == id)
             fds.erase(fds.begin() + i);
@@ -134,15 +137,15 @@ void Server::remove_c_from_pollfd(int id)
 }
 void Server::remove_c_from_Vector(int id)
 {
-    size_t i = 0 ;
-    while(i < Clients.size() )
+    size_t i = 0;
+    while (i < Clients.size())
     {
         if (Clients[i].get_clientfd() == id)
             Clients.erase(Clients.begin() + i);
         i++;
     }
 }
-void  Server::Remove_Client(int id)
+void Server::Remove_Client(int id)
 {
     remove_c_from_pollfd(id);
     remove_c_from_Vector(id);
@@ -151,7 +154,7 @@ void  Server::Remove_Client(int id)
 void Server::close_all_clients()
 {
     size_t i = 0;
-    while( i < Clients.size())
+    while (i < Clients.size())
     {
         std::cout << " Client " << Clients[i].get_clientfd() << " Disconnected ..." << std::endl;
         close(Clients[i].get_clientfd());

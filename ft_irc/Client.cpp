@@ -17,6 +17,7 @@ Client::Client()
     this->clientfd = -1;
     this->Operator_status = false;
     this->username = "";
+    this->loged_status = 0;
 }
 
 Client::Client(Client const &cli)
@@ -32,6 +33,7 @@ Client &Client::operator=(Client const &src)
         this->clientfd = src.clientfd;
         this->clientIP = src.clientIP;
         this->Operator_status = src.Operator_status;
+        this->loged_status = src.loged_status;
     }
     return *this;
 }

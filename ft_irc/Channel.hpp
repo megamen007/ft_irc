@@ -54,6 +54,6 @@ class Channel
             std::string GetTime();
 
         // Client management by the channel functions:
-            void add_Client(Client newClient);
-            void add_Operator(Client newOperator);
+            void add_Client(Client &newClient);
+            void add_Operator(Client &newOperator);
 };

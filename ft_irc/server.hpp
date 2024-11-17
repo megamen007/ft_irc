@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sys/socket.h> // contains definitions of function and structures , socket(), bind(), listen(), and accept(). Defines the sockaddr structure, which is a generic structure for all socket addresses.
 #include <cstring> 
+#include <csignal>
 #include <unistd.h>
 #include <string>
 #include <vector>
@@ -23,7 +24,7 @@ class Server
     private:
         int Port;
         std::string Password;
-        static bool Signal_status;
+        static int Signal_status;
         int Serverfd;
         int flags_status;
         std::vector<Client> Clients;
@@ -43,7 +44,7 @@ class Server
         Client *getClient(int fd);
         Client *getClientnick(std::string nickname);
         Channel *getChannel(std::string name);
-        static bool get_Signal_Status();
+        int get_Signal_Status();
 
         // Setters
         void setFd(int fd);
@@ -82,7 +83,7 @@ class Server
         void close_server_socket();
 
         // Parsing received DATA
-        void Parcing_and_Executing(int client_fd, std::string buffer);
+        // void Parcing_and_Executing(int client_fd, std::string buffer);
         // void roles_check();
         // void executing_commands(int fd, std::string Cmd);
 

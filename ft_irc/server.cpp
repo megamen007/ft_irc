@@ -12,12 +12,14 @@
 
 #include "server.hpp"
 
+int Server::Signal_status = 0;
+
 void Server::Signal_Handler(int signum)
 {
     (void)signum;
 
-    std::cout << " Signal Received " << std::endl;
-    Signal_status = true; 
+    std::cout << " Signal " << signum << "received. " << std::endl;
+    Signal_status = signum; 
 }
 
 void Server::socket_creation()
@@ -187,7 +189,7 @@ void Server::socket_receiving(int client_fd)
     {
         std::cout << " Received " << r << "  bytes ... " << std::endl;
         std::cout << " Received Data :  " << buffer << std::endl;
-        Parcing_and_Executing(client_fd,buffer);
+        // Parcing_and_Executing(client_fd,buffer);
     }
     
 }
