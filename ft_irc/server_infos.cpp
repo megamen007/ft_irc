@@ -113,8 +113,12 @@ Channel *Server::getChannel(std::string name)
 
 bool Server::Port_valid(std::string port)
 {
-    if (port.find_first_not_of("0123456789") == std::string::npos)
+    std::cout << port << std::endl;
+    if (port.find_first_not_of("0123456789") != std::string::npos)
+    {
+        std::cerr << "Invalid character found in port." <<std::endl;
         return false;
+    }
 
     int portnum = std::atoi(port.c_str());
     if (portnum >= 1024 && portnum <= 65535)
