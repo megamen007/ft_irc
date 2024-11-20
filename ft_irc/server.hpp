@@ -3,7 +3,7 @@
 #include <iostream>
 #include <errno.h>
 #include <sys/socket.h> // contains definitions of function and structures , socket(), bind(), listen(), and accept(). Defines the sockaddr structure, which is a generic structure for all socket addresses.
-#include <cstring> 
+#include <cstring>
 #include <csignal>
 #include <unistd.h>
 #include <string>
@@ -33,6 +33,9 @@ class Server
         std::vector<struct pollfd> fds;
         std::vector <std::string> msg;
 
+        // Méthodes utilitaires
+        std::vector<std::string> split(const std::string& str, char delimiter);
+
     public:
         Server();
         Server(const Server& srv);
@@ -54,9 +57,9 @@ class Server
 
 
         void AddClient(Client newClient);
-        
 
-        // Server booting functions: 
+
+        // Server booting functions:
         void Launching_server(int port, std::string password);
         void Server_cycle();
 
@@ -83,6 +86,9 @@ class Server
         void close_all_clients();
         void close_server_socket();
 
+        //command
+        void handleJoin(Client& client, const std::string& command);
+
         // Parsing received DATA
         // void Parcing_and_Executing(int client_fd, std::string buffer);
         // void roles_check();
@@ -94,9 +100,9 @@ class Server
             // nick_func();
 
         // Commands to Executes :
-            // kick_func();  
+            // kick_func();
             // invite_func();
-            // mode_func(); 
+            // mode_func();
             // topic_func();
             // join_func();
             // privemsg_func();
@@ -104,8 +110,8 @@ class Server
 
 
         // Handling_User_Authentification
-        bool Port_valid(std::string port); 
-        
+        bool Port_valid(std::string port);
+
         // void Server::AddChannel(Channel newChannel);
 };
 

@@ -189,6 +189,105 @@ std::string findRealname(const std::string& msg) {
     }
     return realname;
 }
+
+// -------------------JOIN--------------------------:
+
+Server::Server() : Port(0), Password(""), Serverfd(-1), flags_status(0) {}
+
+Server::Server(const Server& srv) {
+    *this = srv;
+}
+
+Server& Server::operator=(const Server& src) {
+    if (this != &src) {
+        Port = src.Port;
+        Password = src.Password;
+        Serverfd = src.Serverfd;
+        flags_status = src.flags_status;
+        Clients = src.Clients;
+        Channels = src.Channels;
+        fds = src.fds;
+        msg = src.msg;
+    }
+    return *this;
+}
+
+Server::~Server() {
+    Close_filedescriptors();
+}
+
+//split
+std::vector<std::string> Server::split(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream tokenStream(str);
+    while (std::getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+
+void Server::handleJoin(Client& client, const std::string& command) {
+    // Split command into parts
+    std::vector<std::string> params = split(command, ' ');
+    if (params.size() < 2) {
+        client.sendMessage("461 " + client.getNick() + " JOIN :Not enough parameters");
+        return;
+    }
+
+    std::vector<std::string> channels = split(params[1], ',');
+    std::vector<std::string> keys;
+    if (params.size() > 2) {
+        keys = split(params[2], ',');
+    }
+
+    for (size_t i = 0; i < channels.size(); ++i) {
+        std::string channelName = channels[i];
+        std::string key = (i < keys.size()) ? keys[i] : "";
+
+        // Check for valid channel name
+        if (channelName.empty() || (channelName[0] != '#' && channelName[0] != '&')) {
+            client.sendMessage("476 " + client.getNick() + " " + channelName + " :Bad Channel Mask");
+            continue;
+        }
+
+        Channel* channel = getChannel(channelName);
+        if (!channel) {
+            // Create a new channel
+            channel = new Channel(channelName, key);
+            Channels.push_back(*channel);
+        }
+
+        // Validation checks
+        if (channel->isInviteOnly() && !channel->isInvited(client)) {
+            client.sendMessage("473 " + client.getNick() + " " + channelName + " :Cannot join channel (+i)");
+            continue;
+        }
+        if (channel->hasKey() && channel->getKey() != key) {
+            client.sendMessage("475 " + client.getNick() + " " + channelName + " :Cannot join channel (+k)");
+            continue;
+        }
+        if (channel->isFull()) {
+            client.sendMessage("471 " + client.getNick() + " " + channelName + " :Cannot join channel (+l)");
+            continue;
+        }
+
+        // Add client and notify others
+        channel->addMember(client);
+        broadcastToChannel(channelName, ":" + client.getNick() + " JOIN " + channelName);
+
+        // Send topic and members list
+        if (channel->hasTopic()) {
+            client.sendMessage("332 " + client.getNick() + " " + channelName + " :" + channel->getTopic());
+        } else {
+            client.sendMessage("331 " + client.getNick() + " " + channelName + " :No topic is set");
+        }
+        client.sendMessage("353 " + client.getNick() + " = " + channelName + " :" + channel->getMembersList());
+        client.sendMessage("366 " + client.getNick() + " " + channelName + " :End of /NAMES list");
+    }
+}
+
 // void Server::Pass_func(int fd, std::string cmd)
 // {
 //     int position;
