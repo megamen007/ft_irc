@@ -2,10 +2,9 @@
             // ZAKARIA PART
 /////////////////////////////////////////////
 
-
-// / Authentification Commands :
-
-// --------------------PASS--------------------- :
+/////////////////////////////////////////////
+            // PASS :
+/////////////////////////////////////////////
 
 // Mock definitions for error messages
 #define ERR_NEEDMOREPARAMS(nickname, command) "461 " + nickname + " :Not enough parameters for " + command
@@ -55,8 +54,9 @@ int pass(Server *server, int const client_fd, cmd_struct cmd_infos) {
     }
 }
 
-// ------------------NICK------------------------:
-
+/////////////////////////////////////////////
+            // NICK :
+/////////////////////////////////////////////
 
 // Error and reply message definitions
 #define ERR_NONICKNAMEGIVEN(nick) "431 " + nick + " :No nickname given"
@@ -121,9 +121,9 @@ void nick(Server *server, int client_fd, const std::string& new_nickname) {
     addToClientBuffer(server, client_fd, RPL_NICK(client.getOldNickname(), client.getUsername(), client.getNickname()));
 }
 
-
-
-// -------------------------USER---------------------:
+/////////////////////////////////////////////
+            // USER :
+/////////////////////////////////////////////
 
 // Mock definitions for error and reply messages
 #define ERR_NEEDMOREPARAMS(nick, cmd) "461 " + nick + " " + cmd + " :Not enough parameters"
@@ -190,7 +190,9 @@ std::string findRealname(const std::string& msg) {
     return realname;
 }
 
-// -------------------JOIN--------------------------:
+/////////////////////////////////////////////
+            // JOIN:
+/////////////////////////////////////////////
 
 Server::Server() : Port(0), Password(""), Serverfd(-1), flags_status(0) {}
 
@@ -226,7 +228,6 @@ std::vector<std::string> Server::split(const std::string& str, char delimiter) {
     }
     return tokens;
 }
-
 
 void Server::handleJoin(Client& client, const std::string& command) {
     // Split command into parts
