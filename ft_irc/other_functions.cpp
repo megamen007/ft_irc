@@ -5,7 +5,190 @@
 
 // / Authentification Commands :
 
-// // PASS :
+// --------------------PASS--------------------- :
+
+// Mock definitions for error messages
+#define ERR_NEEDMOREPARAMS(nickname, command) "461 " + nickname + " :Not enough parameters for " + command
+#define ERR_PASSWDMISMATCH(nickname) "464 " + nickname + " :Password mismatch"
+#define FAILURE 0
+#define SUCCESS 1
+
+Client& retrieveClient(Server* server, int client_fd) {
+    static Client client("TestUser"); // Static to persist across calls for simplicity
+    return client;
+}
+
+void addToClientBuffer(Server* server, int client_fd, const std::string& message) {
+    std::cout << "Server response to client " << client_fd << ": " << message << std::endl;
+}
+
+// Function to extract password from message
+std::string retrievePassword(std::string msg_to_parse) {
+    std::string password;
+    size_t i = 0;
+
+    while (msg_to_parse[i] && msg_to_parse[i] == ' ')
+        i++;
+    while (msg_to_parse[i] && msg_to_parse[i] != ' ')
+        password += msg_to_parse[i++];
+
+    return password;
+}
+
+// Function to process the PASS command
+int pass(Server *server, int const client_fd, cmd_struct cmd_infos) {
+    Client& client = retrieveClient(server, client_fd);
+    std::string password = retrievePassword(cmd_infos.message);
+
+    if (cmd_infos.message.empty() || password.empty()) {
+        addToClientBuffer(server, client_fd, ERR_NEEDMOREPARAMS(client.getNickname(), cmd_infos.name));
+        return FAILURE;
+    } else if (server->getPassword() != password) {
+        addToClientBuffer(server, client_fd, ERR_PASSWDMISMATCH(client.getNickname()));
+        if (!client.isRegistrationDone()) {
+            client.setNbInfo(-1);
+        }
+        return FAILURE;
+    } else {
+        client.setNbInfo(+1);
+        return SUCCESS;
+    }
+}
+
+// ------------------NICK------------------------:
+
+
+// Error and reply message definitions
+#define ERR_NONICKNAMEGIVEN(nick) "431 " + nick + " :No nickname given"
+#define ERR_ERRONEUSNICKNAME(nick, attempted) "432 " + nick + " :Erroneous nickname " + attempted
+#define ERR_NICKNAMEINUSE(nick, attempted) "433 " + nick + " :Nickname is already in use " + attempted
+#define RPL_NICK(old_nick, user, new_nick) ":" + old_nick + "!" + user + "@localhost NICK " + new_nick
+
+// Retrieve client by file descriptor
+Client& retrieveClient(Server* server, int client_fd) {
+    return server->getClients()[client_fd];
+}
+
+// Simulate adding a response to the client buffer
+void addToClientBuffer(Server* server, int client_fd, const std::string& message) {
+    std::cout << "Server response to client " << client_fd << ": " << message << std::endl;
+}
+
+// Check if a nickname has invalid characters
+bool containsInvalidCharacters(const std::string& nickname) {
+    if (nickname.empty() || nickname[0] == '$' || nickname[0] == ':' || nickname[0] == '#')
+        return true;
+
+    for (char c : nickname) {
+        if (isspace(c) || c == ',' || c == '*' || c == '?' || c == '!' || c == '@' || c == '.')
+            return true;
+    }
+    return false;
+}
+
+// Check if a nickname is already used by another client
+bool isAlreadyUsed(Server* server, int client_fd, const std::string& new_nickname) {
+    const auto& clients = server->getClients();
+    for (const std::pair<const int, Client>& entry : clients) {
+        const Client& client = entry.second;
+        if (entry.first != client_fd && client.getNickname() == new_nickname) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Handle the NICK command for nickname change
+void nick(Server *server, int client_fd, const std::string& new_nickname) {
+    Client& client = retrieveClient(server, client_fd);
+
+    if (new_nickname.empty()) {
+        addToClientBuffer(server, client_fd, ERR_NONICKNAMEGIVEN(client.getNickname()));
+        return;
+    }
+
+    if (containsInvalidCharacters(new_nickname)) {
+        addToClientBuffer(server, client_fd, ERR_ERRONEUSNICKNAME(client.getNickname(), new_nickname));
+        return;
+    }
+
+    if (isAlreadyUsed(server, client_fd, new_nickname)) {
+        addToClientBuffer(server, client_fd, ERR_NICKNAMEINUSE(client.getNickname(), new_nickname));
+        return;
+    }
+
+    client.setNickname(new_nickname);
+    addToClientBuffer(server, client_fd, RPL_NICK(client.getOldNickname(), client.getUsername(), client.getNickname()));
+}
+
+
+
+// -------------------------USER---------------------:
+
+// Mock definitions for error and reply messages
+#define ERR_NEEDMOREPARAMS(nick, cmd) "461 " + nick + " " + cmd + " :Not enough parameters"
+#define ERR_ALREADYREGISTERED(nick) "462 " + nick + " :You may not reregister"
+
+// Mock classes and functions
+
+Client& retrieveClient(Server* server, int client_fd) {
+    return server->getClients()[client_fd];
+}
+
+void addToClientBuffer(Server* server, int client_fd, const std::string& message) {
+    std::cout << "Server response to client " << client_fd << ": " << message << std::endl;
+}
+
+// Command handler for USER
+void user(Server *server, int const client_fd, cmd_struct cmd_infos) {
+    Client& client = retrieveClient(server, client_fd);
+    std::string username = findUsername(cmd_infos.message);
+    std::string realname = findRealname(cmd_infos.message);
+
+    if (username.empty() || realname.empty()) {
+        addToClientBuffer(server, client_fd, ERR_NEEDMOREPARAMS(client.getNickname(), cmd_infos.name));
+    } else if (client.isRegistrationDone()) {
+        addToClientBuffer(server, client_fd, ERR_ALREADYREGISTERED(client.getNickname()));
+    } else {
+        client.setUsername(username);
+        client.setRealname(realname);
+        client.setNbInfo(+1);
+    }
+}
+
+// Extracts the username from the message
+std::string findUsername(const std::string& msg) {
+    std::stringstream ss(msg);
+    std::string username;
+
+    // Skip command keyword and extract the username
+    std::string temp;
+    if (ss >> temp >> username) {
+        // Username should be non-empty and skip if it's one of the placeholders (0 *)
+        if (username == "0" || username == "*") {
+            username.clear();
+        }
+    }
+    return username;
+}
+
+// Extracts the realname from the message
+std::string findRealname(const std::string& msg) {
+    std::stringstream ss(msg);
+    std::string realname, temp;
+
+    // Skip to the fourth parameter
+    int paramCount = 0;
+    while (ss >> temp && paramCount < 3) {
+        paramCount++;
+    }
+    // Everything after the 3rd space is considered the realname
+    std::getline(ss, realname);
+    if (!realname.empty() && realname[0] == ':') {
+        realname.erase(0, 1);  // Remove leading colon if present
+    }
+    return realname;
+}
 // void Server::Pass_func(int fd, std::string cmd)
 // {
 //     int position;
@@ -28,7 +211,7 @@
 //         // else
 //         // send a response ---->  ERR_INCORPASS;
 //     }
-//     // else 
+//     // else
 //     // send response ---->  ERR_ALREADYREGISTERED;
 // }
 
@@ -60,7 +243,7 @@
 // void Server::Nick_func(int fd, std::string cmd)
 // {
 //     int position;
-//     std::string granpa; 
+//     std::string granpa;
 //     std::string used;
 //     Client *clio = getClient(fd);
 //     if (cmd.empty())
@@ -102,7 +285,7 @@
 //         // else if (clio && !clio->getregistred())
 //             // send response -----> ERR_NOTREGISTERED;
 //     }
-//     if (clio && clio->getregistred() && !clio->getusername().empty() && !clio->getnickname().empty() && clio->getnickname() != "212" && !clio->getlogedstatus()) 
+//     if (clio && clio->getregistred() && !clio->getusername().empty() && !clio->getnickname().empty() && clio->getnickname() != "212" && !clio->getlogedstatus())
 //     {
 //         clio->setlogedstatus(true);
 //         // send response -----> RPL_CONNECTED;
@@ -117,7 +300,7 @@
 //         // send response -------> ERR_NOTREGISTERED;
 //     else if (clio && !clio->getusername().empty())
 //         // send response -------> ERR_ALREADYREGISTERED;
-//     else 
+//     else
 //         clio->setusername(cmd)
 //         if (clio && clio->getregistred() && !clio->getusername().empty() && !clio->getnickname().empty() && clio->getnickname() != "212" && !clio->getlogedstatus())
 //         clio->setlogedstatus(true)l
@@ -145,36 +328,36 @@
 //     {
 //         // operator priveleges :
 //         if (Cmd.compare("KICK") == 0 || Cmd.compare("kick") == 0)
-//             // kick_func();  
-//         else if (Cmd.compare("INVITE") == 0 || Cmd.compare("invite") == 0) 
+//             // kick_func();
+//         else if (Cmd.compare("INVITE") == 0 || Cmd.compare("invite") == 0)
 //             // invite_func();
-//         else if (Cmd.compare("MODE") == 0 || Cmd.compare("mode") == 0) 
-//             // mode_func(); 
+//         else if (Cmd.compare("MODE") == 0 || Cmd.compare("mode") == 0)
+//             // mode_func();
 //         else if (Cmd.compare("TOPIC") == 0 || Cmd.compare("topic") == 0)
 //             // topic_func();
-//         else if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0) 
+//         else if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0)
 //             // join_func();
-//         else if (Cmd.compare("PRIVEMSG") == 0 || Cmd.compare("privemsg") == 0) 
+//         else if (Cmd.compare("PRIVEMSG") == 0 || Cmd.compare("privemsg") == 0)
 //             // privemsg_func();
-//         else if (Cmd.compare("NICK") == 0 || Cmd.compare("nick")  == 0) 
-//             // nick_func(); 
+//         else if (Cmd.compare("NICK") == 0 || Cmd.compare("nick")  == 0)
+//             // nick_func();
 //         else if (Cmd.compare("USER") == 0  || Cmd.compare("user") == 0)
 //             // user_func();
-//         else if (Cmd.compare("PASS") == 0 || Cmd.compare("pass") == 0) 
+//         else if (Cmd.compare("PASS") == 0 || Cmd.compare("pass") == 0)
 //             // pass_func();
 //     }
-//     else 
-//     { 
+//     else
+//     {
 //         // normal User priveleges :
-//         if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0) 
+//         if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0)
 //             // join_func();
-//         else if (Cmd.compare("PRIVEMSG") == 0  || Cmd.compare("privemsg") == 0) 
+//         else if (Cmd.compare("PRIVEMSG") == 0  || Cmd.compare("privemsg") == 0)
 //             // privemsg_func()
-//         else if (Cmd.compare("NICK") == 0 || Cmd.compare("nick")  == 0) 
-//             // nick_func(); 
+//         else if (Cmd.compare("NICK") == 0 || Cmd.compare("nick")  == 0)
+//             // nick_func();
 //         else if (Cmd.compare("USER") == 0  || Cmd.compare("user") == 0)
 //             // user_func();
-//         else if (Cmd.compare("PASS") == 0 || Cmd.compare("pass") == 0) 
+//         else if (Cmd.compare("PASS") == 0 || Cmd.compare("pass") == 0)
 //             // pass_func();
 //     }
 // }
