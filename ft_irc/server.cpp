@@ -168,6 +168,7 @@ void Server::socket_Accepting()
 void Server::socket_receiving(int client_fd)
 {
     char buffer[1024];
+    Buffer Parser;
     memset(buffer, 0, sizeof(buffer));
 
         int r = recv(client_fd, buffer, sizeof(buffer), 0);
@@ -191,7 +192,7 @@ void Server::socket_receiving(int client_fd)
         {
             std::cout << " Received " << r << "  bytes ... " << std::endl;
             std::cout << " Received Data :  " << buffer << std::endl;
-            // Parcing_and_Executing(client_fd,buffer);
+            Parcing_and_Executing(client_fd,buffer,Parser);
         if (std::string(buffer) == "exit") 
         {
             std::cout << "Client requested to exit. Closing connection." << std::endl;
@@ -201,12 +202,13 @@ void Server::socket_receiving(int client_fd)
     
         }
     }
-// void Server::Parcing_and_Executing(int client_fd, std::string buffer)
-// {
-//     // ZAKARIA PART ( Parcing the buffer and checking it from Possible errors );
-
-//     // OTHMAN PART ( where to execute the list of Command depending on the Parced Buffer)
-//         // executing_commands(client_fd , trimmed_data); // need to start coding nick , pass , user , join and creating chanells ;
-// }
+void Server::Parcing_and_Executing(int  client_fd, std::string buffer,Buffer Parser)
+{
+    (void)client_fd;
+    Parser.Parcing_core(buffer);
+    // ZAKARIA PART ( Parcing the buffer and checking it from Possible errors );
+    // OTHMAN PART ( where to execute the list of Command depending on the Parced Buffer)
+    // executing_commands(client_fd , trimmed_data); // need to start coding nick , pass , user , join and creating chanells ;
+}
 
 

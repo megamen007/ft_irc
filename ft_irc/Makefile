@@ -2,7 +2,7 @@ CC = c++
 
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98
 
-SRC = main.cpp server.cpp server_infos.cpp Channel.cpp Client.cpp
+SRC = main.cpp server.cpp server_infos.cpp Channel.cpp Client.cpp Parcing_data.cpp
 
 OBJ = $(SRC:.cpp=.o)
 

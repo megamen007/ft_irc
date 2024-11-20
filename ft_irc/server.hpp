@@ -16,9 +16,11 @@
 
 #include "Channel.hpp"
 #include "Client.hpp"
+#include "Parcing_data.hpp"
 
 class Client;
 class Channel;
+class Buffer;
 
 class Server
 {
@@ -84,7 +86,7 @@ class Server
         void close_server_socket();
 
         // Parsing received DATA
-        // void Parcing_and_Executing(int client_fd, std::string buffer);
+        void Parcing_and_Executing(int client_fd, std::string buffer, Buffer Parser);
         // void roles_check();
         // void executing_commands(int fd, std::string Cmd);
 
