@@ -180,3 +180,109 @@ void Server::Close_filedescriptors()
     close_all_clients();
     close_server_socket();
 }
+
+void Server::registerClient(int fd, const std::vector<std::string>& messages)
+ {
+        Client* client = findClientByFd(fd);
+        if (client == NULL)
+        {
+            Client newClient;
+            newClient.setfd(fd);
+            Clients.push_back(newClient);
+            client = &Clients.back();
+        }
+
+        for (std::vector<std::string>::const_iterator it = messages.begin(); it != messages.end(); ++it)
+        {
+            processMessage(*client, *it);
+        }
+    }
+
+    void Server::processMessage(Client& client, const std::string& message)
+     {
+        std::istringstream ss(message);
+        std::string command;
+        ss >> command;
+
+        if (command == "PASS")
+        {
+            Buffer::received_pass = true;
+            std::string password;
+            ss >> password;
+            if (password == Password)
+            {
+                client.setregistred(true);
+                std::cout << "Client " << client.get_clientfd() << " provided valid password.\n";
+            }
+            else
+            {
+                sendError(client.get_clientfd(), "ERR_PASSWDMISMATCH");
+            }
+        } 
+        else if (command == "NICK")
+        {
+            Buffer::received_nick = true;
+            std::string nickname;
+            ss >> nickname;
+            if (isNicknameInUse(nickname))
+            {
+                sendError(client.get_clientfd(), "ERR_NICKNAMEINUSE");
+            }
+            else {
+                client.setnickname(nickname);
+                std::cout << "Client " << client.get_clientfd() << " set nickname: " << nickname << "\n";
+            }
+        } 
+        else if (command == "USER")
+        {
+            Buffer::received_user = true;
+            std::string username, hostname, servername, realname;
+            ss >> username >> hostname >> servername;
+            getline(ss, realname);
+            if (realname.empty() || realname[0] != ':')
+            {
+                sendError(client.get_clientfd(), "ERR_NEEDMOREPARAMS");
+            } 
+            else 
+            {
+                client.setusername(username);
+                client.setIPaddress(hostname); // Assuming this for hostname
+                client.setlogedstatus(true);
+                std::cout << "Client " << client.get_clientfd() << " set user info.\n";
+            }
+        }
+
+        if (client.getregistred() && client.getnickname().size() > 0 && client.getusername().size() > 0)
+            sendWelcome(client.get_clientfd());
+    }
+
+    Client* Server::findClientByFd(int fd)
+    {
+        for (std::vector<Client>::iterator it = Clients.begin(); it != Clients.end(); ++it)
+        {
+            if (it->get_clientfd() == fd)
+                return &(*it);
+        }
+        return NULL; // Client not found
+    }
+
+    bool Server::isNicknameInUse(const std::string& nickname)
+    {
+        for (std::vector<Client>::iterator it = Clients.begin(); it != Clients.end(); ++it)
+        {
+            if (it->getnickname() == nickname)
+                return true;
+        }
+        return false;
+    }
+
+    void Server::sendWelcome(int fd)
+    {
+        std::cout << "Client " << fd << " Welcome to the HAKUNA MATATA Realm.\n";
+    }
+
+    void Server::sendError(int fd, const std::string& error)
+    {
+        std::cerr << "Error for client " << fd << ": " << error << "\n";
+        // Here you would send a real error message over the network
+    }

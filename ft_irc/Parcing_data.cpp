@@ -37,7 +37,6 @@ Buffer::Buffer()
 Buffer::~Buffer()
 {}
 
-
 // getters 
 
 std::string Buffer::get_arg()
@@ -59,7 +58,7 @@ void Buffer::Parcing_core(std::string &buffer)
     if (is_initial_hexchat_handshake(buffer))
         Parcing_from_hexchat(buffer);
     else 
-        Parcing_from_nc(buffer);
+        check_Client_is_authentifacted(buffer);
 
     print_parsed_data();
 }
@@ -126,6 +125,20 @@ void Buffer::Parcing_from_hexchat(std::string &buffer)
     split_buffer_from_hexchat(buffer);
     checking_core(Cmd, Arg);
 }
+
+void Buffer::check_Client_is_authentifacted(std::string &buffer)
+{
+
+    if (received_nick && received_user &&  received_pass)
+        Parcing_from_nc(buffer);  //
+    else
+    {
+        std::cerr << "u dindn't pass the registration process , try the following commmands 1/PASS  2/NICK  3/USER . " <<std::endl;
+        return ;
+    }
+
+}
+
 
 void Buffer::checking_core(std::string &cmd, std::string &arg)
 {

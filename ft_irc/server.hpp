@@ -36,7 +36,7 @@ class Server
         std::vector <std::string> msg;
 
         // Méthodes utilitaires
-        std::vector<std::string> split(const std::string& str, char delimiter);
+        // std::vector<std::string> split(const std::string& str, char delimiter);
 
     public:
         Server();
@@ -90,11 +90,18 @@ class Server
 
         //command
         void handleJoin(Client& client, const std::string& command);
+        std::vector<std::string> split(const std::string& str, char delimiter);
 
         // Parsing received DATA
         void Parcing_and_Executing(int client_fd, std::string buffer, Buffer Parser);
         // void roles_check();
         // void executing_commands(int fd, std::string Cmd);
+        void registerClient(int fd, const std::vector<std::string>& messages);
+        void processMessage(Client& client, const std::string& message);
+        Client* findClientByFd(int fd);
+        bool isNicknameInUse(const std::string& nickname);
+        void sendWelcome(int fd);
+        void sendError(int fd, const std::string& error);
 
         // Connection Registrations Commands :
             //user_func();

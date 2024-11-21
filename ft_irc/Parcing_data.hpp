@@ -13,6 +13,7 @@ class Buffer
         std::string Msg;
         std::vector<std::string> valid_commands;
         std::vector<char> valid_mode_flags;
+ 
 
     public:
         Buffer();
@@ -27,6 +28,7 @@ class Buffer
 
     // members functions
         bool is_initial_hexchat_handshake(std::string &buffer);
+        void check_Client_is_authentifacted(std::string &buffer);
         void Parcing_core(std::string &buffer);
         void checking_mode_args(const std::string &args);
         void print_parsed_data();
@@ -38,5 +40,9 @@ class Buffer
         void checking_command(std::string &cmd);
         void checking_args(std::string &args);
         void trim(std::string &str);
+
+        static bool received_pass;
+        static bool received_nick;
+        static bool received_user;
 
 };
