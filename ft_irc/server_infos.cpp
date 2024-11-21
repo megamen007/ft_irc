@@ -197,25 +197,46 @@ void Server::registerClient(int fd, std::string raw)
             client = &Clients.back();
         }
 
+
+
         std::string command;          
         std::string arg;
         std::string message;
 
-        std::istringstream ss(raw);
-        ss >> command;            
-        ss >> arg;               
-        std::getline(ss, message);
-
-        processMessage(*client, command , raw);
+        
+        if (raw.find("\r\n") != std::string::npos)
+        {
+            std::vector <std::string> lines;
+            lines = splitByCRLF(raw);
+            for (size_t i = 1; i < lines.size() ; i++)
+            {
+                std::istringstream ss(lines[i]);
+                ss >> command;            
+                ss >> arg;               
+                std::getline(ss, message);
+                processMessage(*client, command , arg, message);
+            }
+            
+        }
+        else
+        {
+            std::istringstream ss(raw);
+            ss >> command;            
+            ss >> arg;               
+            std::getline(ss, message);
+            processMessage(*client, command , arg, message);
+        }
     }
 
-    void Server::processMessage(Client& client, const std::string& command, const std::string &message)
+    void Server::processMessage(Client& client, const std::string& command, const std::string &arg, const std::string &msg)
      {
-        std::istringstream ss(message);
+        std::istringstream ss(arg);
         if (command == "PASS")
         {
             std::string password;
             ss >> password;
+            std::cout << password << "[][][]" <<  Password;
+
             if (password == Password)
             {
                 client.setregistred(true);
@@ -244,10 +265,19 @@ void Server::registerClient(int fd, std::string raw)
         } 
         else if (command == "USER")
         {
-            std::string username, hostname, servername, realname;
-            ss >> username >> hostname >> servername;
-            getline(ss, realname);
-            if (realname.empty() || realname[0] != ':')
+            std::istringstream ss(msg);
+            std::string username, hostname, servername, realname , tmp;
+            username = arg; 
+            ss >> hostname >> servername;
+            getline(ss, tmp);
+            realname = trim(tmp); 
+
+            std::cout << username << std::endl;
+            std::cout << hostname << std::endl;
+            std::cout << servername << std::endl;
+            std::cout << realname << std::endl;
+
+            if (realname.empty())
             {
                 sendError(client.get_clientfd(), "ERR_NEEDMOREPARAMS");
             } 
@@ -295,3 +325,27 @@ void Server::registerClient(int fd, std::string raw)
         std::cerr << "Error for client " << fd << ": " << error << "\n";
         // Here you would send a real error message over the network
     }
+
+std::string Server::trim(std::string &str)
+{
+    str.erase(0, str.find_first_not_of(" \t"));
+    str.erase(str.find_last_not_of(" \t") + 1);
+    return str;
+}
+
+std::vector<std::string> Server::splitByCRLF(const std::string& input)
+{
+    std::vector<std::string> result;
+    std::string::size_type start = 0, end;
+
+    while ((end = input.find("\r\n", start)) != std::string::npos)
+    {
+        result.push_back(input.substr(start, end - start));
+        start = end + 2; // Skip past "\r\n"
+    }
+
+    if (start < input.length())
+        result.push_back(input.substr(start));
+
+    return result;
+}

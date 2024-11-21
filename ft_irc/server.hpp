@@ -99,12 +99,13 @@ class Server
         // void roles_check();
         // void executing_commands(int fd, std::string Cmd);
         void registerClient(int fd, std::string raw);
-        void processMessage(Client& client, const std::string& command, const std::string& raw);
+        void processMessage(Client& client, const std::string& command, const std::string &arg, const std::string &msg);
         Client* findClientByFd(int fd);
         bool isNicknameInUse(const std::string& nickname);
         void sendWelcome(int fd);
         void sendError(int fd, const std::string& error);
-
+        std::string  trim(std::string &str);
+        std::vector<std::string> splitByCRLF(const std::string& input);
         // Connection Registrations Commands :
             //user_func();
             //pass_func();
