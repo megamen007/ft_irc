@@ -16,11 +16,14 @@
     if everything is ok pass the command and the arg to othman .
 }*/
 
+
+bool Buffer::received_pass = false;
+bool Buffer::received_nick = false;
+bool Buffer::received_user = false;
+
 Buffer::Buffer()
 {
-    valid_commands.push_back("NICK");
-    valid_commands.push_back("USER");
-    valid_commands.push_back("PASS");
+
     valid_commands.push_back("KICK");
     valid_commands.push_back("MODE");
     valid_commands.push_back("JOIN");
@@ -59,7 +62,6 @@ void Buffer::Parcing_core(std::string &buffer)
         Parcing_from_hexchat(buffer);
     else 
         check_Client_is_authentifacted(buffer);
-
     print_parsed_data();
 }
 
@@ -95,6 +97,7 @@ bool Buffer::is_initial_hexchat_handshake(std::string &buffer)
 void Buffer::split_buffer_from_nc(const std::string &buffer)
 {
     std::istringstream ss(buffer);
+    buf = buffer;
     ss >> Cmd;
     trim(Cmd);                
     ss >> Arg;
@@ -128,7 +131,6 @@ void Buffer::Parcing_from_hexchat(std::string &buffer)
 
 void Buffer::check_Client_is_authentifacted(std::string &buffer)
 {
-
     if (received_nick && received_user &&  received_pass)
         Parcing_from_nc(buffer);  //
     else
@@ -150,6 +152,10 @@ void Buffer::checking_core(std::string &cmd, std::string &arg)
 
 void Buffer::checking_command(std::string &cmd)
 {
+    if (cmd == "NICK" || cmd == "PASS" || cmd == "USER")
+    {
+        std::cerr << cmd << " this One of the Command that u use to register with and , u are already registred try Other commands rather than PASS NICK USER" << std::endl;
+    }
     if(std::find(valid_commands.begin(), valid_commands.end(), cmd) == valid_commands.end())
     {
         std::cerr << "Invalid command: " << cmd << std::endl;

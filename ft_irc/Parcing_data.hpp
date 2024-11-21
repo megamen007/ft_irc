@@ -8,6 +8,7 @@
 class Buffer
 {
     private:
+        std::string buf;
         std::string Cmd;
         std::string Arg;
         std::string Msg;
@@ -25,6 +26,7 @@ class Buffer
         std::string get_arg();
         std::string get_cmd();
         std::string get_msg();
+        
 
     // members functions
         bool is_initial_hexchat_handshake(std::string &buffer);

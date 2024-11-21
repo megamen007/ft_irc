@@ -52,6 +52,11 @@ int Server::getPort()
     return this->Port;
 }
 
+std::string Server::getRawData()
+{
+    return this->RawData;
+}
+
 int Server::getFd()
 {
     return this->Serverfd;
@@ -181,7 +186,7 @@ void Server::Close_filedescriptors()
     close_server_socket();
 }
 
-void Server::registerClient(int fd, const std::vector<std::string>& messages)
+void Server::registerClient(int fd, std::string raw)
  {
         Client* client = findClientByFd(fd);
         if (client == NULL)
@@ -192,26 +197,29 @@ void Server::registerClient(int fd, const std::vector<std::string>& messages)
             client = &Clients.back();
         }
 
-        for (std::vector<std::string>::const_iterator it = messages.begin(); it != messages.end(); ++it)
-        {
-            processMessage(*client, *it);
-        }
+        std::string command;          
+        std::string arg;
+        std::string message;
+
+        std::istringstream ss(raw);
+        ss >> command;            
+        ss >> arg;               
+        std::getline(ss, message);
+
+        processMessage(*client, command , raw);
     }
 
-    void Server::processMessage(Client& client, const std::string& message)
+    void Server::processMessage(Client& client, const std::string& command, const std::string &message)
      {
         std::istringstream ss(message);
-        std::string command;
-        ss >> command;
-
         if (command == "PASS")
         {
-            Buffer::received_pass = true;
             std::string password;
             ss >> password;
             if (password == Password)
             {
                 client.setregistred(true);
+                Buffer::received_pass = true;
                 std::cout << "Client " << client.get_clientfd() << " provided valid password.\n";
             }
             else
@@ -221,21 +229,21 @@ void Server::registerClient(int fd, const std::vector<std::string>& messages)
         } 
         else if (command == "NICK")
         {
-            Buffer::received_nick = true;
             std::string nickname;
             ss >> nickname;
             if (isNicknameInUse(nickname))
             {
                 sendError(client.get_clientfd(), "ERR_NICKNAMEINUSE");
             }
-            else {
+            else 
+            {
                 client.setnickname(nickname);
+                Buffer::received_nick = true;
                 std::cout << "Client " << client.get_clientfd() << " set nickname: " << nickname << "\n";
             }
         } 
         else if (command == "USER")
         {
-            Buffer::received_user = true;
             std::string username, hostname, servername, realname;
             ss >> username >> hostname >> servername;
             getline(ss, realname);
@@ -248,6 +256,7 @@ void Server::registerClient(int fd, const std::vector<std::string>& messages)
                 client.setusername(username);
                 client.setIPaddress(hostname); // Assuming this for hostname
                 client.setlogedstatus(true);
+                Buffer::received_user = true;
                 std::cout << "Client " << client.get_clientfd() << " set user info.\n";
             }
         }

@@ -30,6 +30,7 @@ class Server
         static int Signal_status;
         int Serverfd;
         int flags_status;
+        std::string RawData;
         std::vector<Client> Clients;
         std::vector<Channel> Channels;
         std::vector<struct pollfd> fds;
@@ -51,6 +52,7 @@ class Server
         Client *getClientnick(std::string nickname);
         Channel *getChannel(std::string name);
         int get_Signal_Status();
+        std::string getRawData();
 
         // Setters
         void setFd(int fd);
@@ -96,8 +98,8 @@ class Server
         void Parcing_and_Executing(int client_fd, std::string buffer, Buffer Parser);
         // void roles_check();
         // void executing_commands(int fd, std::string Cmd);
-        void registerClient(int fd, const std::vector<std::string>& messages);
-        void processMessage(Client& client, const std::string& message);
+        void registerClient(int fd, std::string raw);
+        void processMessage(Client& client, const std::string& command, const std::string& raw);
         Client* findClientByFd(int fd);
         bool isNicknameInUse(const std::string& nickname);
         void sendWelcome(int fd);
