@@ -97,7 +97,7 @@ class Server
         // Parsing received DATA
         void Parcing_and_Executing(int client_fd, std::string buffer, Buffer Parser);
         // void roles_check();
-        // void executing_commands(int fd, std::string Cmd);
+        void executing_commands(int fd, std::string Cmd);
         void registerClient(int fd, std::string raw);
         void processMessage(Client& client, const std::string& command, const std::string &arg, const std::string &msg);
         Client* findClientByFd(int fd);

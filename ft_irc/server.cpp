@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/21 22:54:48 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/22 00:05:16 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,8 +196,10 @@ void Server::socket_receiving(int client_fd)
             
             // Parser.Parcing_core(buffer);
             registerClient(client_fd, buffer);
-            // Parcing_and_Executing(client_fd,buffer,Parser);
-
+            // our client is registred .
+            // if (registration_status)
+                Parcing_and_Executing(client_fd,buffer,Parser);
+        }
         if (std::string(buffer) == "exit") 
         {
             std::cout << "Client requested to exit. Closing connection." << std::endl;
@@ -205,15 +207,15 @@ void Server::socket_receiving(int client_fd)
             Remove_Client(client_fd);
         }
     
-        }
-    }
+}
 
-// void Server::Parcing_and_Executing(int client_fd, std::string buffer,Buffer Parser)
-// {
-//     // (void)client_fd;
-//     Parser.Parcing_core(buffer);
-//     // OTHMAN PART ( where to execute the list of Command depending on the Parced Buffer)
-//     // executing_commands(client_fd , trimmed_data); // need to start coding nick , pass , user , join and creating chanells ;
-// }
+void Server::Parcing_and_Executing(int client_fd, std::string buffer,Buffer Parser)
+{
+    // (void)client_fd;
+    Parser.Parcing_core(buffer);
+    
+    // OTHMAN PART ( where to execute the list of Command depending on the Parced Buffer)
+    executing_commands(client_fd , buffer); // need to start coding nick , pass , user , join and creating chanells ;
+}
 
 

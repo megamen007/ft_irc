@@ -131,13 +131,13 @@ void Buffer::Parcing_from_hexchat(std::string &buffer)
 
 void Buffer::check_Client_is_authentifacted(std::string &buffer)
 {
-    if (received_nick && received_user &&  received_pass)
+    // if (received_nick && received_user &&  received_pass)
         Parcing_from_nc(buffer);  //
-    else
-    {
-        std::cerr << "u dindn't pass the registration process , try the following commmands 1/PASS  2/NICK  3/USER . " <<std::endl;
-        return ;
-    }
+    // else
+    // {
+    //     std::cerr << "u dindn't pass the registration process , try the following commmands 1/PASS  2/NICK  3/USER . " <<std::endl;
+    //     return ;
+    // }
 
 }
 
@@ -145,6 +145,8 @@ void Buffer::check_Client_is_authentifacted(std::string &buffer)
 void Buffer::checking_core(std::string &cmd, std::string &arg)
 {
     checking_command(cmd);
+    // if (cmd == "JOIN")
+        // 
     if (cmd == "MODE")
         checking_mode_args(arg);
     // checking_args(arg);

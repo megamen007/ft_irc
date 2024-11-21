@@ -427,8 +427,8 @@ void Server::handleJoin(Client& client, const std::string& command) {
             // OTHMAN PART
 /////////////////////////////////////////////
 
-// void Server::executing_commands(int fd, std::string Cmd)
-// {
+ void Server::executing_commands(int fd, std::string Cmd)
+{
 //     if(Operator_status == 1)
 //     {
 //         // operator priveleges :
@@ -440,15 +440,11 @@ void Server::handleJoin(Client& client, const std::string& command) {
 //             // mode_func();
 //         else if (Cmd.compare("TOPIC") == 0 || Cmd.compare("topic") == 0)
 //             // topic_func();
-//         else if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0)
-//             // join_func();
+       if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0)
+             join_func();
 //         else if (Cmd.compare("PRIVEMSG") == 0 || Cmd.compare("privemsg") == 0)
 //             // privemsg_func();
-//         else if (Cmd.compare("NICK") == 0 || Cmd.compare("nick")  == 0)
-//             // nick_func();
-//         else if (Cmd.compare("USER") == 0  || Cmd.compare("user") == 0)
-//             // user_func();
-//         else if (Cmd.compare("PASS") == 0 || Cmd.compare("pass") == 0)
+
 //             // pass_func();
 //     }
 //     else
@@ -465,4 +461,4 @@ void Server::handleJoin(Client& client, const std::string& command) {
 //         else if (Cmd.compare("PASS") == 0 || Cmd.compare("pass") == 0)
 //             // pass_func();
 //     }
-// }
+}

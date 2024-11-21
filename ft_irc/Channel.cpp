@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/09/11 06:23:06 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/22 00:21:47 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,113 +14,99 @@
 
 // Canonical Form:
 
-Channel::Channel()
-{
-    this->name = "";
-    this->topic = "";
-    this->invite_status = false;
-    this->limit = 0;
-    this->key = 0;
-    this->creation_time = "";
+Channel::Channel(){
+    name = "default";
+    invite_only = false;
+    has_password = false;
+    has_topic = false;
+    has_limit = false;
+    operate = false;
 }
 
-Channel &Channel::operator=(const Channel &src)
-{
-    if (this != &src)
-    {
-        this->name = src.name;
-        this->topic = src.topic;
-        this->invite_status = src.invite_status;
-        this->limit = src.limit;
-        this->key = src.key;
-        this->creation_time = src.creation_time;
-        
-    }
+Channel &Channel::operator=(const Channel &src){
+    if(this == &src)
+        return *this;
+    name = src.name;
+    topic = src.topic;
+    modes = src.modes;
+    password = src.password;
+    invite_only = src.invite_only;
+    has_password = src.has_password;
+    has_topic = src.has_topic;
+    has_limit = src.has_limit;
+    operate = src.operate;
+    max_users = src.max_users;
+    Clients = src.Clients;
+    admins = src.admins;
+    invites = src.invites;
     return *this;
 }
 
-Channel::Channel(Channel const &src)
-{
+Channel::Channel(Channel const &src){
     *this = src;
 }
 
-Channel::~Channel()
-{}
-
-// Channel setters:
-
-void Channel::SetInvitOnly(int invit_only)
-{
-    this->invite_status = invit_only;
+Channel::~Channel(){
+    Clients.clear();
+    admins.clear();
+    invites.clear();
 }
-void Channel::SetTopic(int topic)
-{
+
+void Channel::SetName(std::string name){
+    this->name = name;
+}
+
+void Channel::SetTopic(std::string topic){
     this->topic = topic;
+    has_topic = true;
 }
+
+void Channel::SetPassword(std::string password){
+    this->password = password;
+    has_password = true;
+}
+
+void Channel::SetMaxUsers(int max){
+    this->max_users = max;
+    has_limit = true;
+}
+
 void Channel::SetTime(std::string time)
 {
     this->creation_time = time;
 }
-void Channel::SetKey(int key)
-{
-    this->key = key;
-}
-void Channel::SetLimit(int limit)
-{
-this->limit = limit;
-}
-
-void Channel::SetPassword(std::string password)
-{
-    this->password = password;
-}
-void Channel::SetName(std::string name)
-{
-    this->name = name;
-}
 
 
-// Channel getters:
-
-int Channel::GetInvitOnly()
-{
-    return this->invite_status;
-}
-std::string Channel::GetTopic()
-{
-    return this->topic;
-}
-int Channel::GetKey()
-{
-    return this->key;
-}
-int Channel::GetLimit()
-{
-    return this->limit;
+void Channel::setbuffer(std::string message, int destination_fd){
+    int i;
+    if((i = send(destination_fd, message.c_str(), message.size(), 0)) == -1)
+        throw std::runtime_error("send failed");
+    if(i != (int)message.size())
+        throw std::runtime_error("send failed: not all bytes sent");
 }
 
-std::string Channel::GetPassword()
-{
-    return this->password;
-}
-std::string Channel::GetName()
-{
-    return this->name;
-}
-std::string Channel::GetTime()
-{
-    return this->creation_time;
+std::string Channel::GetName(){
+    return name;
 }
 
-// Adding functions:
-
-void Channel::add_Client(Client &newClient)
-{
-    Clients.push_back(newClient);
+std::string Channel::get_time(){
+	return this->creation_time;
 }
 
-void Channel::add_Operator(Client &newOperator)
-{
-    Operators.push_back(newOperator);
+
+Client *Channel::GetUser(std::string name){
+    for(size_t i = 0; i < Clients.size(); ++i){
+        if(name == Clients[i]->nickname)
+            return Clients[i];
+    }
+    return NULL;
 }
+
+std::string Channel::GetUserInfo(Client *admin, bool i){
+    if(i)
+        return ":" + admin->nickname + "!" + admin->username + "@" + admin->servername + " ";
+    else
+        return ":" + admin->servername + " ";
+}
+
 
