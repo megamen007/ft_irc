@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -47,7 +49,7 @@ class Channel
         bool has_topic;
         bool has_limit;
         bool operate;
-        int max_users;
+        size_t max_users;
 
     public:
 
@@ -79,7 +81,7 @@ class Channel
         Client     *GetUser(std::string name);
         bool get_invite_only();
         bool get_limit();
-        int get_maxusers();
+        size_t get_maxusers();
         std::string get_password();
         bool get_has_password();
     

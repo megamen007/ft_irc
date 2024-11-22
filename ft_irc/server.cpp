@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/22 00:05:16 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/23 00:40:59 by otelliq          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ void Server::client_socket_polling(int client_fd)
     fds.push_back(NPoll);
 }
 
-void Server::Launching_server(int port, std::string password)
+void Server::Launching_server(int port, std::string password, Server &Excalibur)
 {
     this->Port = port;
     this->Password = password;
@@ -111,11 +111,13 @@ void Server::Launching_server(int port, std::string password)
 
     std::cout << " Your Server Sir is in the Listening mode waiting for incoming connections  ... waiting to accept them" << std::endl;
 
-    Server_cycle();
+    Server_cycle(Excalibur);
 }
 
-void Server::Server_cycle()
+void Server::Server_cycle(Server &Excalibur)
 {
+    Client Exodia;
+    
     while(!get_Signal_Status())
     {
         if((poll(fds.data(), fds.size(), -1) == -1) && get_Signal_Status() == false)
@@ -129,9 +131,9 @@ void Server::Server_cycle()
             if (fds[i].revents & POLLIN)
             {
                 if (fds[i].fd == Serverfd)
-                    socket_Accepting();
+                    socket_Accepting(Exodia);
                 else 
-                    socket_receiving(fds[i].fd);
+                    socket_receiving(fds[i].fd, Exodia, Excalibur);
             }
             i++;
         }
@@ -140,9 +142,9 @@ void Server::Server_cycle()
 }
 
 
-void Server::socket_Accepting()
+void Server::socket_Accepting(Client &client)
 {
-    Client Exodia;
+    // Client Exodia;
     struct sockaddr_in clientadd;
     socklen_t len = sizeof(clientadd);
 
@@ -157,15 +159,15 @@ void Server::socket_Accepting()
 
     client_socket_polling(coming_fd);
 
-    Exodia.setfd(coming_fd);
-    Exodia.setIPaddress(inet_ntoa(clientadd.sin_addr));
-    Clients.push_back(Exodia);
+    client.setfd(coming_fd);
+    client.setIPaddress(inet_ntoa(clientadd.sin_addr));
+    Clients.push_back(client);
     
     std::cout << " ---> Client connected " << std::endl;
 }
 
 
-void Server::socket_receiving(int client_fd)
+void Server::socket_receiving(int client_fd, Client &client ,Server &Excalibur)
 {
     char buffer[1024];
     Buffer Parser;
@@ -196,9 +198,22 @@ void Server::socket_receiving(int client_fd)
             
             // Parser.Parcing_core(buffer);
             registerClient(client_fd, buffer);
+            std::cout << " Client is registred " << std::endl;
+
+            client.setnickname(n_name);
+            client.setusername(u_name);
+            client.setservername(s_name);
+            client.setrealname(r_name);
+            client.sethostname(h_name);
+            client.setIPaddress(h_name);
+            // Assuming this for hostname
+            std::cout << "nickname" << client.getnickname() << std::endl;
+            std::cout << "username" << client.getusername() << std::endl;
+            std::cout << "hostname" << client.gethostname() << std::endl;
+            std::cout << "servername" << client.getservername() << std::endl;
             // our client is registred .
             // if (registration_status)
-                Parcing_and_Executing(client_fd,buffer,Parser);
+            Parcing_and_Executing(client_fd,buffer,Parser, client, Excalibur);
         }
         if (std::string(buffer) == "exit") 
         {
@@ -209,13 +224,52 @@ void Server::socket_receiving(int client_fd)
     
 }
 
-void Server::Parcing_and_Executing(int client_fd, std::string buffer,Buffer Parser)
+
+
+void Client::executing_commands(__unused int fd, std::string Cmd, Buffer &Parser , Client &client, Server &Excalibur)
+{
+//     if(Operator_status == 1)
+//     {
+//         // operator priveleges :
+//         if (Cmd.compare("KICK") == 0 || Cmd.compare("kick") == 0)
+//             // kick_func();
+//         else if (Cmd.compare("INVITE") == 0 || Cmd.compare("invite") == 0)
+//             // invite_func();
+//         else if (Cmd.compare("MODE") == 0 || Cmd.compare("mode") == 0)
+//             // mode_func();
+//         else if (Cmd.compare("TOPIC") == 0 || Cmd.compare("topic") == 0)
+//             // topic_func();  
+       if (Parser.get_cmd().compare("JOIN") == 0 || Parser.get_cmd().compare("join") == 0)
+             client.JOIN(client, Cmd, Parser , Excalibur);
+//         else if (Cmd.compare("PRIVEMSG") == 0 || Cmd.compare("privemsg") == 0)
+//             // privemsg_func();
+
+//             // pass_func();
+//     }
+//     else
+//     {
+//         // normal User priveleges :
+//         if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0)
+//             // join_func();
+//         else if (Cmd.compare("PRIVEMSG") == 0  || Cmd.compare("privemsg") == 0)
+//             // privemsg_func()
+//         else if (Cmd.compare("NICK") == 0 || Cmd.compare("nick")  == 0)
+//             // nick_func();
+//         else if (Cmd.compare("USER") == 0  || Cmd.compare("user") == 0)
+//             // user_func();
+//         else if (Cmd.compare("PASS") == 0 || Cmd.compare("pass") == 0)
+//             // pass_func();
+//     }
+}
+
+
+
+void Server::Parcing_and_Executing(int client_fd, std::string buffer,Buffer &Parser, Client &client ,Server &Excalibur)
 {
     // (void)client_fd;
     Parser.Parcing_core(buffer);
-    
     // OTHMAN PART ( where to execute the list of Command depending on the Parced Buffer)
-    executing_commands(client_fd , buffer); // need to start coding nick , pass , user , join and creating chanells ;
+    client.executing_commands(client_fd , buffer, Parser , client, Excalibur); // need to start coding nick , pass , user , join and creating chanells ;
 }
 
 

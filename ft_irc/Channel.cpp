@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/22 00:21:47 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/22 22:03:58 by otelliq          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ bool Channel::get_limit()
 {
     return this->has_limit;
 }
-int Channel::get_maxusers()
+size_t Channel::get_maxusers()
 {
     return this->max_users;
 }
@@ -128,6 +128,11 @@ int Channel::get_maxusers()
 std::string Channel::get_password()
 {
     return this->password;
+}
+
+std::string Channel::get_topic()
+{
+    return this->topic;
 }
 
 

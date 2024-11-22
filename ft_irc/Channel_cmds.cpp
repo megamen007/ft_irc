@@ -366,6 +366,12 @@ void Channel::PART(Client *admin, std::string reason){
 //     // }
 // }
 
+bool Channel::onChannel(Client *admin){
+    if(std::find(Clients.begin(), Clients.end(), admin) != Clients.end())
+        return true;
+    return false;
+}
+
 int Channel::PRIVMSG(Client *admin, Client *target, std::string message) {
     if (message.find("#") == 0){
         if (!this->onChannel(admin)){

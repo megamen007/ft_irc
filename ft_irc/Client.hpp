@@ -11,6 +11,14 @@
 #include <arpa/inet.h>
 #include <algorithm>
 
+#include "Channel.hpp"
+#include "server.hpp"
+#include "Parcing_data.hpp"
+
+
+class Channel;
+class Server;
+
 class Client
 {
     private:
@@ -19,6 +27,8 @@ class Client
         std::string  hostname;
         std::string  servername;
         std::string  realname;
+        std::vector<std::string> Ch_names;
+        std::vector<std::string> passwords;
 
         int clientfd;
         std::string clientIP; 
@@ -59,5 +69,15 @@ class Client
             bool getoperatorstatus();
             bool getlogedstatus();
             int get_clientfd();
+
+            void executing_commands(int fd, std::string Cmd, Buffer &Parser, Client &client, Server &Excalibur);
+            int JOIN(Client& client, const std::string& command, Buffer &Parser, Server &Excalibur);
+            void parsing_JOIN_cmd(const std::string &cmd, std::vector<std::string>& Channel_names, std::vector<std::string>& passwords);
+            void JOIN_channels(Client &client, std::vector<std::string> &Channles_names, std::vector<std::string> &passwords,  std::vector<Channel> &channels);
+            bool JOIN_existing_Channel(Client &client, const std::string& channel_name, const std::string &password,  std::vector<Channel> &channels);
+            void creating_new_Channel(Client &client, const std::string& channel_name, std::vector<Channel> &channels);
+            void sendError(Client& client, const std::string& errorCode, const std::string& channel, const std::string& message);
+            void notifyChannelJoin(Channel& channel, Client& client);
+
 
 };

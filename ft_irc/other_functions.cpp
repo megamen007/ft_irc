@@ -490,38 +490,38 @@ void Server::handleJoin(Client& client, const std::string& command) {
             // OTHMAN PART
 /////////////////////////////////////////////
 
- void Server::executing_commands(int fd, std::string Cmd)
-{
-//     if(Operator_status == 1)
-//     {
-//         // operator priveleges :
-//         if (Cmd.compare("KICK") == 0 || Cmd.compare("kick") == 0)
-//             // kick_func();
-//         else if (Cmd.compare("INVITE") == 0 || Cmd.compare("invite") == 0)
-//             // invite_func();
-//         else if (Cmd.compare("MODE") == 0 || Cmd.compare("mode") == 0)
-//             // mode_func();
-//         else if (Cmd.compare("TOPIC") == 0 || Cmd.compare("topic") == 0)
-//             // topic_func();
-       if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0)
-             join_func();
-//         else if (Cmd.compare("PRIVEMSG") == 0 || Cmd.compare("privemsg") == 0)
-//             // privemsg_func();
+// void Client::executing_commands(int fd, std::string Cmd, Client &client)
+// {
+// //     if(Operator_status == 1)
+// //     {
+// //         // operator priveleges :
+// //         if (Cmd.compare("KICK") == 0 || Cmd.compare("kick") == 0)
+// //             // kick_func();
+// //         else if (Cmd.compare("INVITE") == 0 || Cmd.compare("invite") == 0)
+// //             // invite_func();
+// //         else if (Cmd.compare("MODE") == 0 || Cmd.compare("mode") == 0)
+// //             // mode_func();
+// //         else if (Cmd.compare("TOPIC") == 0 || Cmd.compare("topic") == 0)
+// //             // topic_func();
+//        if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0)
+//              clientJOIN(client, Cmd);
+// //         else if (Cmd.compare("PRIVEMSG") == 0 || Cmd.compare("privemsg") == 0)
+// //             // privemsg_func();
 
-//             // pass_func();
-//     }
-//     else
-//     {
-//         // normal User priveleges :
-//         if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0)
-//             // join_func();
-//         else if (Cmd.compare("PRIVEMSG") == 0  || Cmd.compare("privemsg") == 0)
-//             // privemsg_func()
-//         else if (Cmd.compare("NICK") == 0 || Cmd.compare("nick")  == 0)
-//             // nick_func();
-//         else if (Cmd.compare("USER") == 0  || Cmd.compare("user") == 0)
-//             // user_func();
-//         else if (Cmd.compare("PASS") == 0 || Cmd.compare("pass") == 0)
-//             // pass_func();
-//     }
-}
+// //             // pass_func();
+// //     }
+// //     else
+// //     {
+// //         // normal User priveleges :
+// //         if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0)
+// //             // join_func();
+// //         else if (Cmd.compare("PRIVEMSG") == 0  || Cmd.compare("privemsg") == 0)
+// //             // privemsg_func()
+// //         else if (Cmd.compare("NICK") == 0 || Cmd.compare("nick")  == 0)
+// //             // nick_func();
+// //         else if (Cmd.compare("USER") == 0  || Cmd.compare("user") == 0)
+// //             // user_func();
+// //         else if (Cmd.compare("PASS") == 0 || Cmd.compare("pass") == 0)
+// //             // pass_func();
+// //     }
+// }
