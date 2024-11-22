@@ -17,6 +17,12 @@
 #define FAILURE 0
 #define SUCCESS 1
 
+// Mock cmd_struct for command information
+struct cmd_struct {
+    std::string name;
+    std::string message;
+};
+
 Client& retrieveClient(Server* server, int client_fd) {
     static Client client("TestUser"); // Static to persist across calls for simplicity
     return client;
