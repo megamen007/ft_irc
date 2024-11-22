@@ -48,9 +48,29 @@ std::string Client::getusername()
 {
     return this->username;
 }
+
+std::string Client::gethostname()
+{
+    return this->hostname;
+}
+std::string Client::getservername()
+{
+    return this->servername;
+}
+
+std::string Client::getrealname()
+{
+    return this->realname;
+}
 std::string Client::getIPaddress()
 {
     return this->clientIP;
+}
+
+std::string Client::getPrefix()
+{
+    // Format: :nickname!username@hostname
+    return getnickname() + "!" + getusername() + "@" + gethostname();
 }
 int Client::get_clientfd()
 {
@@ -77,6 +97,19 @@ bool Client::getlogedstatus()
 void Client::setfd(int fd)
 {
     this->clientfd = fd;
+}
+void Client::sethostname(std::string & hostname)
+{
+    this->hostname = hostname;
+}
+void Client::setservername(std::string & servername)
+{
+    this->servername = servername;
+}
+
+void Client::setrealname(std::string & realname)
+{
+    this->realname = realname; 
 }
 void Client::setnickname( std::string & nickName)
 {

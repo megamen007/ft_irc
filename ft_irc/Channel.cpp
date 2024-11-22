@@ -23,6 +23,15 @@ Channel::Channel(){
     operate = false;
 }
 
+Channel::Channel(const std::string& name) : name(name) 
+{
+    invite_only = false;
+    has_password = false;
+    has_topic = false;
+    has_limit = false;
+    operate = false;
+}
+
 Channel &Channel::operator=(const Channel &src){
     if(this == &src)
         return *this;
@@ -76,6 +85,11 @@ void Channel::SetTime(std::string time)
     this->creation_time = time;
 }
 
+void Channel::set_has_password(bool has_password)
+{
+    this->has_password = has_password;
+}
+
 
 void Channel::setbuffer(std::string message, int destination_fd){
     int i;
@@ -93,10 +107,33 @@ std::string Channel::get_time(){
 	return this->creation_time;
 }
 
+bool Channel::get_has_password()
+{
+    return this->has_password;
+}
+
+bool Channel::get_invite_only()
+{
+    return this->invite_only;
+}
+bool Channel::get_limit()
+{
+    return this->has_limit;
+}
+int Channel::get_maxusers()
+{
+    return this->max_users;
+}
+
+std::string Channel::get_password()
+{
+    return this->password;
+}
+
 
 Client *Channel::GetUser(std::string name){
     for(size_t i = 0; i < Clients.size(); ++i){
-        if(name == Clients[i]->nickname)
+        if(name == Clients[i]->getnickname())
             return Clients[i];
     }
     return NULL;
@@ -104,9 +141,9 @@ Client *Channel::GetUser(std::string name){
 
 std::string Channel::GetUserInfo(Client *admin, bool i){
     if(i)
-        return ":" + admin->nickname + "!" + admin->username + "@" + admin->servername + " ";
+        return ":" + admin->getnickname() + "!" + admin->getusername() + "@" + admin->getservername() + " ";
     else
-        return ":" + admin->servername + " ";
+        return ":" + admin->getservername() + " ";
 }
 
 

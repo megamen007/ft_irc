@@ -181,6 +181,11 @@ void Channel::add_admin(Client *admin, std::string name){
         
 }
 
+void Channel::addUser(Client* client)
+{
+        Clients.push_back(client);  // Adds the client to the 'beta_users' vector
+}
+
 void Channel::remove_user(Client *admin) {
     std::vector<Client*>::iterator it = std::find(Clients.begin(), Clients.end(), admin);
     if (it != Clients.end())
@@ -388,3 +393,4 @@ int Channel::PRIVMSG(Client *admin, Client *target, std::string message) {
     send(target->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
     return 0;
 }
+

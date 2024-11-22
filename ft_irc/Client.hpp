@@ -16,6 +16,10 @@ class Client
     private:
         std::string  nickname;
         std::string  username;
+        std::string  hostname;
+        std::string  servername;
+        std::string  realname;
+
         int clientfd;
         std::string clientIP; 
         // channels (normal ones);
@@ -35,6 +39,9 @@ class Client
             void setfd(int fd);
             void setnickname( std::string & nickName);
             void setusername(std::string & userName);
+            void sethostname(std::string & hostname);
+            void setservername(std::string & servername);
+            void setrealname(std::string & relaname);
             void setIPaddress(std::string Ipadd);
             void setregistred(bool reg);
             void setoperatorstatus(bool oper);
@@ -43,7 +50,11 @@ class Client
         // Getters
             std::string getnickname();
             std::string getusername();
+            std::string gethostname();
+            std::string getservername();
+            std::string getrealname();
             std::string getIPaddress();
+            std::string getPrefix();
             bool getregistred();
             bool getoperatorstatus();
             bool getlogedstatus();

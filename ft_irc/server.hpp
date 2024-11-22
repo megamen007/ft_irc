@@ -33,6 +33,8 @@ class Server
         std::string RawData;
         std::vector<Client> Clients;
         std::vector<Channel> Channels;
+        std::vector<std::string> Ch_names;
+        std::vector<std::string> passwords;
         std::vector<struct pollfd> fds;
         std::vector <std::string> msg;
 
@@ -91,8 +93,18 @@ class Server
         void close_server_socket();
 
         //command
-        void handleJoin(Client& client, const std::string& command);
-        std::vector<std::string> split(const std::string& str, char delimiter);
+        // void handleJoin(Client& client, const std::string& command);
+        // std::vector<std::string> split(const std::string& str, char delimiter);
+        int JOIN(Client& client, const std::string& command);
+        void parsing_JOIN_cmd(const std::string &cmd, std::vector<std::string>& Channel_names, std::vector<std::string>& passwords);
+        void JOIN_channels(Client &client, std::vector<std::string> &Channles_names, std::vector<std::string> &passwords, std::vector<Channel> &channels);
+        bool JOIN_existing_Channel(Client &client, const std::string& channel_name, const std::string &password, std::vector<Channel> &channels);
+        void creating_new_Channel(Client &client, const std::string& channel_name, std::vector<Channel> &channels);
+        void sendError(Client& client, const std::string& errorCode, const std::string& channel, const std::string& message);
+        void notifyChannelJoin(Channel& channel, Client& client);
+
+
+
 
         // Parsing received DATA
         void Parcing_and_Executing(int client_fd, std::string buffer, Buffer Parser);

@@ -48,6 +48,7 @@ class Channel
         bool has_limit;
         bool operate;
         int max_users;
+
     public:
 
         std::vector<Client *> admins;
@@ -55,6 +56,7 @@ class Channel
         std::vector<Client *> invites;
 
         Channel();
+        Channel(const std::string& name);
         ~Channel();
         Channel(const Channel &src);
         Channel &operator=(const Channel &src);
@@ -68,11 +70,18 @@ class Channel
         void SetTime(std::string time);
         void SetAdmin(Client *param);
         void setbuffer(std::string message, int destination_fd);
+        void set_has_password(bool has_password);
 
         std::string GetName();
         std::string get_time();
+        std::string get_topic();
         std::string GetUserInfo(Client *admin, bool i);
         Client     *GetUser(std::string name);
+        bool get_invite_only();
+        bool get_limit();
+        int get_maxusers();
+        std::string get_password();
+        bool get_has_password();
     
         bool is_Admin(Client *admin);
         bool onChannel(Client *admin);
@@ -86,6 +95,7 @@ class Channel
         void remove_admin(Client *admin, std::string name);
         void change_MaxUser(Client *admin, int i, std::string &param);
         void send_to_all(std::string message);
+        void addUser(Client* client);
         void remove_user(Client *admin);
 
         void MODE(Client *admin, std::string mode, std::string arg);
