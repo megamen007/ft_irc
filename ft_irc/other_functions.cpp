@@ -1,6 +1,7 @@
 #include <server.hpp>
 #include <Client.hpp>
 #include <Channel.hpp>
+#include <map>
 
 
 /////////////////////////////////////////////
@@ -16,6 +17,30 @@
 #define ERR_PASSWDMISMATCH(nickname) "464 " + nickname + " :Password mismatch"
 #define FAILURE 0
 #define SUCCESS 1
+
+// Mock Server class
+class Server {
+private:
+    std::string password;
+public:
+    Server(const std::string& pass) : password(pass) {}
+    std::string getPassword() const { return password; }
+};
+
+// Mock Client class
+class Client {
+private:
+    std::string nickname;
+    bool registrationDone;
+    int nbInfo;
+public:
+    Client(const std::string& nick) : nickname(nick), registrationDone(false), nbInfo(0) {}
+
+    std::string getNickname() const { return nickname; }
+    bool isRegistrationDone() const { return registrationDone; }
+    void setNbInfo(int value) { nbInfo += value; }
+    int getNbInfo() const { return nbInfo; }
+};
 
 // Mock cmd_struct for command information
 struct cmd_struct {
@@ -74,6 +99,38 @@ int pass(Server *server, int const client_fd, cmd_struct cmd_infos) {
 #define ERR_ERRONEUSNICKNAME(nick, attempted) "432 " + nick + " :Erroneous nickname " + attempted
 #define ERR_NICKNAMEINUSE(nick, attempted) "433 " + nick + " :Nickname is already in use " + attempted
 #define RPL_NICK(old_nick, user, new_nick) ":" + old_nick + "!" + user + "@localhost NICK " + new_nick
+
+// Client class to represent individual clients
+class Client {
+private:
+    std::string nickname;
+    std::string old_nickname;
+    std::string username;
+    int client_fd;
+    bool registration_done;
+
+public:
+    Client(int fd, const std::string& user) : client_fd(fd), username(user), registration_done(false) {}
+
+    std::string getNickname() const { return nickname; }
+    std::string getOldNickname() const { return old_nickname; }
+    std::string getUsername() const { return username; }
+    int getClientFd() const { return client_fd; }
+    bool isRegistrationDone() const { return registration_done; }
+    void setNickname(const std::string& nick) { old_nickname = nickname; nickname = nick; }
+    void completeRegistration() { registration_done = true; }
+};
+
+// Server class to manage clients
+class Server {
+private:
+    std::map<int, Client> clients;
+
+public:
+    std::map<int, Client>& getClients() { return clients; }
+    void addClient(int fd, const Client& client) { clients[fd] = client; }
+};
+
 
 // Retrieve client by file descriptor
 Client& retrieveClient(Server* server, int client_fd) {
