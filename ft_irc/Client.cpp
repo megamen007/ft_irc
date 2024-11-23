@@ -129,6 +129,10 @@ void Client::setregistred(bool reg)
     this->registration_status = reg;
 }
 
+void Client::setoperatorstatus( bool oper)
+{
+    this->Operator_status = oper;
+}
 
 void Client::setlogedstatus(bool log)
 {

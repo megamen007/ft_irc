@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
+/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/23 20:52:59 by otelliq          ###   ########.fr       */
+/*   Updated: 2024/11/24 00:51:04 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,6 +102,8 @@ void Server::Launching_server(int port, std::string password, Server &Excalibur)
 {
     this->Port = port;
     this->Password = password;
+    
+    // Socket Operations :
     socket_creation();
     sockaddr_in freemon = socket_infos();
     socket_non_blocking();
@@ -110,7 +112,7 @@ void Server::Launching_server(int port, std::string password, Server &Excalibur)
     server_socket_polling();
 
     std::cout << " Your Server Sir is in the Listening mode waiting for incoming connections  ... waiting to accept them" << std::endl;
-
+    
     Server_cycle(Excalibur);
 }
 
@@ -144,7 +146,6 @@ void Server::Server_cycle(Server &Excalibur)
 
 void Server::socket_Accepting(Client &client)
 {
-    // Client Exodia;
     struct sockaddr_in clientadd;
     socklen_t len = sizeof(clientadd);
 
@@ -171,56 +172,51 @@ void Server::socket_receiving(int client_fd, Client &client ,Server &Excalibur)
 {
     char buffer[1024];
     Buffer Parser;
+    
     memset(buffer, 0, sizeof(buffer));
 
-        int r = recv(client_fd, buffer, sizeof(buffer), 0);
-        RawData = buffer;
-        if (r < 0) 
-        {
-            if (errno == EAGAIN || errno  == EWOULDBLOCK)
-                return;
+    int r = recv(client_fd, buffer, sizeof(buffer), 0);
+    RawData = buffer;
+    if (r < 0) 
+    {
+        if (errno == EAGAIN || errno  == EWOULDBLOCK)
+            return;
             
-            std::cerr << " --> receiving stage failed ... " << std::endl;
-            Remove_Client(client_fd);
-            close(client_fd);
+        std::cerr << " --> receiving stage failed ... " << std::endl;
+        Remove_Client(client_fd);
+        close(client_fd);
 
-        }
-        else if (r == 0)
-        {
-            std::cout << " --> Connection closed by Icaruis ..." << std::endl;
-            close(client_fd);
-        }
-        else 
-        {
-            //  I need to combine the registration system with Parcing and executing in a better way .
-            std::cout << " Received " << r << "  bytes ... " << std::endl;
-            std::cout << " Received Data :  " << getRawData() << std::endl;
+    }
+    else if (r == 0)
+    {
+        std::cout << " --> Connection closed by Icaruis ..." << std::endl;
+        close(client_fd);
+    }
+    else 
+    {
+        //  I need to combine the registration system with Parcing and executing in a better way .
+        std::cout << " Received " << r << "  bytes ... " << std::endl;
+        std::cout << " Received Data :  " << getRawData() << std::endl;
             
-            // Parser.Parcing_core(buffer);
-            registerClient(client_fd, buffer);
-            std::cout << " Client is registred " << std::endl;
+        // Parser.Parcing_core(buffer);
+        registerClient(client_fd, buffer);
+        // std::cout << " Client is registred " << std::endl;
 
-            client.setnickname(n_name);
-            client.setusername(u_name);
-            client.setservername(s_name);
-            client.setrealname(r_name);
-            client.sethostname(h_name);
-            client.setIPaddress(h_name);
-            // Assuming this for hostname
-            std::cout << "nickname" << client.getnickname() << std::endl;
-            std::cout << "username" << client.getusername() << std::endl;
-            std::cout << "hostname" << client.gethostname() << std::endl;
-            std::cout << "servername" << client.getservername() << std::endl;
-            // our client is registred .
-            // if (registration_status)
-            Parcing_and_Executing(client_fd,buffer,Parser, client, Excalibur);
-        }
-        if (std::string(buffer) == "exit") 
-        {
-            std::cout << "Client requested to exit. Closing connection." << std::endl;
-            close(client_fd);
-            Remove_Client(client_fd);
-        }
+        client.setnickname(n_name);
+        client.setusername(u_name);
+        client.setservername(s_name);
+        client.setrealname(r_name);
+        client.sethostname(h_name);
+        client.setIPaddress(h_name);
+        
+        Parcing_and_Executing(client_fd,buffer,Parser, client, Excalibur);
+    }
+    if (std::string(buffer) == "exit") 
+    {
+        std::cout << "Client requested to exit. Closing connection." << std::endl;
+        close(client_fd);
+        Remove_Client(client_fd);
+    }
     
 }
 
@@ -233,44 +229,55 @@ void Client::executing_commands(__unused int fd, std::string Cmd, Buffer &Parser
        if (Parser.get_cmd().compare("JOIN") == 0 || Parser.get_cmd().compare("join") == 0)
            new_channel =  client.JOIN(client, Cmd, Parser , Excalibur);
            
-        std::cout << "HEre 1" << std::endl;
         if (has_joined == 1)
         {
-            std::cout << "HEre 1" << std::endl;
-            // if(Operator_status == 1)
-            // {
-                std::cout << "HEre 1" << std::endl;
+            std::cout << Operator_status << std::endl;
+            if(client.getoperatorstatus() == 1)
+            {
                 std::string target_nick = Parser.get_target();
                 // std::string message.get_msg();
                 Client *target = Excalibur.findClientByNick(target_nick); // Find the target client by nickname
                 // operator priveleges :
-                // if (Parser.get_cmd().compare("KICK") == 0 || Parser.get_cmd().compare("kick") == 0)
-                //     new_channel.KICK();
-                std::cout << "HEre 1" << std::endl;
-                 if (Parser.get_cmd().compare("INVITE") == 0 || Parser.get_cmd().compare("invite") == 0)
+                if (Parser.get_cmd().compare("KICK") == 0 || Parser.get_cmd().compare("kick") == 0)
+                    new_channel.KICK(&client, target, Parser.get_msg());
+                else if (Parser.get_cmd().compare("INVITE") == 0 || Parser.get_cmd().compare("invite") == 0)
                     new_channel.INVITE(&client, target);
-                // else if (Parser.get_cmd().compare("MODE") == 0 || Parser.get_cmd().compare("mode") == 0)
-                //     new_channel.MODE();
-                // else if (Parser.get_cmd().compare("TOPIC") == 0 || Parser.get_cmd().compare("topic") == 0)
-                //     new_channel.TOPIC();  
-                std::cout << "HEre 1" << std::endl;
-                if (Parser.get_cmd().compare("PRIVMSG") == 0 || Parser.get_cmd().compare("privmsg") == 0)
+                else if (Parser.get_cmd().compare("MODE") == 0 || Parser.get_cmd().compare("mode") == 0)
+                    new_channel.MODE(&client ,  Parser.get_arg(), Parser.get_msg());
+                else if (Parser.get_cmd().compare("TOPIC") == 0 || Parser.get_cmd().compare("topic") == 0)
+                    new_channel.TOPIC(&client , Parser.get_msg());  
+                else if (Parser.get_cmd().compare("PRIVMSG") == 0 || Parser.get_cmd().compare("privmsg") == 0)
+                    new_channel.PRIVMSG(&client, target, Parser.get_msg());
+                else if (Parser.get_cmd().compare("PART") == 0 || Parser.get_cmd().compare("part") == 0)
+                    new_channel.PART(&client , Parser.get_arg());
+                // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
+                //     new_channel.WHO();
+                else
+                { 
+                    if (Parser.get_cmd().compare("PASS") == 0 || Parser.get_cmd().compare("pass") == 0 )
+                        std::cout << "u cannot use PASS command , u Already get registred into this Server " << 
+                    else if (Parser.get_cmd().compare("NICK") == 0  || Parser.get_cmd().compare("nick") == 0)
+                        // send error msg
+                    else if (Parser.get_cmd().compare("USER") == 0 || Parser.get_cmd().compare("user") == 0)
+                        // send error msg
+                    else 
+                        // send error that this speified msg li hia Parser.get_cmd() ...
+                }
+    
+            }
+            else
+            {
+                std::string target_nick = Parser.get_target();
+                Client *target = Excalibur.findClientByNick(target_nick);
+                // normal User priveleges :
+                if (Parser.get_cmd().compare("PART") == 0 || Parser.get_cmd().compare("part") == 0)
+                    new_channel.PART(&client , Parser.get_arg());
+                else if (Parser.get_cmd().compare("PRIVMSG") == 0 || Parser.get_cmd().compare("privmsg") == 0)
                     new_channel.PRIVMSG(&client, target, Parser.get_msg());
                 // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
                 //     new_channel.WHO();
-    
-            // }
-            // else
-            // {
-            //     // normal User priveleges :
-            //     // if (Parser.get_cmd().compare("PART") == 0 || Parser.get_cmd().compare("part") == 0)
-            //     //     new_channel.PART();
-            //     // else if (Parser.get_cmd().compare("PRIVEMSG") == 0  || Parser.get_cmd().compare("privemsg") == 0)
-            //     //     new_channel.PRIVMSG();
-            //     // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
-            //     //     new_channel.WHO();
-                
-            // }
+  
+            }
         }
 }
 

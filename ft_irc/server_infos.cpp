@@ -122,7 +122,7 @@ Channel *Server::getChannel(std::string name)
 
 bool Server::Port_valid(std::string port)
 {
-    std::cout << port << std::endl;
+    // std::cout << port << std::endl;
     if (port.find_first_not_of("0123456789") != std::string::npos)
     {
         std::cerr << "Invalid character found in port." << std::endl;
@@ -242,7 +242,7 @@ void Server::processMessage(Client &client, const std::string &command, const st
         {
             client.setregistred(true);
             Buffer::received_pass = true;
-            std::cout << "Client " << client.get_clientfd() << " provided valid password.\n";
+            // std::cout << "Client " << client.get_clientfd() << " provided valid password.\n";
         }
         else
         {
@@ -259,11 +259,11 @@ void Server::processMessage(Client &client, const std::string &command, const st
         }
         else
         {
-            std::cout << nickname << " ngalza" << std::endl;
+            // std::cout << nickname << " ngalza" << std::endl;
             client.setnickname(nickname);
             n_name = nickname;
             Buffer::received_nick = true;
-            std::cout << "Client " << client.get_clientfd() << " set nickname: " << nickname << "\n";
+            // std::cout << "Client " << client.get_clientfd() << " set nickname: " << nickname << "\n";
         }
     }
     else if (command == "USER")
@@ -275,10 +275,10 @@ void Server::processMessage(Client &client, const std::string &command, const st
         getline(ss, tmp);
         realname = trim(tmp);
 
-        std::cout << username << std::endl;
-        std::cout << hostname << std::endl;
-        std::cout << servername << std::endl;
-        std::cout << realname << std::endl;
+        // std::cout << username << std::endl;
+        // std::cout << hostname << std::endl;
+        // std::cout << servername << std::endl;
+        // std::cout << realname << std::endl;
 
         if (realname.empty())
         {
@@ -298,7 +298,7 @@ void Server::processMessage(Client &client, const std::string &command, const st
             // client.setlogedstatus(true);
             // client.setregistred(true);
             Buffer::received_user = true;
-            std::cout << "Client " << client.get_clientfd() << " set user info.\n";
+            // std::cout << "Client " << client.get_clientfd() << " set user info.\n";
         }
     }
 
@@ -417,7 +417,7 @@ Channel Client::JOIN_channels(Client &client, std::vector<std::string> &Channles
         }
 
         if(!JOIN_existing_Channel(client, Ch_name, password, channels))
-            new_channel = creating_new_Channel(client, Ch_name, channels);
+            new_channel = creating_new_Channel(client, Ch_name, channels, new_channel);
         else
         {
             for(std::vector<Channel>::iterator it = channels.begin() ; it != channels.end(); it++)
@@ -468,14 +468,16 @@ bool Client::JOIN_existing_Channel(Client &client, const std::string& channel_na
     return false;
 }
 
-Channel Client::creating_new_Channel(Client &client, const std::string& channel_name, std::vector<Channel> &channels)
+Channel Client::creating_new_Channel(Client &client, const std::string& channel_name, std::vector<Channel> &channels, Channel &Channelo)
 {
-    std::cout << "Creating new channel " << channel_name << std::endl;
+    // std::cout << "Creating new channel " << channel_name << std::endl;
     Channel new_channel(channel_name);
     new_channel.addUser(&client);
     channels.push_back(new_channel);
+    Channelo.admins.push_back(&client);
+    client.setoperatorstatus(true);
     notifyChannelJoin(new_channel, client);
-    std::cout << client.getnickname() << client.get_clientfd() << std::endl;
+    // std::cout << client.getnickname() << client.get_clientfd() << std::endl;
     has_joined = true;
     return new_channel;
 }
@@ -483,7 +485,7 @@ Channel Client::creating_new_Channel(Client &client, const std::string& channel_
 
 void Client::notifyChannelJoin(Channel& channel, Client& client)
 {
-    std::cout << "Notifying channel " << channel.GetName() << " of new user " << client.getnickname() << std::endl;
+    // std::cout << "Notifying channel " << channel.GetName() << " of new user " << client.getnickname() << std::endl;
     std::string join_message = ":";
     join_message += client.getPrefix();
     join_message += " JOIN ";
@@ -492,7 +494,7 @@ void Client::notifyChannelJoin(Channel& channel, Client& client)
 
     for (std::vector<Client*>::const_iterator it = channel.Clients.begin(); it != channel.Clients.end(); ++it)
     {
-        std::cout << "Sending join message " << std::endl;
+        // std::cout << "Sending join message " << std::endl;
         send((*it)->get_clientfd(), join_message.c_str(), join_message.length(), 0);
     }
 

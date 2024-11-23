@@ -220,6 +220,7 @@ void Channel::remove_admin(Client *admin, std::string name) {
 }
 
 void Channel::MODE(Client *admin, std::string mode, std::string arg){
+    std::cout << " Ara wa7ed Mode hna --#%& " << std::endl;
     std::string reply_message;
     if(!mode.empty()){
         if(is_Admin(admin))
@@ -247,6 +248,7 @@ void Channel::MODE(Client *admin, std::string mode, std::string arg){
 }
 
 void Channel::KICK(Client *admin, Client *user, std::string reason){
+    std::cout << " Ara wa7ed kick hna --#%& " << std::endl;
     std::string reply_message;
     if(!is_inChannel(admin)){
         reply_message = GetUserInfo(admin, false) + ERR_NOTONCHANNEL(admin->getnickname(), this->GetName());
@@ -265,6 +267,7 @@ void Channel::KICK(Client *admin, Client *user, std::string reason){
 
 
 void Channel::INVITE(Client *admin, Client *user){
+    std::cout << " Ara wa7ed Invite hna --#%& " << std::endl;
     std::string reply_message;
     if(!is_inChannel(admin)){
         reply_message = GetUserInfo(admin, false) + ERR_NOTONCHANNEL(admin->getnickname(), this->GetName());
@@ -283,6 +286,7 @@ void Channel::INVITE(Client *admin, Client *user){
 }
 
 void Channel::TOPIC(Client *admin, std::string topic_message){
+    std::cout << " Ara wa7ed Topic hna --#%& " << std::endl;
     std::string reply_message;
     std::string error_message;
     if(!is_inChannel(admin)){
@@ -319,6 +323,7 @@ void Channel::TOPIC(Client *admin, std::string topic_message){
 }
 
 void Channel::PART(Client *admin, std::string reason){
+    std::cout << " Ara wa7ed Part hna --#%& " << std::endl;
     std::string reply_message;
     if(!is_inChannel(admin)){
         reply_message = GetUserInfo(admin, false) + ERR_NOTONCHANNEL(admin->getnickname(), this->GetName());
@@ -329,7 +334,9 @@ void Channel::PART(Client *admin, std::string reason){
 		send_to_all(GetUserInfo(admin, true) + " PART " + this->GetName() + " " + reason + "\r\n");
     }
 }
-
+// Special Considerations: !!!!!!!!!!!
+// If the last operator leaves a channel (e.g., by using PART), the channel may be left without any operator unless another user is automatically promoted to operator. In some IRC implementations, this happens to ensure channel continuity.
+// An operator leaving via PART does not override channel restrictions like invite-only mode (+i) or password protection (+k). Rejoining the channel would still require them to adhere to those rules.
 /////////////////////////////////////
 
 // void Channel::NICK(Client *admin, const std::string new_nick) {//reference--------
@@ -373,7 +380,7 @@ bool Channel::onChannel(Client *admin){
 }
 
 int Channel::PRIVMSG(Client *admin, Client *target, std::string message) {
-    std::cout << "PRIVMSG ngk 999" << std::endl;
+    std::cout << " Ara wa7ed Privmsg hna --#%& " << std::endl;
     if (message.find("#") == 0){
         if (!this->onChannel(admin)){
             std::string error_msg = ERR_NOTONCHANNEL(admin->getnickname(), this->GetName());

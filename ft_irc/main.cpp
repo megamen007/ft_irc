@@ -15,7 +15,7 @@ int main(int ac, char **av)
         // list of signals that interrupt the irc server : 
             signal(SIGINT, Server::Signal_Handler);
 
-        //Launching the Server:
+        // Launching the Server:
         if (!Excalibur.Port_valid(av[1]))
         {
             std::cout << " Your Port Number is Incorrect or Invalid " << std::endl;

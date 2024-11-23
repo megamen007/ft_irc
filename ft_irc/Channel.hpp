@@ -79,11 +79,13 @@ class Channel
         std::string get_topic();
         std::string GetUserInfo(Client *admin, bool i);
         Client     *GetUser(std::string name);
+        // Client     *Get_Operator(std::string name);
         bool get_invite_only();
         bool get_limit();
         size_t get_maxusers();
         std::string get_password();
         bool get_has_password();
+        // Client & get_Operator(std::string  & client_nick)
     
         bool is_Admin(Client *admin);
         bool onChannel(Client *admin);
