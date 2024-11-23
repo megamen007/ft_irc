@@ -6,7 +6,7 @@
 /*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/23 00:40:59 by otelliq          ###   ########.fr       */
+/*   Updated: 2024/11/23 02:15:27 by otelliq          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -228,38 +228,42 @@ void Server::socket_receiving(int client_fd, Client &client ,Server &Excalibur)
 
 void Client::executing_commands(__unused int fd, std::string Cmd, Buffer &Parser , Client &client, Server &Excalibur)
 {
-//     if(Operator_status == 1)
-//     {
-//         // operator priveleges :
-//         if (Cmd.compare("KICK") == 0 || Cmd.compare("kick") == 0)
-//             // kick_func();
-//         else if (Cmd.compare("INVITE") == 0 || Cmd.compare("invite") == 0)
-//             // invite_func();
-//         else if (Cmd.compare("MODE") == 0 || Cmd.compare("mode") == 0)
-//             // mode_func();
-//         else if (Cmd.compare("TOPIC") == 0 || Cmd.compare("topic") == 0)
-//             // topic_func();  
+    Channel new_channel;
+    
        if (Parser.get_cmd().compare("JOIN") == 0 || Parser.get_cmd().compare("join") == 0)
-             client.JOIN(client, Cmd, Parser , Excalibur);
-//         else if (Cmd.compare("PRIVEMSG") == 0 || Cmd.compare("privemsg") == 0)
-//             // privemsg_func();
+           new_channel =  client.JOIN(client, Cmd, Parser , Excalibur);
 
-//             // pass_func();
-//     }
-//     else
-//     {
-//         // normal User priveleges :
-//         if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0)
-//             // join_func();
-//         else if (Cmd.compare("PRIVEMSG") == 0  || Cmd.compare("privemsg") == 0)
-//             // privemsg_func()
-//         else if (Cmd.compare("NICK") == 0 || Cmd.compare("nick")  == 0)
-//             // nick_func();
-//         else if (Cmd.compare("USER") == 0  || Cmd.compare("user") == 0)
-//             // user_func();
-//         else if (Cmd.compare("PASS") == 0 || Cmd.compare("pass") == 0)
-//             // pass_func();
-//     }
+        if (has_joined == 1)
+        {
+            if(Operator_status == 1)
+            {
+                // operator priveleges :
+                if (Parser.get_cmd().compare("KICK") == 0 || Parser.get_cmd().compare("kick") == 0)
+                    new_channel.KICK();
+                else if (Parser.get_cmd().compare("INVITE") == 0 || Parser.get_cmd().compare("invite") == 0)
+                    new_channel.INVITE();
+                else if (Parser.get_cmd().compare("MODE") == 0 || Parser.get_cmd().compare("mode") == 0)
+                    new_channel.MODE();
+                else if (Parser.get_cmd().compare("TOPIC") == 0 || Parser.get_cmd().compare("topic") == 0)
+                    new_channel.TOPIC();  
+                else if (Parser.get_cmd().compare("PRIVEMSG") == 0 || Parser.get_cmd().compare("privemsg") == 0)
+                    new_channel.PRIVMSG();
+                // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
+                //     new_channel.WHO();
+    
+            }
+            else
+            {
+                // normal User priveleges :
+                if (Parser.get_cmd().compare("PART") == 0 || Parser.get_cmd().compare("part") == 0)
+                    new_channel.PART();
+                else if (Parser.get_cmd().compare("PRIVEMSG") == 0  || Parser.get_cmd().compare("privemsg") == 0)
+                    new_channel.PRIVMSG();
+                // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
+                //     new_channel.WHO();
+                
+            }
+        }
 }
 
 

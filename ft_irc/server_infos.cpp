@@ -1,5 +1,5 @@
 #include "server.hpp"
-
+#include <stdlib.h>
 // Canonical Form:
 
 Server::Server()
@@ -360,48 +360,17 @@ std::vector<std::string> Server::splitByCRLF(const std::string &input)
 
     return result;
 }
-//  void Server::executing_commands(int fd, std::string Cmd)
-// {
-//     // if(Operator_status == 1)
-//     // {
-//         // operator priveleges :
-//         if (Cmd.compare("KICK") == 0 || Cmd.compare("kick") == 0)
-//             // kick_func();
-//         else if (Cmd.compare("INVITE") == 0 || Cmd.compare("invite") == 0)
-//             // invite_func();
-//         else if (Cmd.compare("MODE") == 0 || Cmd.compare("mode") == 0)
-//             // mode_func();
-//         else if (Cmd.compare("TOPIC") == 0 || Cmd.compare("topic") == 0)
-//             // topic_func();
-//     //    if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0)
-//     //          join_func();
-//         else if (Cmd.compare("PRIVEMSG") == 0 || Cmd.compare("privemsg") == 0)
-//             // privemsg_func();
 
-//             // pass_func();
-//     // }
-//     // else
-//     // {
-//     //     // normal User priveleges :
-//     //     // if (Cmd.compare("JOIN") == 0 || Cmd.compare("join") == 0)
-//     //     //     // join_func();
-//     //     if (Cmd.compare("PRIVEMSG") == 0  || Cmd.compare("privemsg") == 0)
-//     //         // privemsg_func()
-
-//     //         // pass_func();
-//     // }
-// }
-
-int Client::JOIN(Client& client, const std::string& command, __unused Buffer &Parser, Server &Excalibur)
+Channel &Client::JOIN(Client& client, const std::string& command, __unused Buffer &Parser, Server &Excalibur)
 {
     // std::cout << client.getnickname() << std::endl;
     std::vector<Channel> tmp;
     tmp = Excalibur.get_Channels();
-    
-    parsing_JOIN_cmd(command, Ch_names, passwords);
-    JOIN_channels(client , Ch_names, passwords, tmp);
 
-    return 0;
+    Channel new_channel;
+    parsing_JOIN_cmd(command, Ch_names, passwords);
+    new_channel = JOIN_channels(client , Ch_names, passwords, tmp);
+    return new_channel;
 }
 
 void Client::parsing_JOIN_cmd(const std::string &cmd, std::vector<std::string>& Channel_names, std::vector<std::string>& passwords)
@@ -426,7 +395,7 @@ void Client::parsing_JOIN_cmd(const std::string &cmd, std::vector<std::string>& 
 
 }
 
-void Client::JOIN_channels(Client &client, std::vector<std::string> &Channles_names, std::vector<std::string> &passwords, std::vector<Channel> &channels)
+Channel & Client::JOIN_channels(Client &client, std::vector<std::string> &Channles_names, std::vector<std::string> &passwords, std::vector<Channel> &channels)
 {
     for(size_t i = 0 ; i < Channles_names.size() ; ++i)
     {
@@ -446,8 +415,21 @@ void Client::JOIN_channels(Client &client, std::vector<std::string> &Channles_na
             continue;
         }
 
+        Channel new_channel;
         if(!JOIN_existing_Channel(client, Ch_name, password, channels))
-            creating_new_Channel(client, Ch_name, channels);
+            new_channel = creating_new_Channel(client, Ch_name, channels);
+        else
+        {
+            for(std::vector<Channel>::iterator it = channels.begin() ; it != channels.end(); it++)
+            {
+                if(it->GetName() == Ch_name)
+                {
+                    new_channel = *it;
+                    break;
+                }
+            }
+        }
+        return new_channel;
     }
 }
 
@@ -477,14 +459,15 @@ bool Client::JOIN_existing_Channel(Client &client, const std::string& channel_na
 
             it->addUser(&client);
             notifyChannelJoin(*it , client);
-            return true;
+            has_joined = true;
 
+            return true;
         }
     } 
     return false;
 }
 
-void Client::creating_new_Channel(Client &client, const std::string& channel_name, std::vector<Channel> &channels)
+Channel & Client::creating_new_Channel(Client &client, const std::string& channel_name, std::vector<Channel> &channels)
 {
     std::cout << "Creating new channel " << channel_name << std::endl;
     Channel new_channel(channel_name);
@@ -492,7 +475,8 @@ void Client::creating_new_Channel(Client &client, const std::string& channel_nam
     channels.push_back(new_channel);
     notifyChannelJoin(new_channel, client);
     std::cout << client.getnickname() << client.get_clientfd() << std::endl;
-
+    has_joined = true;
+    return new_channel;
 }
 
 
