@@ -196,3 +196,15 @@ void Buffer::trim(std::string &str)
     str.erase(0, str.find_first_not_of(" \t"));
     str.erase(str.find_last_not_of(" \t") + 1);
 }
+
+std::string Buffer::get_target()
+{
+    size_t pos = this->get_cmd().find(" ");
+    if(pos == std::string::npos)
+        return "";
+    std::string target = this->get_cmd().substr(pos + 1);
+    size_t pos2 = target.find(" :");
+    if(pos2 != std::string::npos)
+        target = target.substr(0, pos2);
+    return target;
+}

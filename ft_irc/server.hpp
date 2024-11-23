@@ -113,6 +113,7 @@ class Server
         void registerClient(int fd, std::string raw);
         void processMessage(Client& client, const std::string& command, const std::string &arg, const std::string &msg);
         Client* findClientByFd(int fd);
+        Client* findClientByNick(const std::string& nickname);
         bool isNicknameInUse(const std::string& nickname);
         void sendWelcome(int fd);
         void sendError(int fd, const std::string& error);

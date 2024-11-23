@@ -42,6 +42,7 @@ class Buffer
         void checking_command(std::string &cmd);
         void checking_args(std::string &args);
         void trim(std::string &str);
+        std::string get_target();
 
         static bool received_pass;
         static bool received_nick;

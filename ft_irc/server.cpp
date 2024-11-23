@@ -6,7 +6,7 @@
 /*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/23 02:15:27 by otelliq          ###   ########.fr       */
+/*   Updated: 2024/11/23 20:52:59 by otelliq          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -232,37 +232,45 @@ void Client::executing_commands(__unused int fd, std::string Cmd, Buffer &Parser
     
        if (Parser.get_cmd().compare("JOIN") == 0 || Parser.get_cmd().compare("join") == 0)
            new_channel =  client.JOIN(client, Cmd, Parser , Excalibur);
-
+           
+        std::cout << "HEre 1" << std::endl;
         if (has_joined == 1)
         {
-            if(Operator_status == 1)
-            {
+            std::cout << "HEre 1" << std::endl;
+            // if(Operator_status == 1)
+            // {
+                std::cout << "HEre 1" << std::endl;
+                std::string target_nick = Parser.get_target();
+                // std::string message.get_msg();
+                Client *target = Excalibur.findClientByNick(target_nick); // Find the target client by nickname
                 // operator priveleges :
-                if (Parser.get_cmd().compare("KICK") == 0 || Parser.get_cmd().compare("kick") == 0)
-                    new_channel.KICK();
-                else if (Parser.get_cmd().compare("INVITE") == 0 || Parser.get_cmd().compare("invite") == 0)
-                    new_channel.INVITE();
-                else if (Parser.get_cmd().compare("MODE") == 0 || Parser.get_cmd().compare("mode") == 0)
-                    new_channel.MODE();
-                else if (Parser.get_cmd().compare("TOPIC") == 0 || Parser.get_cmd().compare("topic") == 0)
-                    new_channel.TOPIC();  
-                else if (Parser.get_cmd().compare("PRIVEMSG") == 0 || Parser.get_cmd().compare("privemsg") == 0)
-                    new_channel.PRIVMSG();
+                // if (Parser.get_cmd().compare("KICK") == 0 || Parser.get_cmd().compare("kick") == 0)
+                //     new_channel.KICK();
+                std::cout << "HEre 1" << std::endl;
+                 if (Parser.get_cmd().compare("INVITE") == 0 || Parser.get_cmd().compare("invite") == 0)
+                    new_channel.INVITE(&client, target);
+                // else if (Parser.get_cmd().compare("MODE") == 0 || Parser.get_cmd().compare("mode") == 0)
+                //     new_channel.MODE();
+                // else if (Parser.get_cmd().compare("TOPIC") == 0 || Parser.get_cmd().compare("topic") == 0)
+                //     new_channel.TOPIC();  
+                std::cout << "HEre 1" << std::endl;
+                if (Parser.get_cmd().compare("PRIVMSG") == 0 || Parser.get_cmd().compare("privmsg") == 0)
+                    new_channel.PRIVMSG(&client, target, Parser.get_msg());
                 // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
                 //     new_channel.WHO();
     
-            }
-            else
-            {
-                // normal User priveleges :
-                if (Parser.get_cmd().compare("PART") == 0 || Parser.get_cmd().compare("part") == 0)
-                    new_channel.PART();
-                else if (Parser.get_cmd().compare("PRIVEMSG") == 0  || Parser.get_cmd().compare("privemsg") == 0)
-                    new_channel.PRIVMSG();
-                // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
-                //     new_channel.WHO();
+            // }
+            // else
+            // {
+            //     // normal User priveleges :
+            //     // if (Parser.get_cmd().compare("PART") == 0 || Parser.get_cmd().compare("part") == 0)
+            //     //     new_channel.PART();
+            //     // else if (Parser.get_cmd().compare("PRIVEMSG") == 0  || Parser.get_cmd().compare("privemsg") == 0)
+            //     //     new_channel.PRIVMSG();
+            //     // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
+            //     //     new_channel.WHO();
                 
-            }
+            // }
         }
 }
 
@@ -276,4 +284,14 @@ void Server::Parcing_and_Executing(int client_fd, std::string buffer,Buffer &Par
     client.executing_commands(client_fd , buffer, Parser , client, Excalibur); // need to start coding nick , pass , user , join and creating chanells ;
 }
 
+
+Client* Server::findClientByNick(const std::string& nickname)
+{
+    for(size_t i = 0; i < Clients.size(); i++)
+    {
+        if (Clients[i].getnickname() == nickname)
+            return &Clients[i];
+    }
+    return NULL;
+}
 

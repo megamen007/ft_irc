@@ -260,7 +260,7 @@ void Server::processMessage(Client &client, const std::string &command, const st
         else
         {
             std::cout << nickname << " ngalza" << std::endl;
-            // client.setnickname(nickname);
+            client.setnickname(nickname);
             n_name = nickname;
             Buffer::received_nick = true;
             std::cout << "Client " << client.get_clientfd() << " set nickname: " << nickname << "\n";
@@ -290,10 +290,10 @@ void Server::processMessage(Client &client, const std::string &command, const st
             h_name = hostname;
             s_name = servername;
             r_name = realname;
-            // client.setusername(username);
-            // client.setservername(servername);
-            // client.setrealname(realname);
-            // client.sethostname(hostname);
+            client.setusername(username);
+            client.setservername(servername);
+            client.setrealname(realname);
+            client.sethostname(hostname);
             // client.setIPaddress(hostname); // Assuming this for hostname
             // client.setlogedstatus(true);
             // client.setregistred(true);
@@ -361,15 +361,15 @@ std::vector<std::string> Server::splitByCRLF(const std::string &input)
     return result;
 }
 
-Channel &Client::JOIN(Client& client, const std::string& command, __unused Buffer &Parser, Server &Excalibur)
+Channel Client::JOIN(Client& client, const std::string& command, __unused Buffer &Parser, Server &Excalibur)
 {
     // std::cout << client.getnickname() << std::endl;
     std::vector<Channel> tmp;
     tmp = Excalibur.get_Channels();
 
-    Channel new_channel;
+    // Channel new_channel;
     parsing_JOIN_cmd(command, Ch_names, passwords);
-    new_channel = JOIN_channels(client , Ch_names, passwords, tmp);
+    Channel  new_channel = JOIN_channels(client , Ch_names, passwords, tmp);
     return new_channel;
 }
 
@@ -395,8 +395,9 @@ void Client::parsing_JOIN_cmd(const std::string &cmd, std::vector<std::string>& 
 
 }
 
-Channel & Client::JOIN_channels(Client &client, std::vector<std::string> &Channles_names, std::vector<std::string> &passwords, std::vector<Channel> &channels)
+Channel Client::JOIN_channels(Client &client, std::vector<std::string> &Channles_names, std::vector<std::string> &passwords, std::vector<Channel> &channels)
 {
+    Channel new_channel;
     for(size_t i = 0 ; i < Channles_names.size() ; ++i)
     {
         std::string Ch_name = Channles_names[i];
@@ -415,7 +416,6 @@ Channel & Client::JOIN_channels(Client &client, std::vector<std::string> &Channl
             continue;
         }
 
-        Channel new_channel;
         if(!JOIN_existing_Channel(client, Ch_name, password, channels))
             new_channel = creating_new_Channel(client, Ch_name, channels);
         else
@@ -429,8 +429,9 @@ Channel & Client::JOIN_channels(Client &client, std::vector<std::string> &Channl
                 }
             }
         }
-        return new_channel;
+        // return new_channel;
     }
+    return new_channel;
 }
 
 bool Client::JOIN_existing_Channel(Client &client, const std::string& channel_name, const std::string &password, std::vector<Channel> &channels)
@@ -467,7 +468,7 @@ bool Client::JOIN_existing_Channel(Client &client, const std::string& channel_na
     return false;
 }
 
-Channel & Client::creating_new_Channel(Client &client, const std::string& channel_name, std::vector<Channel> &channels)
+Channel Client::creating_new_Channel(Client &client, const std::string& channel_name, std::vector<Channel> &channels)
 {
     std::cout << "Creating new channel " << channel_name << std::endl;
     Channel new_channel(channel_name);
@@ -491,6 +492,7 @@ void Client::notifyChannelJoin(Channel& channel, Client& client)
 
     for (std::vector<Client*>::const_iterator it = channel.Clients.begin(); it != channel.Clients.end(); ++it)
     {
+        std::cout << "Sending join message " << std::endl;
         send((*it)->get_clientfd(), join_message.c_str(), join_message.length(), 0);
     }
 

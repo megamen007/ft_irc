@@ -373,6 +373,7 @@ bool Channel::onChannel(Client *admin){
 }
 
 int Channel::PRIVMSG(Client *admin, Client *target, std::string message) {
+    std::cout << "PRIVMSG ngk 999" << std::endl;
     if (message.find("#") == 0){
         if (!this->onChannel(admin)){
             std::string error_msg = ERR_NOTONCHANNEL(admin->getnickname(), this->GetName());
