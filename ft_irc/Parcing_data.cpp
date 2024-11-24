@@ -1,36 +1,7 @@
 #include "Parcing_data.hpp"
 
-// Parcing logic 
-/*{
-    #first_Part:
-    split the buffer into 
-    Command 
-    Arg
-    Message 
-
-    #Second_Part:
-    check Command 
-    check Arg
-
-    #third_Part
-    if everything is ok pass the command and the arg to othman .
-}*/
-
 Buffer::Buffer()
 {
-
-    valid_commands.push_back("KICK");
-    valid_commands.push_back("MODE");
-    valid_commands.push_back("JOIN");
-    valid_commands.push_back("PRIVMSG");
-    valid_commands.push_back("TOPIC");
-    valid_commands.push_back("INVITE");
-
-    valid_mode_flags.push_back('i');
-    valid_mode_flags.push_back('t');
-    valid_mode_flags.push_back('k');
-    valid_mode_flags.push_back('o');
-    valid_mode_flags.push_back('l');
 }
 Buffer::~Buffer()
 {}
@@ -50,8 +21,6 @@ std::string Buffer::get_msg()
     return this->Msg;
 }
 
-
-
 Buffer::Buffer(const Buffer& newBuffer)
 {
     *this = newBuffer;
@@ -64,8 +33,6 @@ Buffer &Buffer::operator=(Buffer const &newBuffer)
         this->Cmd = newBuffer.Cmd;
         this->Arg = newBuffer.Arg;
         this->Msg = newBuffer.Msg;
-        this->valid_commands = newBuffer.valid_commands;
-        this->valid_mode_flags = newBuffer.valid_mode_flags;
     }
     return *this;
 }
@@ -83,7 +50,6 @@ void Buffer::print_parsed_data()
                   << "Message: " << Msg << "\n";
 }
 
-
 void Buffer::split_buffer_from_nc(const std::string &buffer)
 {
     std::istringstream ss(buffer);
@@ -95,7 +61,6 @@ void Buffer::split_buffer_from_nc(const std::string &buffer)
     std::getline(ss, Msg); 
     trim(Msg);             
 }
-
 
 void Buffer::trim(std::string &str)
 {

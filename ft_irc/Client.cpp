@@ -10,14 +10,20 @@
 
 Client::~Client()
 {}
+
 Client::Client()
 {
     this->nickname = "";
+    this->username = "";
+    this->hostname = "";
+    this->servername = "";
+    this->realname = "";
     this->clientIP = "";
     this->clientfd = -1;
-    this->Operator_status = false;
-    this->username = "";
+    this->Operator_status = 0;
     this->loged_status = 0;
+    this->registration_status = 0;
+    this->has_joined = 0;
 }
 
 Client::Client(Client const &cli)
@@ -30,10 +36,15 @@ Client &Client::operator=(Client const &src)
     {
         this->nickname = src.nickname;
         this->username = src.username;
+        this->hostname = src.hostname;
+        this->realname = src.realname;
+        this->servername = src.servername;
         this->clientfd = src.clientfd;
         this->clientIP = src.clientIP;
         this->Operator_status = src.Operator_status;
         this->loged_status = src.loged_status;
+        this->has_joined = src.has_joined;
+        this->registration_status = src.registration_status;
     }
     return *this;
 }

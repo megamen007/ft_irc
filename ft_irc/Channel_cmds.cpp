@@ -339,39 +339,6 @@ void Channel::PART(Client *admin, std::string reason){
 // An operator leaving via PART does not override channel restrictions like invite-only mode (+i) or password protection (+k). Rejoining the channel would still require them to adhere to those rules.
 /////////////////////////////////////
 
-// void Channel::NICK(Client *admin, const std::string new_nick) {//reference--------
-
-//     for (size_t i = 0; i < Clients.size(); ++i) {
-//         if (Clients[i]->getnickname() == new_nick) {
-//             std::string message = GetUserInfo(admin, false) + " " + admin->getnickname() + " " + new_nick + ":getnickname() is already in use\r\n";
-//             send(admin->get_clientfd(), message.c_str(), message.size(), 0);
-//             return;
-//         }
-//     }
-
-//     admin->getnickname() = new_nick;
-// }
-
-// void Channel::USER(Client *admin, std::string username, std::string realname) {
-//     if(realname.find(":")){
-//         std::string message = ERR_NEEDMOREPARAMS1();
-//         send(admin->get_clientfd(), message.c_str(), message.size(), 0);
-//     }
-//     else{
-//         admin->username = username;
-//         admin->realname = realname;
-//     }
-    
-// }
-
-// void Channel::PASS(Client *admin, std::string password) {
-//     // if(password == this->server.password)//ta nmergiw w assigni hada l password d server
-//         admin->has_password = true;
-//     // else{
-//         std::string message = ERR_PASSWDMISMATCH();
-//         send(admin->get_clientfd(), message.c_str(), message.size(), 0);
-//     // }
-// }
 
 bool Channel::onChannel(Client *admin){
     if(std::find(Clients.begin(), Clients.end(), admin) != Clients.end())

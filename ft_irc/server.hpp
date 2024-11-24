@@ -25,6 +25,7 @@ class Buffer;
 class Server
 {
     private:
+
         int Port;
         std::string Password;
         static int Signal_status;
@@ -33,9 +34,6 @@ class Server
         std::string RawData;
         std::vector<struct pollfd> fds;
         std::vector <std::string> msg;
-
-        // Méthodes utilitaires
-        // std::vector<std::string> split(const std::string& str, char delimiter);
 
     public:
 
@@ -97,18 +95,9 @@ class Server
         void Close_filedescriptors();
         void close_all_clients();
         void close_server_socket();
-
-        //command
-        // void handleJoin(Client& client, const std::string& command);
-        // std::vector<std::string> split(const std::string& str, char delimiter);
         
-
-
-
-
         // Parsing received DATA
         void Parcing_and_Executing(int client_fd, std::string buffer, Buffer &Parser, Client &client, Server &Excalibur);
-        // void roles_check();
         // static void executing_commands(int fd, std::string Cmd, Client &client);
         void registerClient(int fd, std::string raw);
         void processMessage(Client& client, const std::string& command, const std::string &arg, const std::string &msg);
@@ -116,25 +105,11 @@ class Server
         Client* findClientByNick(const std::string& nickname);
         bool isNicknameInUse(const std::string& nickname);
         void sendWelcome(int fd);
-        void sendError(int fd, const std::string& error);
         std::string  trim(std::string &str);
         std::vector<std::string> splitByCRLF(const std::string& input);
-        // Connection Registrations Commands :
-            //user_func();
-            //pass_func();
-            // nick_func();
 
-        // Commands to Executes :
-            // kick_func();
-            // invite_func();
-            // mode_func();
-            // topic_func();
-            // join_func();
-            // privemsg_func();
+        bool Valid_nick_name(std::string& nickname);
 
-        bool Valid_nick_name(std::string& nickname)
-
-        // Handling_User_Authentification
         bool Port_valid(std::string port);
 
         // void Server::AddChannel(Channel newChannel);

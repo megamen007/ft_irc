@@ -33,13 +33,12 @@ class Client
 
         int clientfd;
         std::string clientIP; 
-        // channels (normal ones);
-        // channels (invited only);
         bool Operator_status;
         bool registration_status;
         bool loged_status;
 
     public:
+    
         // Canonical form:
             Client();
             Client(const Client& cli);

@@ -107,22 +107,10 @@ Channel *Server::getChannel(std::string name)
     return NULL;
 }
 
-// Adding functions:
-
-// void Server::AddChannel(Channel newChannel)
-// {
-//     this->channels.push_back(newChannel);
-// }
-// void Server::AddClient(Client newClient)
-// {
-//     this->Clients.push_back(newClient);
-// }
-
 // Checks Functions
 
 bool Server::Port_valid(std::string port)
 {
-    // std::cout << port << std::endl;
     if (port.find_first_not_of("0123456789") != std::string::npos)
     {
         std::cerr << "Invalid character found in port." << std::endl;
@@ -130,6 +118,7 @@ bool Server::Port_valid(std::string port)
     }
 
     int portnum = std::atoi(port.c_str());
+
     if (portnum >= 1024 && portnum <= 65535)
         return true;
     else
@@ -407,7 +396,7 @@ std::vector<std::string> Server::splitByCRLF(const std::string &input)
     while ((end = input.find("\r\n", start)) != std::string::npos)
     {
         result.push_back(input.substr(start, end - start));
-        start = end + 2; // Skip past "\r\n"
+        start = end + 2; 
     }
 
     if (start < input.length())
@@ -483,7 +472,6 @@ Channel Client::JOIN_channels(Client &client, std::vector<std::string> &Channles
                 }
             }
         }
-        // return new_channel;
     }
     return new_channel;
 }
@@ -531,7 +519,6 @@ Channel Client::creating_new_Channel(Client &client, const std::string& channel_
     Channelo.admins.push_back(&client);
     client.setoperatorstatus(true);
     notifyChannelJoin(new_channel, client);
-    // std::cout << client.getnickname() << client.get_clientfd() << std::endl;
     has_joined = true;
     return new_channel;
 }

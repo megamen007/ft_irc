@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/23 23:51:01 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/24 06:47:53 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ Channel::Channel(){
     has_password = false;
     has_topic = false;
     has_limit = false;
+    operate = false;
 }
 
 Channel::Channel(const std::string& name) : name(name) 
@@ -28,6 +29,7 @@ Channel::Channel(const std::string& name) : name(name)
     has_password = false;
     has_topic = false;
     has_limit = false;
+    operate = false;
 }
 
 Channel &Channel::operator=(const Channel &src){
@@ -41,6 +43,7 @@ Channel &Channel::operator=(const Channel &src){
     has_password = src.has_password;
     has_topic = src.has_topic;
     has_limit = src.has_limit;
+    operate = src.operate;
     max_users = src.max_users;
     Clients = src.Clients;
     admins = src.admins;
