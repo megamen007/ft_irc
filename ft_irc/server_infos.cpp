@@ -182,13 +182,6 @@ void Server::Close_filedescriptors()
 void Server::registerClient(int fd, std::string raw, Client &client)
 {
     client.setfd(fd);
-    // if (client == NULL)
-    // {
-    //     Client newClient;
-    //     newClient.setfd(fd);
-    //     Clients.push_back(newClient);
-    //     client = &Clients.back();
-    // }
     client.client_data();
 
     std::string command;
@@ -236,12 +229,10 @@ bool Server::Valid_nick_name(std::string& nickname)
 
 void Server::processMessage(Client &client, const std::string &command, const std::string &arg, const std::string &msg)
 {
-    std::cout << "here" << std::endl;
     std::istringstream ss(arg);
     std::string granpa , used;
     if (command == "PASS")
     {
-        std::cout << "here 1" << std::endl;
         std::string password;
         ss >> password;
 
@@ -270,22 +261,11 @@ void Server::processMessage(Client &client, const std::string &command, const st
         if (nickname.empty())
             client.sendError(client , "461" , "" , " u need to enter a Nickname to acces the server ");
 
-        std::cout << "here 2" << std::endl;
-        client.client_data();
-        std::cout << nickname << std::endl;
-        std::cout << isNicknameInUse(nickname) << std::endl;
-        std::cout << client.getnickname() << std::endl;
         if (isNicknameInUse(nickname) && client.getnickname() != nickname)
-        {
             client.sendError(client , "433", "" , "ERR_NICKNAMEINUSE");
-            // return;
-        }
 
         if (!Valid_nick_name(nickname))
-        {
             client.sendError(client , "432", "" , "ERR_ERRONEUSNICKNAME");
-            // return;
-        }
 
         if (client.getregistred())
         {
@@ -304,15 +284,12 @@ void Server::processMessage(Client &client, const std::string &command, const st
                 }
             }
         }
-            else if (!client.getregistred())
+        else if (!client.getregistred())
                 client.sendError(client , "451", "" , "ERR_NOTREGISTERED");
+
         if (client.getregistred() && !client.getusername().empty() && !client.getnickname().empty() && client.getnickname() != "212" && !client.getlogedstatus())
         {
-            std::cout << "here 5" << std::endl;
-            // client.setlogedstatus(true);
-            // n_name = nickname;
             client.setnickname(nickname);
-            // send response -----> RPL_CONNECTED;
         }
     }
     else if (command == "USER")
@@ -325,11 +302,6 @@ void Server::processMessage(Client &client, const std::string &command, const st
         getline(ss, tmp);
         realname = trim(tmp);
 
-        std::cout << "1" <<  client.getnickname() << std::endl;
-        std::cout << "2" << servername << std::endl;
-        std::cout << "3" << hostname << std::endl;
-        std::cout << "4" << realname << std::endl;
-        std::cout << "5" << username << std::endl;
         if (username.empty() || realname.empty() || servername.empty() || hostname.empty())
             client.sendError(client , "461" , "" , " u need to enter a username,realname,servername,hostname  to acces the server ");
 

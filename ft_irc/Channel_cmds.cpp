@@ -375,3 +375,91 @@ int Channel::PRIVMSG(Client *admin, Client *target, std::string message) {
     return 0;
 }
 
+// void WHO(Client *admin, Client* target)
+// {
+//     // check if the arg is channel , or a specific user 
+//         // if it a user 
+//             // search for him in Clients vector in channel class 
+//                 // print his public data
+
+//         // if it is a channel
+//             // search for it in Channels in server class 
+//                 // print all their members 
+// }
+
+// void Channel::WHO(Client *admin, const std::string &target, Server *srv)
+// {
+//     // Check if the target is a channel
+//     if (target[0] == '#') { // It's a channel
+//         // Search for the channel in the server's channel list using GetChannel
+//         Channel* chan = srv->GetChannel(target);
+//         if (chan != NULL) {
+//             // Channel found, check the members
+//             std::vector<Client*> members = chan->getMembers(); // Assuming Channel class has getMembers()
+//             for (size_t i = 0; i < members.size(); ++i) {
+//                 Client* member = members[i];
+
+//                 // Check if the member is visible:
+//                 // 1. The user is visible if they aren't invisible (+i mode)
+//                 // 2. Or the requesting client and the user share at least one channel
+
+//                 // Check if the member is invisible
+//                 bool isInvisible = member->hasMode("i");  // Assuming `hasMode` checks if the user has the specified mode
+//                 bool hasCommonChannel = false;
+
+//                 // Check if the admin (requesting client) and the member share a channel
+//                 std::vector<Channel*> adminChannels = admin->getChannels(); // Assuming `getChannels` returns the channels the client is in
+//                 for (size_t j = 0; j < adminChannels.size(); ++j) {
+//                     for (size_t k = 0; k < member->getChannels().size(); ++k) {
+//                         if (adminChannels[j] == member->getChannels()[k]) {
+//                             hasCommonChannel = true;
+//                             break;
+//                         }
+//                     }
+//                     if (hasCommonChannel) break;
+//                 }
+
+//                 // If the member is visible (not invisible or has a common channel with the admin)
+//                 if (!isInvisible || hasCommonChannel) {
+//                     // Send member's public data to the admin
+//                     admin->sendMessage("User: " + member->getnickname() + " (" + member->getusername() + ")");
+//                 }
+//             }
+//         } else {
+//             // Channel not found
+//             admin->sendError("403", target, "No such channel");
+//         }
+//     } else { // It's a user
+//         // Search for the user in the server's client list using GetClient (you need to implement GetClient)
+//         Client* client = srv->GetClient(target);
+//         if (client != NULL) {
+//             // Check if the client is visible (not invisible or has a common channel with the admin)
+//             bool isInvisible = client->hasMode("i");  // Assuming `hasMode` checks if the user has the specified mode
+//             bool hasCommonChannel = false;
+
+//             // Check if the admin (requesting client) and the user share a channel
+//             std::vector<Channel*> adminChannels = admin->getChannels();
+//             for (size_t j = 0; j < adminChannels.size(); ++j) {
+//                 for (size_t k = 0; k < client->getChannels().size(); ++k) {
+//                     if (adminChannels[j] == client->getChannels()[k]) {
+//                         hasCommonChannel = true;
+//                         break;
+//                     }
+//                 }
+//                 if (hasCommonChannel) break;
+//             }
+
+//             // If the client is visible (not invisible or has a common channel with the admin)
+//             if (!isInvisible || hasCommonChannel) {
+//                 // Send public data
+//                 admin->sendMessage("Nickname: " + client->getnickname() + 
+//                                     "\nUsername: " + client->getusername() + 
+//                                     "\nRealname: " + client->getrealname());
+//             }
+//         } else {
+//             // User not found
+//             admin->sendError("401", target, "No such user");
+//         }
+//     }
+// }
+

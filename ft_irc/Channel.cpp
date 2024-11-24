@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/24 06:47:53 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/24 12:10:34 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,7 +136,7 @@ std::string Channel::get_topic()
     return this->topic;
 }
 
-
+//  rah dert wa7ed change hna pookie  zdet & lat9wdha 3lik wla chy haja .
 Client *Channel::GetUser(std::string name){
     for(size_t i = 0; i < Clients.size(); ++i){
         if(name == Clients[i]->getnickname())

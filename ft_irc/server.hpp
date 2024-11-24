@@ -37,12 +37,6 @@ class Server
 
     public:
 
-        // std::string n_name;
-        // std::string u_name;
-        // std::string h_name;
-        // std::string s_name;
-        // std::string r_name;
-        // bool log;
         std::vector<Client> Clients;
         std::vector<Channel> Channels;
         Server();
@@ -67,6 +61,7 @@ class Server
 
 
         void AddClient(Client newClient);
+        Channel *GetChannel(std::string &name);
 
 
         // Server booting functions:
