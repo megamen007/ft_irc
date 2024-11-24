@@ -195,6 +195,7 @@ void Server::registerClient(int fd, std::string raw, Client &client)
         for (size_t i = 1; i < lines.size(); i++)
         {
             std::istringstream ss(lines[i]);
+            std::cout << "wax dkahlt hana?/n"; 
             ss >> command;
             ss >> arg;
             std::getline(ss, message);
@@ -209,6 +210,7 @@ void Server::registerClient(int fd, std::string raw, Client &client)
         std::getline(ss, message);
         processMessage(client, command, arg, message);
     }
+    std::cout << client.getnickname() << " howa nick name " << std::endl;
 }
 
 
@@ -289,14 +291,16 @@ void Server::processMessage(Client &client, const std::string &command, const st
 
         if (client.getregistred() && !client.getusername().empty() && !client.getnickname().empty() && client.getnickname() != "212" && !client.getlogedstatus())
         {
+            std::cout << "dkhalt hna o " << client.getnickname() << " howa l nick" << std::endl;
+
             client.setnickname(nickname);
         }
     }
     else if (command == "USER")
     {
-        std::cout << "here 2" << std::endl;
         std::istringstream ss(msg);
         std::string username, hostname, servername, realname, tmp;
+        std::cout << "here 2" << std::endl;
         username = arg;
         ss >> hostname >> servername;
         getline(ss, tmp);
@@ -498,6 +502,7 @@ Channel Client::creating_new_Channel(Client &client, const std::string& channel_
 {
 
     Channel new_channel(channel_name);
+    std::cout << "hadi " << new_channel.GetName() << "hiwa smiya dolay channel\n"; 
     new_channel.addUser(&client);
     channels.push_back(new_channel);
     Channelo.admins.push_back(&client);

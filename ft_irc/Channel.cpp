@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/24 12:10:34 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/24 22:38:41 by otelliq          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,6 +143,10 @@ Client *Channel::GetUser(std::string name){
             return Clients[i];
     }
     return NULL;
+}
+
+std::vector<Client *>  Channel::getMembers(){
+    return Clients;
 }
 
 std::string Channel::GetUserInfo(Client *admin, bool i){

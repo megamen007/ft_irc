@@ -79,6 +79,7 @@ class Channel
         std::string get_topic();
         std::string GetUserInfo(Client *admin, bool i);
         Client     *GetUser(std::string name);
+        std::vector<Client *>  Channel::getMembers();
         // Client     *Get_Operator(std::string name);
         bool get_invite_only();
         bool get_limit();
@@ -101,6 +102,7 @@ class Channel
         void send_to_all(std::string message);
         void addUser(Client* client);
         void remove_user(Client *admin);
+        char *getMessage();
 
         void MODE(Client *admin, std::string mode, std::string arg);
         void KICK(Client *admin, Client *user, std::string reason);

@@ -154,12 +154,28 @@ void Client::client_data()
 {
     std::cout << " nickname : " << this->nickname << std::endl;
     std::cout << " clientfd : " << this->clientfd << std::endl;
-    std::cout << " clientIP : " << this->clientIP << std::endl;
-    std::cout << " has Joined : " << this->has_joined << std::endl;
-    std::cout << " loged status : " << this->loged_status << std::endl;
-    std::cout << " username :  " << this->username << std::endl;
-    std::cout << " reg_status :" << this->registration_status << std::endl;
-    std::cout << " operator_status : " << this->Operator_status << std::endl;
 }
 
+
+// char *Client::getMessage() {
+//         static char buffer[1024];
+//         int bytesReceived = 0;
+
+//         for (int i = 0; i < 1024; i++) {
+//             buffer[i] = 0;
+//         }
+
+//         bytesReceived = recv(get_cli, buffer, sizeof(buffer) - 1, 0);
+
+//         if (bytesReceived < 0) {
+//             perror("recv failed");
+//             return NULL;  // Return NULL in case of error
+//         } else if (bytesReceived == 0) {
+//             printf("Client disconnected.\n");
+//             return NULL;  // Return NULL if client disconnects
+//         } else {
+//             buffer[bytesReceived] = '\0';  // Null-terminate the buffer
+//             return buffer;  // Return the message as a char array (C-style string)
+//         }
+//     }
 

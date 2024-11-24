@@ -387,79 +387,63 @@ int Channel::PRIVMSG(Client *admin, Client *target, std::string message) {
 //                 // print all their members 
 // }
 
-// void Channel::WHO(Client *admin, const std::string &target, Server *srv)
-// {
-//     // Check if the target is a channel
-//     if (target[0] == '#') { // It's a channel
-//         // Search for the channel in the server's channel list using GetChannel
-//         Channel* chan = srv->GetChannel(target);
-//         if (chan != NULL) {
-//             // Channel found, check the members
-//             std::vector<Client*> members = chan->getMembers(); // Assuming Channel class has getMembers()
-//             for (size_t i = 0; i < members.size(); ++i) {
-//                 Client* member = members[i];
+void Channel::WHO(Client* admin, const std::string& target, Server* srv) {
+    // Assuming `sendMessage` is implemented like in the earlier example
+    if (target[0] == '#') { // It's a channel
+        Channel* chan = srv->getChannel(target);
+        if (chan != nullptr) {
+            std::vector<Client*> members = chan->getMembers();
+            for (Client* member : members) {
+                bool isInvisible = member->hasMode("i");
+                bool hasCommonChannel = admin->sharesChannelWith(member);
 
-//                 // Check if the member is visible:
-//                 // 1. The user is visible if they aren't invisible (+i mode)
-//                 // 2. Or the requesting client and the user share at least one channel
+                if (!isInvisible || hasCommonChannel) {
+                    std::string message = "User: " + member->getNickname() +
+                                          " (" + member->getUsername() + ")";
+                    admin->sendMessage(message + "\r\n");
+                }
+            }
+        } else {
+            admin->sendMessage("403 " + target + " :No such channel\r\n");
+        }
+    } else { // It's a user
+        Client* client = srv->getClient(target);
+        if (client != nullptr) {
+            bool isInvisible = client->hasMode("i");
+            bool hasCommonChannel = admin->sharesChannelWith(client);
 
-//                 // Check if the member is invisible
-//                 bool isInvisible = member->hasMode("i");  // Assuming `hasMode` checks if the user has the specified mode
-//                 bool hasCommonChannel = false;
+            if (!isInvisible || hasCommonChannel) {
+                std::string message = "Nickname: " + client->getNickname() +
+                                      " Username: " + client->getUsername();
+                admin->sendMessage(message + "\r\n");
+            }
+        } else {
+            admin->sendMessage("401 " + target + " :No such user\r\n");
+        }
+    }
+}
 
-//                 // Check if the admin (requesting client) and the member share a channel
-//                 std::vector<Channel*> adminChannels = admin->getChannels(); // Assuming `getChannels` returns the channels the client is in
-//                 for (size_t j = 0; j < adminChannels.size(); ++j) {
-//                     for (size_t k = 0; k < member->getChannels().size(); ++k) {
-//                         if (adminChannels[j] == member->getChannels()[k]) {
-//                             hasCommonChannel = true;
-//                             break;
-//                         }
-//                     }
-//                     if (hasCommonChannel) break;
-//                 }
+// char *Channel::getMessage() {
+//         static char buffer[1024];  // Buffer to store the incoming message
+//         int bytesReceived = 0;
 
-//                 // If the member is visible (not invisible or has a common channel with the admin)
-//                 if (!isInvisible || hasCommonChannel) {
-//                     // Send member's public data to the admin
-//                     admin->sendMessage("User: " + member->getnickname() + " (" + member->getusername() + ")");
-//                 }
-//             }
-//         } else {
-//             // Channel not found
-//             admin->sendError("403", target, "No such channel");
+//         // Clear the buffer manually (C++98)
+//         for (int i = 0; i < 1024; i++) {
+//             buffer[i] = 0;
 //         }
-//     } else { // It's a user
-//         // Search for the user in the server's client list using GetClient (you need to implement GetClient)
-//         Client* client = srv->GetClient(target);
-//         if (client != NULL) {
-//             // Check if the client is visible (not invisible or has a common channel with the admin)
-//             bool isInvisible = client->hasMode("i");  // Assuming `hasMode` checks if the user has the specified mode
-//             bool hasCommonChannel = false;
 
-//             // Check if the admin (requesting client) and the user share a channel
-//             std::vector<Channel*> adminChannels = admin->getChannels();
-//             for (size_t j = 0; j < adminChannels.size(); ++j) {
-//                 for (size_t k = 0; k < client->getChannels().size(); ++k) {
-//                     if (adminChannels[j] == client->getChannels()[k]) {
-//                         hasCommonChannel = true;
-//                         break;
-//                     }
-//                 }
-//                 if (hasCommonChannel) break;
-//             }
+//         // Receive data from the client
+//         bytesReceived = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
-//             // If the client is visible (not invisible or has a common channel with the admin)
-//             if (!isInvisible || hasCommonChannel) {
-//                 // Send public data
-//                 admin->sendMessage("Nickname: " + client->getnickname() + 
-//                                     "\nUsername: " + client->getusername() + 
-//                                     "\nRealname: " + client->getrealname());
-//             }
+//         if (bytesReceived < 0) {
+//             perror("recv failed");
+//             return NULL;  // Return NULL in case of error
+//         } else if (bytesReceived == 0) {
+//             printf("Client disconnected.\n");
+//             return NULL;  // Return NULL if client disconnects
 //         } else {
-//             // User not found
-//             admin->sendError("401", target, "No such user");
+//             buffer[bytesReceived] = '\0';  // Null-terminate the buffer
+//             return buffer;  // Return the message as a char array (C-style string)
 //         }
 //     }
-// }
 

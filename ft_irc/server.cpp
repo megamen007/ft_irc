@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/24 11:01:15 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/24 21:03:55 by otelliq          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -253,8 +253,8 @@ void Client::executing_commands(__unused int fd, std::string Cmd, Buffer &Parser
                     client.sendError(client, "462" , "" , "") ;
                 else if (Parser.get_cmd().compare("USER") == 0 || Parser.get_cmd().compare("user") == 0)
                     client.sendError(client, "462" , "" , "") ;
-                else 
-                    client.sendError(client, "421" , "" , Parser.get_cmd());
+                // else 
+                //     client.sendError(client, "421" , "" , Parser.get_cmd());
             }
 
         }
