@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/24 06:23:19 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/24 11:01:15 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,23 +196,17 @@ void Server::socket_receiving(int client_fd, Client &client ,Server &Excalibur)
     {
         std::cout << " Received " << r << "  bytes ... " << std::endl;
         std::cout << " Received Data :  " << getRawData() << std::endl;
-            
-        registerClient(client_fd, buffer);
+        
+        registerClient(client_fd, buffer , client);
 
-        client.setnickname(n_name);
-        client.setusername(u_name);
-        client.setservername(s_name);
-        client.setrealname(r_name);
-        client.sethostname(h_name);
-        client.setIPaddress(h_name);
-
+        std::cout << "logo" << client.getlogedstatus() << std::endl;
         if (client.getlogedstatus())
             Parcing_and_Executing(client_fd,buffer,Parser, client, Excalibur);
     }
     
     if (std::string(buffer) == "exit") 
     {
-        std::cout << "Client requested to exit. Closing connection." << std::endl;
+        std::cout << "You requested to exit. Closing connection." << std::endl;
         close(client_fd);
         Remove_Client(client_fd);
     }
@@ -226,7 +220,6 @@ void Client::executing_commands(__unused int fd, std::string Cmd, Buffer &Parser
    if (Parser.get_cmd().compare("JOIN") == 0 || Parser.get_cmd().compare("join") == 0)
        new_channel =  client.JOIN(client, Cmd, Parser , Excalibur);
           
-                   
     if (has_joined == 1)
     {
         // function to check all client data :

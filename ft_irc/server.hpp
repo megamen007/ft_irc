@@ -37,11 +37,12 @@ class Server
 
     public:
 
-        std::string n_name;
-        std::string u_name;
-        std::string h_name;
-        std::string s_name;
-        std::string r_name;
+        // std::string n_name;
+        // std::string u_name;
+        // std::string h_name;
+        // std::string s_name;
+        // std::string r_name;
+        // bool log;
         std::vector<Client> Clients;
         std::vector<Channel> Channels;
         Server();
@@ -99,7 +100,7 @@ class Server
         // Parsing received DATA
         void Parcing_and_Executing(int client_fd, std::string buffer, Buffer &Parser, Client &client, Server &Excalibur);
         // static void executing_commands(int fd, std::string Cmd, Client &client);
-        void registerClient(int fd, std::string raw);
+        void registerClient(int fd, std::string raw, Client &client);
         void processMessage(Client& client, const std::string& command, const std::string &arg, const std::string &msg);
         Client* findClientByFd(int fd);
         Client* findClientByNick(const std::string& nickname);

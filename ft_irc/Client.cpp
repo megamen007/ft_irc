@@ -13,7 +13,7 @@ Client::~Client()
 
 Client::Client()
 {
-    this->nickname = "";
+    this->nickname = "jo";
     this->username = "";
     this->hostname = "";
     this->servername = "";
