@@ -195,7 +195,6 @@ void Server::registerClient(int fd, std::string raw)
     Client *client = findClientByFd(fd);
     if (client == NULL)
     {
-        // std::cout << " client is null?\n";
         Client newClient;
         newClient.setfd(fd);
         Clients.push_back(newClient);
@@ -229,42 +228,98 @@ void Server::registerClient(int fd, std::string raw)
     }
 }
 
+
+bool Server::Valid_nick_name(std::string& nickname)
+{
+    int i = 0;
+    if (!nickname.empty() && (nickname[0] == '&' || nickname[0] == '#' || nickname[0] == ':'))
+        return false;
+    while(i < nickname.size() )
+    {
+        if (!std::isalnum(nickname[i]) && nickname[i] != '_')
+            return false;
+    }
+    return true;
+}
+
+
 void Server::processMessage(Client &client, const std::string &command, const std::string &arg, const std::string &msg)
 {
     std::istringstream ss(arg);
+    std::string granpa , used;
     if (command == "PASS")
     {
         std::string password;
         ss >> password;
-        // std::cout << password << "[][][]" <<  Password;
 
-        if (password == Password)
+        if (password.empty())
+            client.sendError(client , "461" , "" , " u need to enter a Password to acces the server ");
+
+        else if (!client.getregistred())
         {
-            client.setregistred(true);
-            Buffer::received_pass = true;
-            // std::cout << "Client " << client.get_clientfd() << " provided valid password.\n";
+            if (password == Password)
+            {
+                client.setregistred(true);
+            }
+            else
+            {
+                client.sendError(client , "464", "" , "ERR_PASSWDMISMATCH");
+            }
         }
-        else
-        {
-            sendError(client.get_clientfd(), "ERR_PASSWDMISMATCH");
-        }
+        else 
+            client.sendError(client, "462" , "" , "ERR_ALREADYREGISTERED");
     }
     else if (command == "NICK")
     {
         std::string nickname;
         ss >> nickname;
-        if (isNicknameInUse(nickname))
+
+    if (nickname.empty())
+        client.sendError(client , "461" , "" , " u need to enter a Nickname to acces the server ");
+
+    if (isNicknameInUse(nickname) && client.getnickname() != nickname)
+    {
+        used = "212";
+        if(client.getnickname().empty())
+            client.setnickname(used);
+
+        client.sendError(client , "433" , "" ,  "ERR_NICKNAMEINUSE");
+            return;
+    }
+    if (!Valid_nick_name(nickname))
+    {
+        client.sendError(client , "432" , "" , "ERR_ERRONEUSNICKNAME");
+        return;
+    }
+    else
+    {
+        if (client.getregistred())
         {
-            sendError(client.get_clientfd(), "ERR_NICKNAMEINUSE");
-        }
-        else
-        {
-            // std::cout << nickname << " ngalza" << std::endl;
+            granpa = client.getnickname();
             client.setnickname(nickname);
-            n_name = nickname;
-            Buffer::received_nick = true;
-            // std::cout << "Client " << client.get_clientfd() << " set nickname: " << nickname << "\n";
+            if(!granpa.empty() && granpa != nickname)
+            {
+                if(granpa == "212" && !client.getusername().empty())
+                {
+                    client.setlogedstatus(true);
+                    // send response -----> RPL_CONNECTED;
+                    client.sendError(client , "1" , "" , "RPL_NICKCHANGE");
+                }
+                else
+                    client.sendError(client , "1" , "" , "RPL_NICKCHANGE");
+                return;
+            }
         }
+        else if (!client.getregistred())
+            client.sendError(client , "451", "" , "ERR_NOTREGISTERED");
+    }
+    if (client.getregistred() && !client.getusername().empty() && !client.getnickname().empty() && client.getnickname() != "212" && !client.getlogedstatus())
+    {
+        // client.setlogedstatus(true);
+        n_name = nickname;
+        client.setnickname(nickname);
+        // send response -----> RPL_CONNECTED;
+    }
     }
     else if (command == "USER")
     {
@@ -275,15 +330,18 @@ void Server::processMessage(Client &client, const std::string &command, const st
         getline(ss, tmp);
         realname = trim(tmp);
 
-        // std::cout << username << std::endl;
-        // std::cout << hostname << std::endl;
-        // std::cout << servername << std::endl;
-        // std::cout << realname << std::endl;
+        if (username.empty() || realname.empty() || servername.empty() || hostname.empty())
+            client.sendError(client , "461" , "" , " u need to enter a username,realname,servername,hostname  to acces the server ");
 
-        if (realname.empty())
+        else if (!client.getregistred())
         {
-            sendError(client.get_clientfd(), "ERR_NEEDMOREPARAMS");
+            client.sendError(client , "451", "" , "ERR_NOTREGISTERED");
         }
+        else if (!client.getnickname().empty() || !client.getusername().empty() || !client.getrealname().empty() || !client.getservername().empty() || !client.gethostname().empty())
+        {
+            client.sendError(client, "462" , "" , "ERR_ALREADYREGISTERED");
+        }
+
         else
         {
             u_name = username;
@@ -294,12 +352,14 @@ void Server::processMessage(Client &client, const std::string &command, const st
             client.setservername(servername);
             client.setrealname(realname);
             client.sethostname(hostname);
-            // client.setIPaddress(hostname); // Assuming this for hostname
-            // client.setlogedstatus(true);
-            // client.setregistred(true);
-            Buffer::received_user = true;
-            // std::cout << "Client " << client.get_clientfd() << " set user info.\n";
+
         }
+        if (client.getregistred() && !client.getusername().empty() && !client.getrealname().empty() && !client.getservername().empty() && !client.gethostname().empty() && !client.getnickname().empty())
+            client.setlogedstatus(true);
+    }
+    else
+    {
+        client.sendError(client, "421" , "" , "ERR_UNKNOWNCOMMAND :  To register  1/PASS 2/NICK /USER");
     }
 
     if (client.getregistred() && client.getnickname().size() > 0 && client.getusername().size() > 0)
@@ -331,11 +391,6 @@ void Server::sendWelcome(int fd)
     std::cout << "Client " << fd << " Welcome to the HAKUNA MATATA Realm.\n";
 }
 
-void Server::sendError(int fd, const std::string &error)
-{
-    std::cerr << "Error for client " << fd << ": " << error << "\n";
-    // Here you would send a real error message over the network
-}
 
 std::string Server::trim(std::string &str)
 {
@@ -363,7 +418,6 @@ std::vector<std::string> Server::splitByCRLF(const std::string &input)
 
 Channel Client::JOIN(Client& client, const std::string& command, __unused Buffer &Parser, Server &Excalibur)
 {
-    // std::cout << client.getnickname() << std::endl;
     std::vector<Channel> tmp;
     tmp = Excalibur.get_Channels();
 
@@ -412,7 +466,7 @@ Channel Client::JOIN_channels(Client &client, std::vector<std::string> &Channles
 
         if (Ch_name.find("#") != 0)
         {
-            sendError(client , "403", Ch_name, "NO such ");//err
+            sendError(client , "403", Ch_name, "ERR_NOSUCHCHANNEL");//err
             continue;
         }
 
@@ -442,19 +496,19 @@ bool Client::JOIN_existing_Channel(Client &client, const std::string& channel_na
         {
             // if(it->get_invite_only() && !isInvited(client))
             // {
-            //     sendError(client, "473", channel_name, "Cannot join Channel (+i)");
+            //     client.sendError(client, "473", channel_name, "");
             //     return true;
             // }
 
             if(it->get_has_password() && it->get_password() != password)
             {
-                sendError(client, "475", channel_name, "Cannot join Channel (+k)");
+                client.sendError(client, "475", channel_name, "");
                 return true;
             }
 
             if(it->get_limit() && it->get_maxusers() <= it->Clients.size())
             {
-                sendError(client, "471", channel_name , "Cannot join Channel (+l)");
+                client.sendError(client, "471", channel_name , "");
                 return true;
             }
 
@@ -470,7 +524,7 @@ bool Client::JOIN_existing_Channel(Client &client, const std::string& channel_na
 
 Channel Client::creating_new_Channel(Client &client, const std::string& channel_name, std::vector<Channel> &channels, Channel &Channelo)
 {
-    // std::cout << "Creating new channel " << channel_name << std::endl;
+
     Channel new_channel(channel_name);
     new_channel.addUser(&client);
     channels.push_back(new_channel);
@@ -485,7 +539,6 @@ Channel Client::creating_new_Channel(Client &client, const std::string& channel_
 
 void Client::notifyChannelJoin(Channel& channel, Client& client)
 {
-    // std::cout << "Notifying channel " << channel.GetName() << " of new user " << client.getnickname() << std::endl;
     std::string join_message = ":";
     join_message += client.getPrefix();
     join_message += " JOIN ";
@@ -494,7 +547,6 @@ void Client::notifyChannelJoin(Channel& channel, Client& client)
 
     for (std::vector<Client*>::const_iterator it = channel.Clients.begin(); it != channel.Clients.end(); ++it)
     {
-        // std::cout << "Sending join message " << std::endl;
         send((*it)->get_clientfd(), join_message.c_str(), join_message.length(), 0);
     }
 
@@ -518,72 +570,107 @@ void Client::sendError(Client& client, const std::string& errorCode, const std::
 {
     std::string errorMsg;
 
+    // JOIN ERRORS //
     if (errorCode == "403")
     {  // ERR_NOSUCHCHANNEL
-        errorMsg = "403 " + client.getnickname() + " " + channel + " :No such channel";
+        errorMsg = "403 " + client.getnickname() + " " + channel + " :No such channel\r\n";
     }
-    else if (errorCode == "404")
-    {  // ERR_CANNOTSENDTOCHAN
-        errorMsg = "404 " + client.getnickname() + " " + channel + " :Cannot send to channel";
+
+    else if (errorCode == "471") 
+    {  // ERR_CHANNELISFULL
+        errorMsg = "471 " + client.getnickname() + " " + channel + " :Cannot join channel (+l)\r\n";
     }
     else if (errorCode == "405") 
     {  // ERR_TOOMANYCHANNELS
-        errorMsg = "405 " + client.getnickname() + " " + channel + " :You have joined too many channels";
+        errorMsg = "405 " + client.getnickname() + " " + channel + " :You have joined too many channels\r\n";
     }
+
     else if (errorCode == "471") 
     {  // ERR_CHANNELISFULL
-        errorMsg = "471 " + client.getnickname() + " " + channel + " :Cannot join channel (+l)";
+        errorMsg = "471 " + client.getnickname() + " " + channel + " :Cannot join channel (+l)\r\n";
     }
+
     else if (errorCode == "473") 
     {  // ERR_INVITEONLYCHAN
-        errorMsg = "473 " + client.getnickname() + " " + channel + " :Cannot join channel (+i)";
+        errorMsg = "473 " + client.getnickname() + " " + channel + " :Cannot join channel (+i)\r\n";
     }
+
     else if (errorCode == "474") 
     {  // ERR_BANNEDFROMCHAN
-        errorMsg = "474 " + client.getnickname() + " " + channel + " :Cannot join channel (+b)";
+        errorMsg = "474 " + client.getnickname() + " " + channel + " :Cannot join channel (+b)\r\n";
     }
+
     else if (errorCode == "475") 
     {  // ERR_BADCHANNELKEY
-        errorMsg = "475 " + client.getnickname() + " " + channel + " :Cannot join channel (+k)";
+        errorMsg = "475 " + client.getnickname() + " " + channel + " :Cannot join channel (+k)\r\n";
     }
-    else if (errorCode == "406") 
-    {  // ERR_NEEDMOREPARAMS
-        errorMsg = "406 " + client.getnickname() + " " + message + " :Not enough parameters";
+
+    // PRIVEMSG ERRORS //
+    else if (errorCode == "404")
+    {  // ERR_CANNOTSENDTOCHAN
+        errorMsg = "404 " + client.getnickname() + " " + channel + " :Cannot send to channel\r\n";
     }
+    
+    // the command they sent isn’t known by the server //
     else if (errorCode == "421") 
     {  // ERR_UNKNOWNCOMMAND
-        errorMsg = "421 " + client.getnickname() + " " + message + " :Unknown command";
+        errorMsg = "421 " + client.getnickname() + " " + message + " :Unknown command\r\n";
     }
+
+    // PASS //
+
+    else if (errorCode == "464")
+    {  //ERR_PASSWDMISMATCH
+        errorMsg = "464 " + client.getnickname() + " " + message + " :Password incorrect\r\n";
+    }
+
+    // NICK //
     else if (errorCode == "432") 
     {  // ERR_ERRONEUSNICKNAME
-        errorMsg = "432 " + client.getnickname() + " " + message + " :Erroneus nickname";
+        errorMsg = "432 " + client.getnickname() + " " + message + " :Erroneus nickname\r\n";
     }
     else if (errorCode == "433") 
     {  // ERR_NICKNAMEINUSE
-        errorMsg = "433 " + client.getnickname() + " " + message + " :Nickname is already in use";
+        errorMsg = "433 " + client.getnickname() + " " + message + " :Nickname is already in use\r\n";
     }
+
+    // KICK //
     else if (errorCode == "441") 
     {  // ERR_USERNOTINCHANNEL
-        errorMsg = "441 " + client.getnickname() + " " + message + " :They aren't on that channel";
+        errorMsg = "441 " + client.getnickname() + " " + message + " :They aren't on that channel\r\n";
     }
+
     else if (errorCode == "442") 
     {  // ERR_NOTONCHANNEL
-        errorMsg = "442 " + client.getnickname() + " " + message + " :You're not on that channel";
+        errorMsg = "442 " + client.getnickname() + " " + message + " :You're not on that channel\r\n";
     }
+
+    // NEED MORE PARAMS //
     else if (errorCode == "461") 
     {  // ERR_NEEDMOREPARAMS
-        errorMsg = "461 " + client.getnickname() + " " + message + " :Not enough parameters";
+        errorMsg = "461 " + client.getnickname() + " " + message + " :Not enough parameters\r\n";
     }
+
+    // Registration system //checked
+    // Returned when a client tries to change a detail that can only be set during registration (such as resending the PASS or USER after registration).
     else if (errorCode == "462") 
     {  // ERR_ALREADYREGISTERED
-        errorMsg = "462 " + client.getnickname() + " :You may not reregister";
+        errorMsg = "462 " + client.getnickname() + message + " :You may not reregister\r\n";
     }
-    else if (errorCode == "471") 
-    {  // ERR_CHANNELISFULL
-        errorMsg = "471 " + client.getnickname() + " " + channel + " :Cannot join channel (+l)";
+
+    else if (errorCode == "451") 
+    {  // ERR_NOTREGISTERED
+        errorMsg = "451 " + client.getnickname() + " " + message + " :You have not registered\r\n";
     }
+
+    else if (errorCode == "1")
+    {   // Replies :
+        errorMsg =  client.getnickname() + " " + message + "  \r\n";  
+    }
+
+
     else {
-        errorMsg = errorCode + " :Unknown error";
+        errorMsg = errorCode + " :Unknown error\r\n";
     }
 
     // Sending the error message to the client

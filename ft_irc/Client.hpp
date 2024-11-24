@@ -70,6 +70,7 @@ class Client
             bool getoperatorstatus();
             bool getlogedstatus();
             int get_clientfd();
+            void client_data();
 
             void executing_commands(int fd, std::string Cmd, Buffer &Parser, Client &client, Server &Excalibur);
             Channel JOIN(Client& client, const std::string& command, Buffer &Parser, Server &Excalibur);

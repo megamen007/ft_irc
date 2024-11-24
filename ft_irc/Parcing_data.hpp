@@ -44,8 +44,4 @@ class Buffer
         void trim(std::string &str);
         std::string get_target();
 
-        static bool received_pass;
-        static bool received_nick;
-        static bool received_user;
-
 };

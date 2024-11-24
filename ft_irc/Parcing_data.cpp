@@ -16,11 +16,6 @@
     if everything is ok pass the command and the arg to othman .
 }*/
 
-
-bool Buffer::received_pass = false;
-bool Buffer::received_nick = false;
-bool Buffer::received_user = false;
-
 Buffer::Buffer()
 {
 
@@ -56,14 +51,6 @@ std::string Buffer::get_msg()
 }
 
 
-void Buffer::Parcing_core(std::string &buffer)
-{
-    if (is_initial_hexchat_handshake(buffer))
-        Parcing_from_hexchat(buffer);
-    else 
-        check_Client_is_authentifacted(buffer);
-    print_parsed_data();
-}
 
 Buffer::Buffer(const Buffer& newBuffer)
 {
@@ -83,16 +70,19 @@ Buffer &Buffer::operator=(Buffer const &newBuffer)
     return *this;
 }
 
+void Buffer::Parcing_core(std::string &buffer)
+{
+    split_buffer_from_nc(buffer);
+    print_parsed_data();
+}
+
 void Buffer::print_parsed_data() 
 {
         std::cout << "Command: " << Cmd << "\n"
                   << "Argument: " << Arg << "\n"
                   << "Message: " << Msg << "\n";
 }
-bool Buffer::is_initial_hexchat_handshake(std::string &buffer)
-{
-    return(buffer.find("CAP LS") != std::string::npos );
-}
+
 
 void Buffer::split_buffer_from_nc(const std::string &buffer)
 {
@@ -106,90 +96,6 @@ void Buffer::split_buffer_from_nc(const std::string &buffer)
     trim(Msg);             
 }
 
-void Buffer::split_buffer_from_hexchat(const std::string &buffer)
-{
-    std::istringstream ss(buffer);
-    ss >> Cmd;
-    trim(Cmd);                
-    ss >> Arg;
-    trim(Arg);                  
-    std::getline(ss, Msg); 
-    trim(Msg);             
-}
-
-void Buffer::Parcing_from_nc(std::string &buffer)
-{
-    split_buffer_from_nc(buffer);
-    checking_core(Cmd, Arg);
-}
-
-void Buffer::Parcing_from_hexchat(std::string &buffer)
-{
-    split_buffer_from_hexchat(buffer);
-    checking_core(Cmd, Arg);
-}
-
-void Buffer::check_Client_is_authentifacted(std::string &buffer)
-{
-    // if (received_nick && received_user &&  received_pass)
-        Parcing_from_nc(buffer);  //
-    // else
-    // {
-    //     std::cerr << "u dindn't pass the registration process , try the following commmands 1/PASS  2/NICK  3/USER . " <<std::endl;
-    //     return ;
-    // }
-
-}
-
-
-void Buffer::checking_core(std::string &cmd, std::string &arg)
-{
-    checking_command(cmd);
-    // if (cmd == "JOIN")
-        // 
-    if (cmd == "MODE")
-        checking_mode_args(arg);
-    // checking_args(arg);
-}
-
-void Buffer::checking_command(std::string &cmd)
-{
-    if (cmd == "NICK" || cmd == "PASS" || cmd == "USER")
-    {
-        std::cerr << cmd << " this One of the Command that u use to register with and , u are already registred try Other commands rather than PASS NICK USER" << std::endl;
-    }
-    if(std::find(valid_commands.begin(), valid_commands.end(), cmd) == valid_commands.end())
-    {
-        std::cerr << "Invalid command: " << cmd << std::endl;
-        return;
-    }
-}
-
-void Buffer::checking_mode_args(const std::string &args)
-{
-    if (args.empty())
-    {
-        std::cerr << "Arguments cannot be empty for command: " << Cmd << std::endl;
-        return ;
-    }
-    for (std::string::const_iterator it = args.begin(); it != args.end(); ++it)
-    {
-        if (std::find(valid_mode_flags.begin(), valid_mode_flags.end(), *it) == valid_mode_flags.end())
-        {
-            std::cerr << "Invalid MODE flag: " << *it << std::endl;
-            return;
-        }
-    }
-}
-
-void Buffer::checking_args(std::string &args)
-{
-        if (args.empty())
-        {
-            std::cerr << "Arguments cannot be empty for command: " << Cmd << std::endl;
-            return ;
-        }
-}
 
 void Buffer::trim(std::string &str)
 {

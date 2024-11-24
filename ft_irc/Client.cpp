@@ -139,5 +139,16 @@ void Client::setlogedstatus(bool log)
     this->loged_status = log;
 }
 
+void Client::client_data()
+{
+    std::cout << " nickname : " << this->nickname << std::endl;
+    std::cout << " clientfd : " << this->clientfd << std::endl;
+    std::cout << " clientIP : " << this->clientIP << std::endl;
+    std::cout << " has Joined : " << this->has_joined << std::endl;
+    std::cout << " loged status : " << this->loged_status << std::endl;
+    std::cout << " username :  " << this->username << std::endl;
+    std::cout << " reg_status :" << this->registration_status << std::endl;
+    std::cout << " operator_status : " << this->Operator_status << std::endl;
+}
 
 

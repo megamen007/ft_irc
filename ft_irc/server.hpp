@@ -132,7 +132,7 @@ class Server
             // join_func();
             // privemsg_func();
 
-
+        bool Valid_nick_name(std::string& nickname)
 
         // Handling_User_Authentification
         bool Port_valid(std::string port);
