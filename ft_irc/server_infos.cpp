@@ -220,7 +220,7 @@ void Server::registerClient(int fd, std::string raw)
 
 bool Server::Valid_nick_name(std::string& nickname)
 {
-    int i = 0;
+    size_t i = 0;
     if (!nickname.empty() && (nickname[0] == '&' || nickname[0] == '#' || nickname[0] == ':'))
         return false;
     while(i < nickname.size() )
