@@ -6,7 +6,7 @@
 /*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/24 22:38:41 by otelliq          ###   ########.fr       */
+/*   Updated: 2024/11/25 18:33:27 by otelliq          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,12 +100,24 @@ void Channel::set_has_password(bool has_password)
 }
 
 
-void Channel::setbuffer(std::string message, int destination_fd){
-    int i;
-    if((i = send(destination_fd, message.c_str(), message.size(), 0)) == -1)
-        throw std::runtime_error("send failed");
-    if(i != (int)message.size())
-        throw std::runtime_error("send failed: not all bytes sent");
+// void Channel::sendMessage(std::string message, int destination_fd){
+//     int i;
+//     if((i = send(destination_fd, message.c_str(), message.size(), 0)) == -1)
+//         throw std::runtime_error("send failed");
+//     if(i != (int)message.size())
+//         throw std::runtime_error("send failed: not all bytes sent");
+// }
+
+void Channel::sendMessage(std::string message, int destination_fd){
+    size_t sent = 0;
+    size_t msg_len = message.size();
+    char *msg = (char *)message.c_str();
+    while(sent < msg_len){
+        int i = send(destination_fd, msg + sent, msg_len - sent, 0);
+        if(i == -1)
+            throw std::runtime_error("send failed");
+        sent += i;
+    }
 }
 
 std::string Channel::GetName(){

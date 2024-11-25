@@ -77,7 +77,7 @@ class Channel
         void SetPassword(std::string password);
         void SetTime(std::string time);
         void SetAdmin(Client *param);
-        void setbuffer(std::string message, int destination_fd);
+        void sendMessage(std::string message, int destination_fd);
         void set_has_password(bool has_password);
 
         std::string GetName();
@@ -118,5 +118,6 @@ class Channel
         void USER(Client *admin, std::string username, std::string realname);
         void PASS(Client *admin, std::string password);
         int  PRIVMSG(Client *admin, Client *target, std::string message);
+        void WHO(Client* admin, Client* target);
     
 };

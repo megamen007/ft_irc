@@ -21,7 +21,7 @@ bool Channel::is_inChannel(Client *admin){
 
 void Channel::send_to_all(std::string message){
     for(size_t i = 0; i < Clients.size(); ++i){
-        setbuffer(message, Clients[i]->get_clientfd());
+        sendMessage(message, Clients[i]->get_clientfd());
     }
 }
 
@@ -56,7 +56,7 @@ void Channel::admin_MODE(Client *admin, std::string mode, std::string arg){
                 }
                 else{
                     reply_message = GetUserInfo(admin, false) + ERR_UNKNOWNMODE(admin->getnickname(), mode[i]);
-                    setbuffer(reply_message, admin->get_clientfd());
+                    sendMessage(reply_message, admin->get_clientfd());
                 }
         }
     }
@@ -84,7 +84,7 @@ void Channel::admin_MODE(Client *admin, std::string mode, std::string arg){
             }
             else{
                 reply_message = GetUserInfo(admin, false) + ERR_UNKNOWNMODE(admin->getnickname(), mode[i]);
-                setbuffer(reply_message, admin->get_clientfd());
+                sendMessage(reply_message, admin->get_clientfd());
             }  
         }
     }
@@ -96,12 +96,12 @@ void Channel::change_MaxUser(Client *admin, int i, std::string &param){
     if(i){
         if(param.empty()){
             reply_message = GetUserInfo(admin, false) + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +l ");
-            setbuffer(reply_message, admin->get_clientfd());
+            sendMessage(reply_message, admin->get_clientfd());
             return;
     }
         if(max_users <= 0){
             reply_message = GetUserInfo(admin, false) + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +l ");
-            setbuffer(reply_message, admin->get_clientfd());
+            sendMessage(reply_message, admin->get_clientfd());
             return;
         }
         else{
@@ -133,7 +133,7 @@ void Channel::changeKeyMode(Client *admin, std::string key, bool i){
     if(i){
         if(key.empty()){
             reply_message = GetUserInfo(admin, false) + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +k");
-            setbuffer(reply_message, admin->get_clientfd());
+            sendMessage(reply_message, admin->get_clientfd());
             return;
         }
         else{
@@ -166,7 +166,7 @@ void Channel::add_admin(Client *admin, std::string name){
     std::string reply_message;
     if(name.empty()){
         reply_message = GetUserInfo(admin, false) + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +o " + name);
-        setbuffer(reply_message, admin->get_clientfd());
+        sendMessage(reply_message, admin->get_clientfd());
         return;
     }
     Client *user = GetUser(name);
@@ -176,7 +176,7 @@ void Channel::add_admin(Client *admin, std::string name){
     }
     else{
         reply_message= GetUserInfo(user, false) + ERR_USERNOTINCHANNEL(admin->getnickname(), user->getnickname(), this->GetName());
-        setbuffer(reply_message, admin->get_clientfd());
+        sendMessage(reply_message, admin->get_clientfd());
     }
         
 }
@@ -192,7 +192,7 @@ void Channel::addUser(Client* client,__unused std::string pass)
 
     rpl = client->getPrefix() + " JOIN " + name + " * :realname\r\n";
     send_to_all(rpl);
-    Clients.push_back(client);  // Adds the client to the 'beta_users' vector
+    Clients.push_back(client);
 }
 
 void Channel::addAdmin(Client* client)
@@ -233,7 +233,7 @@ void Channel::remove_admin(Client *admin, std::string name) {
     }
     else {
         reply_message = GetUserInfo(user, false) + ERR_USERNOTINCHANNEL(admin->getnickname(), user->getnickname(), this->GetName());
-        setbuffer(reply_message, admin->get_clientfd());
+        sendMessage(reply_message, admin->get_clientfd());
     }
 }
 
@@ -245,7 +245,7 @@ void Channel::MODE(Client *admin, std::string mode, std::string arg){
             admin_MODE(admin, mode, arg);
         else{
             reply_message = GetUserInfo(admin, false) + ERR_CHANOPRIVSNEEDED(admin->getnickname(), this->GetName());
-            setbuffer(reply_message, admin->get_clientfd());
+            sendMessage(reply_message, admin->get_clientfd());
             return;
         }
     }
@@ -257,11 +257,11 @@ void Channel::MODE(Client *admin, std::string mode, std::string arg){
             reply_message += "@" + Clients[i]->getnickname() + " ";
         }
         reply_message += "\r\n";
-        setbuffer(reply_message, admin->get_clientfd());
-        setbuffer(GetUserInfo(admin, false) + RPL_ENDOFWHOIS(admin->getnickname(), this->GetName()), admin->get_clientfd());
-        setbuffer(reply_message, admin->get_clientfd());
+        sendMessage(reply_message, admin->get_clientfd());
+        sendMessage(GetUserInfo(admin, false) + RPL_ENDOFWHOIS(admin->getnickname(), this->GetName()), admin->get_clientfd());
+        sendMessage(reply_message, admin->get_clientfd());
         reply_message = GetUserInfo(admin, true) + RPL_CREATIONTIME(admin->getnickname(), this->GetName(), this->get_time());
-        setbuffer(reply_message, admin->get_clientfd());
+        sendMessage(reply_message, admin->get_clientfd());
     }
 }
 
@@ -270,13 +270,13 @@ void Channel::KICK(Client *admin, Client *user, std::string reason){
     std::string reply_message;
     if(!is_inChannel(admin)){
         reply_message = GetUserInfo(admin, false) + ERR_NOTONCHANNEL(admin->getnickname(), this->GetName());
-        setbuffer(reply_message, admin->get_clientfd());
+        sendMessage(reply_message, admin->get_clientfd());
         return;
     }
     //isalpha
     if(!is_inChannel(user)){
         reply_message = GetUserInfo(admin, false) + ERR_NOTONCHANNEL(user->getnickname(), this->GetName());
-        setbuffer(reply_message, admin->get_clientfd());
+        sendMessage(reply_message, admin->get_clientfd());
         return;
     }
     send_to_all(GetUserInfo(user, true) + "KICK " + this->GetName() + " " + user->getnickname() + " :" + (reason.empty() ? "bad content" : reason) + "\r\n");
@@ -289,18 +289,18 @@ void Channel::INVITE(Client *admin, Client *user){
     std::string reply_message;
     if(!is_inChannel(admin)){
         reply_message = GetUserInfo(admin, false) + ERR_NOTONCHANNEL(admin->getnickname(), this->GetName());
-        setbuffer(reply_message, admin->get_clientfd());
+        sendMessage(reply_message, admin->get_clientfd());
         return;
     }
     if(!is_inChannel(user)){
         reply_message = GetUserInfo(admin, false) + ERR_NOTONCHANNEL(user->getnickname(), this->GetName());
-        setbuffer(reply_message, admin->get_clientfd());
+        sendMessage(reply_message, admin->get_clientfd());
         return;
     }
     //isalpha
     this->invites.push_back(user);
-    setbuffer(GetUserInfo(admin, false) + RPL_INVITING(admin->getnickname(), user->getnickname(), this->GetName()), user->get_clientfd());
-    setbuffer(GetUserInfo(admin, false) + RPL_INVITING(admin->getnickname(), user->getnickname(), this->GetName()), admin->get_clientfd());
+    sendMessage(GetUserInfo(admin, false) + RPL_INVITING(admin->getnickname(), user->getnickname(), this->GetName()), user->get_clientfd());
+    sendMessage(GetUserInfo(admin, false) + RPL_INVITING(admin->getnickname(), user->getnickname(), this->GetName()), admin->get_clientfd());
 }
 
 void Channel::TOPIC(Client *admin, std::string topic_message){
@@ -309,19 +309,19 @@ void Channel::TOPIC(Client *admin, std::string topic_message){
     std::string error_message;
     if(!is_inChannel(admin)){
         error_message = GetUserInfo(admin, false) + ERR_NOTONCHANNEL(admin->getnickname(), this->GetName());
-        setbuffer(error_message, admin->get_clientfd());
+        sendMessage(error_message, admin->get_clientfd());
         return;
     }
     if(has_topic){
         if(!topic.empty()){
             SetTopic(topic_message);
 			reply_message = GetUserInfo(admin, true) + RPL_TOPIC(admin->getnickname(), this->GetName(), topic_message);
-            setbuffer(reply_message, admin->get_clientfd());
+            sendMessage(reply_message, admin->get_clientfd());
             return;
         }
         else{
             reply_message = GetUserInfo(admin, true) + RPL_NOTOPIC(admin->getnickname(), this->GetName());
-            setbuffer(reply_message, admin->get_clientfd());
+            sendMessage(reply_message, admin->get_clientfd());
             return;
         }
     }
@@ -329,12 +329,12 @@ void Channel::TOPIC(Client *admin, std::string topic_message){
         if(!topic_message.empty()){
             SetTopic(topic_message);
             reply_message = GetUserInfo(admin, true) + RPL_TOPIC(admin->getnickname(), this->GetName(), topic_message);
-            setbuffer(reply_message, admin->get_clientfd());
+            sendMessage(reply_message, admin->get_clientfd());
             return;
         }
         else{
             reply_message = GetUserInfo(admin, false) + RPL_NOTOPIC(admin->getnickname(), this->GetName());
-            setbuffer(reply_message, admin->get_clientfd());
+            sendMessage(reply_message, admin->get_clientfd());
             return;
         }
     }
@@ -345,7 +345,7 @@ void Channel::PART(Client *admin, std::string reason){
     std::string reply_message;
     if(!is_inChannel(admin)){
         reply_message = GetUserInfo(admin, false) + ERR_NOTONCHANNEL(admin->getnickname(), this->GetName());
-        setbuffer(reply_message, admin->get_clientfd());
+        sendMessage(reply_message, admin->get_clientfd());
     }
     else{
         remove_user(admin);
@@ -473,5 +473,5 @@ void Channel::WHO(Client* admin, Client* target) {
         else
             reply_message += ":" + admin->getservername() + " 352 " + admin->getnickname() + " " + this->GetName() + " " + target->getusername() + " " + target->getIPaddress() + " " + target->getnickname() + " G" + "@" + ":0 realname\r\n";
     }
-    setbuffer(reply_message, admin->get_clientfd());//if something goes wrong here, 7et setbuffer f loop
+    sendMessage(reply_message, admin->get_clientfd());//if something goes wrong here, 7et sendMessage f loop
 }
