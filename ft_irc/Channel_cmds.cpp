@@ -465,3 +465,13 @@ int Channel::PRIVMSG(Client *admin, Client *target, std::string message) {
 //         }
 //     }
 
+void Channel::WHO(Client* admin, Client* target) {
+    std::string reply_message;
+    for(size_t i = 0; i < Clients.size(); ++i){
+        if(is_Admin(Clients[i]))
+            reply_message += ":" + admin->getservername() + " 352 " + admin->getnickname() + " " + this->GetName() + " " + target->getusername() + " " + target->getIPaddress() + " " + target->getnickname() + " H" + ":0 realname\r\n";
+        else
+            reply_message += ":" + admin->getservername() + " 352 " + admin->getnickname() + " " + this->GetName() + " " + target->getusername() + " " + target->getIPaddress() + " " + target->getnickname() + " G" + "@" + ":0 realname\r\n";
+    }
+    setbuffer(reply_message, admin->get_clientfd());//if something goes wrong here, 7et setbuffer f loop
+}
