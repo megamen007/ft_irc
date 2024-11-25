@@ -181,10 +181,28 @@ void Channel::add_admin(Client *admin, std::string name){
         
 }
 
-void Channel::addUser(Client* client)
+void Channel::addUser(Client* client,__unused std::string pass)
 {
-        Clients.push_back(client);  // Adds the client to the 'beta_users' vector
+    if (has_password) {
+        // valid_pass(pass)
+    }
+    std::string rpl;
+
+    // :mboudrio!mboudrio@88ABE6.25BF1D.D03F86.88C9BD.IP JOIN #some * :realname
+
+    rpl = client->getPrefix() + " JOIN " + name + " * :realname\r\n";
+    send_to_all(rpl);
+    Clients.push_back(client);  // Adds the client to the 'beta_users' vector
 }
+
+void Channel::addAdmin(Client* client)
+{
+        admins.push_back(client); 
+}
+void Channel::addInvited(Client* client) {
+    invites.push_back(client);
+}
+
 
 void Channel::remove_user(Client *admin) {
     std::vector<Client*>::iterator it = std::find(Clients.begin(), Clients.end(), admin);
@@ -387,41 +405,41 @@ int Channel::PRIVMSG(Client *admin, Client *target, std::string message) {
 //                 // print all their members 
 // }
 
-void Channel::WHO(Client* admin, const std::string& target, Server* srv) {
-    // Assuming `sendMessage` is implemented like in the earlier example
-    if (target[0] == '#') { // It's a channel
-        Channel* chan = srv->getChannel(target);
-        if (chan != nullptr) {
-            std::vector<Client*> members = chan->getMembers();
-            for (Client* member : members) {
-                bool isInvisible = member->hasMode("i");
-                bool hasCommonChannel = admin->sharesChannelWith(member);
+// void Channel::WHO(Client* admin, const std::string& target, Server* srv) {
+//     // Assuming `sendMessage` is implemented like in the earlier example
+//     if (target[0] == '#') { // It's a channel
+//         Channel* chan = srv->getChannel(target);
+//         if (chan != nullptr) {
+//             std::vector<Client*> members = chan->getMembers();
+//             for (Client* member : members) {
+//                 bool isInvisible = member->hasMode("i");
+//                 bool hasCommonChannel = admin->sharesChannelWith(member);
 
-                if (!isInvisible || hasCommonChannel) {
-                    std::string message = "User: " + member->getNickname() +
-                                          " (" + member->getUsername() + ")";
-                    admin->sendMessage(message + "\r\n");
-                }
-            }
-        } else {
-            admin->sendMessage("403 " + target + " :No such channel\r\n");
-        }
-    } else { // It's a user
-        Client* client = srv->getClient(target);
-        if (client != nullptr) {
-            bool isInvisible = client->hasMode("i");
-            bool hasCommonChannel = admin->sharesChannelWith(client);
+//                 if (!isInvisible || hasCommonChannel) {
+//                     std::string message = "User: " + member->getNickname() +
+//                                           " (" + member->getUsername() + ")";
+//                     admin->sendMessage(message + "\r\n");
+//                 }
+//             }
+//         } else {
+//             admin->sendMessage("403 " + target + " :No such channel\r\n");
+//         }
+//     } else { // It's a user
+//         Client* client = srv->getClient(target);
+//         if (client != nullptr) {
+//             bool isInvisible = client->hasMode("i");
+//             bool hasCommonChannel = admin->sharesChannelWith(client);
 
-            if (!isInvisible || hasCommonChannel) {
-                std::string message = "Nickname: " + client->getNickname() +
-                                      " Username: " + client->getUsername();
-                admin->sendMessage(message + "\r\n");
-            }
-        } else {
-            admin->sendMessage("401 " + target + " :No such user\r\n");
-        }
-    }
-}
+//             if (!isInvisible || hasCommonChannel) {
+//                 std::string message = "Nickname: " + client->getNickname() +
+//                                       " Username: " + client->getUsername();
+//                 admin->sendMessage(message + "\r\n");
+//             }
+//         } else {
+//             admin->sendMessage("401 " + target + " :No such user\r\n");
+//         }
+//     }
+// }
 
 // char *Channel::getMessage() {
 //         static char buffer[1024];  // Buffer to store the incoming message

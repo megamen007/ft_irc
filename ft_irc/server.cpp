@@ -98,7 +98,7 @@ void Server::client_socket_polling(int client_fd)
     fds.push_back(NPoll);
 }
 
-void Server::Launching_server(int port, std::string password, Server &Excalibur)
+void Server::Launching_server(int port, std::string password)
 {
     this->Port = port;
     this->Password = password;
@@ -113,12 +113,12 @@ void Server::Launching_server(int port, std::string password, Server &Excalibur)
 
     std::cout << " Your Server Sir is in the Listening mode waiting for incoming connections  ... waiting to accept them" << std::endl;
     
-    Server_cycle(Excalibur);
+    Server_cycle();
 }
 
-void Server::Server_cycle(Server &Excalibur)
+void Server::Server_cycle()
 {
-    Client Exodia;
+    Client *Exodia = new Client();
     
     while(!get_Signal_Status())
     {
@@ -135,7 +135,7 @@ void Server::Server_cycle(Server &Excalibur)
                 if (fds[i].fd == Serverfd)
                     socket_Accepting(Exodia);
                 else 
-                    socket_receiving(fds[i].fd, Exodia, Excalibur);
+                    socket_receiving(fds[i].fd, Exodia);
             }
             i++;
         }
@@ -144,7 +144,7 @@ void Server::Server_cycle(Server &Excalibur)
 }
 
 
-void Server::socket_Accepting(Client &client)
+void Server::socket_Accepting(Client *client)
 {
     struct sockaddr_in clientadd;
     socklen_t len = sizeof(clientadd);
@@ -160,15 +160,15 @@ void Server::socket_Accepting(Client &client)
 
     client_socket_polling(coming_fd);
 
-    client.setfd(coming_fd);
-    client.setIPaddress(inet_ntoa(clientadd.sin_addr));
+    client->setfd(coming_fd);
+    client->setIPaddress(inet_ntoa(clientadd.sin_addr));
     Clients.push_back(client);
     
     std::cout << " ---> Client connected " << std::endl;
 }
 
 
-void Server::socket_receiving(int client_fd, Client &client ,Server &Excalibur)
+void Server::socket_receiving(int client_fd, Client *client)
 {
     char buffer[1024];
     Buffer Parser;
@@ -196,12 +196,11 @@ void Server::socket_receiving(int client_fd, Client &client ,Server &Excalibur)
     {
         std::cout << " Received " << r << "  bytes ... " << std::endl;
         std::cout << " Received Data :  " << getRawData() << std::endl;
-        
         registerClient(client_fd, buffer , client);
 
-        std::cout << "logo" << client.getlogedstatus() << std::endl;
-        if (client.getlogedstatus())
-            Parcing_and_Executing(client_fd,buffer,Parser, client, Excalibur);
+        std::cout << "logo" << client->getlogedstatus() << std::endl;
+        if (client->getlogedstatus())
+            Parcing_and_Executing(buffer,Parser, client);
     }
     
     if (std::string(buffer) == "exit") 
@@ -213,93 +212,51 @@ void Server::socket_receiving(int client_fd, Client &client ,Server &Excalibur)
     
 }
 
-void Client::executing_commands(__unused int fd, std::string Cmd, Buffer &Parser , Client &client, Server &Excalibur)
-{
-    Channel new_channel;
-    
-   if (Parser.get_cmd().compare("JOIN") == 0 || Parser.get_cmd().compare("join") == 0)
-       new_channel =  client.JOIN(client, Cmd, Parser , Excalibur);
-          
-    if (has_joined == 1)
-    {
-        // function to check all client data :
-        client.client_data();
-
-        // Operator priveleges
-        if(client.getoperatorstatus() == 1)
-        {
-            std::string target_nick = Parser.get_target();
-            Client *target = Excalibur.findClientByNick(target_nick); // Find the target client by nickname
-            // operator priveleges :
-            if (Parser.get_cmd().compare("KICK") == 0 || Parser.get_cmd().compare("kick") == 0)
-                new_channel.KICK(&client, target, Parser.get_msg());
-            else if (Parser.get_cmd().compare("INVITE") == 0 || Parser.get_cmd().compare("invite") == 0)
-                new_channel.INVITE(&client, target);
-            else if (Parser.get_cmd().compare("MODE") == 0 || Parser.get_cmd().compare("mode") == 0)
-                new_channel.MODE(&client ,  Parser.get_arg(), Parser.get_msg());
-            else if (Parser.get_cmd().compare("TOPIC") == 0 || Parser.get_cmd().compare("topic") == 0)
-                new_channel.TOPIC(&client , Parser.get_msg());  
-            else if (Parser.get_cmd().compare("PRIVMSG") == 0 || Parser.get_cmd().compare("privmsg") == 0)
-                new_channel.PRIVMSG(&client, target, Parser.get_arg());
-            else if (Parser.get_cmd().compare("PART") == 0 || Parser.get_cmd().compare("part") == 0)
-                new_channel.PART(&client , Parser.get_arg());
-            // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
-            //     new_channel.WHO();
-            else
-            { 
-                if (Parser.get_cmd().compare("PASS") == 0 || Parser.get_cmd().compare("pass") == 0 )
-                    client.sendError(client, "462" , "" , "") ;
-                else if (Parser.get_cmd().compare("NICK") == 0  || Parser.get_cmd().compare("nick") == 0)
-                    client.sendError(client, "462" , "" , "") ;
-                else if (Parser.get_cmd().compare("USER") == 0 || Parser.get_cmd().compare("user") == 0)
-                    client.sendError(client, "462" , "" , "") ;
-                // else 
-                //     client.sendError(client, "421" , "" , Parser.get_cmd());
-            }
-
-        }
-        // normal User priveleges :
-        else
-        {
-            std::string target_nick = Parser.get_target();
-            Client *target = Excalibur.findClientByNick(target_nick);
-            if (Parser.get_cmd().compare("PART") == 0 || Parser.get_cmd().compare("part") == 0)
-                new_channel.PART(&client , Parser.get_arg());
-            else if (Parser.get_cmd().compare("PRIVMSG") == 0 || Parser.get_cmd().compare("privmsg") == 0)
-                new_channel.PRIVMSG(&client, target, Parser.get_arg());
-            // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
-            //     new_channel.WHO();
-            else
-            { 
-                if (Parser.get_cmd().compare("PASS") == 0 || Parser.get_cmd().compare("pass") == 0 )
-                    client.sendError(client, "462" , "" , "") ;
-                else if (Parser.get_cmd().compare("NICK") == 0  || Parser.get_cmd().compare("nick") == 0)
-                    client.sendError(client, "462" , "" , "") ;
-                else if (Parser.get_cmd().compare("USER") == 0 || Parser.get_cmd().compare("user") == 0)
-                    client.sendError(client, "462" , "" , "") ;
-                else 
-                    client.sendError(client, "421" , "" , Parser.get_cmd());
-            }
-
-        }
-    }
-}
 
 
-
-void Server::Parcing_and_Executing(int client_fd, std::string buffer,Buffer &Parser, Client &client ,Server &Excalibur)
+void Server::Parcing_and_Executing(std::string buffer, Buffer &Parser, Client *client)
 {
     Parser.Parcing_core(buffer);
-    client.executing_commands(client_fd , buffer, Parser , client, Excalibur);
+    executing_commands(Parser , client);
 }
 
+Channel *create_channel(Client *cl, std::string name, std::string pass) {
+    Channel *chan = new Channel(name, pass);
+
+    chan->addAdmin(cl);
+    chan->addUser(cl, pass);
+    return chan;
+}
+
+
+void Server::addChannel(Channel *chan) {
+    Channels.push_back(chan);
+}
+
+
+void Server::executing_commands(Buffer &Parser , Client *client)
+{    
+    if (Parser.get_cmd() == "JOIN") {
+        if (Parser.get_arg()[0] != '#') { 
+            Channel *chan = getChannel(Parser.get_arg());
+            if (chan != NULL) {
+                chan = create_channel(client, Parser.get_arg(), Parser.get_msg());
+                addChannel(chan);
+            } else {
+                chan->addUser(client, Parser.get_msg());
+            }
+        } else {
+        //TODO : implement error hundling 
+        }
+    } else if (Parser.get_cmd() == "WHO") {}
+}
 
 Client* Server::findClientByNick(const std::string& nickname)
 {
     for(size_t i = 0; i < Clients.size(); i++)
     {
-        if (Clients[i].getnickname() == nickname)
-            return &Clients[i];
+        if (Clients[i]->getnickname() == nickname)
+            return Clients[i];
     }
     return NULL;
 }

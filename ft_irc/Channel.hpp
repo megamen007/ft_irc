@@ -59,10 +59,16 @@ class Channel
 
         Channel();
         Channel(const std::string& name);
+        Channel(const std::string& name, const std::string& pswd);
         ~Channel();
         Channel(const Channel &src);
         Channel &operator=(const Channel &src);
         
+        void addAdmin(Client* client);
+        void addUser(Client* client,  std::string pass);
+        void addInvited(Client* client);
+    
+
         void SetLimit(int limit);
         void SetMaxUsers(int max);
         void SetName(std::string name);
@@ -79,7 +85,7 @@ class Channel
         std::string get_topic();
         std::string GetUserInfo(Client *admin, bool i);
         Client     *GetUser(std::string name);
-        std::vector<Client *>  Channel::getMembers();
+        std::vector<Client *>  getMembers();
         // Client     *Get_Operator(std::string name);
         bool get_invite_only();
         bool get_limit();
@@ -100,7 +106,6 @@ class Channel
         void remove_admin(Client *admin, std::string name);
         void change_MaxUser(Client *admin, int i, std::string &param);
         void send_to_all(std::string message);
-        void addUser(Client* client);
         void remove_user(Client *admin);
         char *getMessage();
 

@@ -37,8 +37,9 @@ class Server
 
     public:
 
-        std::vector<Client> Clients;
-        std::vector<Channel> Channels;
+        std::vector<Client *> Clients;
+        std::vector<Channel *> Channels;
+
         Server();
         Server(const Server& srv);
         Server &operator=(Server const &src);
@@ -47,12 +48,9 @@ class Server
         // Getters
         int getPort();
         int getFd();
-        Client *getClient(int fd);
-        Client *getClientnick(std::string nickname);
-        Channel *getChannel(std::string name);
         int get_Signal_Status();
         std::string getRawData();
-        std::vector<Channel> get_Channels();
+        std::vector<Channel *> get_Channels();
 
         // Setters
         void setFd(int fd);
@@ -60,13 +58,13 @@ class Server
         void setPassword(std::string password);
 
 
-        void AddClient(Client newClient);
-        Channel *GetChannel(std::string &name);
+        void addClient(Client newClient);
+        void addChannel(Channel *chan);
 
 
         // Server booting functions:
-        void Launching_server(int port, std::string password, Server &Excalibur);
-        void Server_cycle(Server &Excalibur);
+        void Launching_server(int port, std::string password);
+        void Server_cycle();
 
 
         // Socket functions:
@@ -76,10 +74,10 @@ class Server
         void socket_non_blocking();
         void socket_listening();
         // void socket_Accepting();
-        void socket_Accepting(Client &client);
+        void socket_Accepting(Client *client);
         void server_socket_polling();
         void client_socket_polling(int client_fd);
-        void socket_receiving(int client_fd, Client &client, Server &Excalibur);
+        void socket_receiving(int client_fd, Client *client);
 
         // Signal functions:
         static void Signal_Handler(int signum);
@@ -93,10 +91,10 @@ class Server
         void close_server_socket();
         
         // Parsing received DATA
-        void Parcing_and_Executing(int client_fd, std::string buffer, Buffer &Parser, Client &client, Server &Excalibur);
-        // static void executing_commands(int fd, std::string Cmd, Client &client);
-        void registerClient(int fd, std::string raw, Client &client);
-        void processMessage(Client& client, const std::string& command, const std::string &arg, const std::string &msg);
+        void    Parcing_and_Executing(std::string buffer, Buffer &Parser, Client *client);
+
+        void registerClient(int fd, std::string raw, Client *client);
+        void processMessage(Client *client, const std::string& command, const std::string &arg, const std::string &msg);
         Client* findClientByFd(int fd);
         Client* findClientByNick(const std::string& nickname);
         bool isNicknameInUse(const std::string& nickname);
@@ -107,6 +105,12 @@ class Server
         bool Valid_nick_name(std::string& nickname);
 
         bool Port_valid(std::string port);
+
+
+        void    executing_commands(Buffer &Parser , Client *client);
+        Client  *getClient(int fd);
+        Client  *getClient(std::string nickname);
+        Channel *getChannel(std::string name);
 
         // void Server::AddChannel(Channel newChannel);
 };

@@ -32,6 +32,15 @@ Channel::Channel(const std::string& name) : name(name)
     operate = false;
 }
 
+Channel::Channel(const std::string& name, const std::string& pswd) : name(name), password(pswd) {
+    has_password = true;
+    invite_only = false;
+    has_topic = false;
+    has_limit = false;
+    operate = false;
+}
+
+
 Channel &Channel::operator=(const Channel &src){
     if(this == &src)
         return *this;
