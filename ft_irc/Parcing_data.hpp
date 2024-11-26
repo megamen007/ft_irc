@@ -12,6 +12,9 @@ class Buffer
         std::string Cmd;
         std::string Arg;
         std::string Msg;
+        std::string trg;
+        std::string prv_msg;
+        std::string reason; 
  
     public:
         Buffer();
@@ -23,6 +26,9 @@ class Buffer
         std::string get_arg();
         std::string get_cmd();
         std::string get_msg();
+        std::string get_trg();
+        std::string get_prv_msg();
+        std::string get_reason();
         
 
     // members functions

@@ -180,11 +180,11 @@ void Server::Close_filedescriptors()
     close_server_socket();
 }
 
-void Server::registerClient(int fd, std::string raw, Client *client)
+void Server::registerClient(int fd, std::string raw)
 {
-    client->setfd(fd);
-    client->client_data();
-
+    // client->setfd(fd);
+    // client->client_data();
+    Client *client = getClient(fd);
     std::string command;
     std::string arg;
     std::string message;
@@ -200,7 +200,7 @@ void Server::registerClient(int fd, std::string raw, Client *client)
             ss >> command;
             ss >> arg;
             std::getline(ss, message);
-            processMessage(client, command, arg, message);
+            processMessage(fd , command, arg, message);
         }
     }
     else
@@ -209,7 +209,7 @@ void Server::registerClient(int fd, std::string raw, Client *client)
         ss >> command;
         ss >> arg;
         std::getline(ss, message);
-        processMessage(client, command, arg, message);
+        processMessage(fd , command, arg, message);
     }
     std::cout << client->getnickname() << " howa nick name " << std::endl;
 }
@@ -230,8 +230,10 @@ bool Server::Valid_nick_name(std::string& nickname)
 }
 
 
-void Server::processMessage(Client *client, const std::string &command, const std::string &arg, const std::string &msg)
+void Server::processMessage(int fd, const std::string &command, const std::string &arg, const std::string &msg)
 {
+    Client *client = getClient(fd);
+
     std::istringstream ss(arg);
     std::string granpa , used;
     if (command == "PASS")
@@ -246,6 +248,7 @@ void Server::processMessage(Client *client, const std::string &command, const st
         {
             if (password == Password)
             {
+
                 client->setregistred(true);
             }
             else
@@ -301,7 +304,6 @@ void Server::processMessage(Client *client, const std::string &command, const st
     {
         std::istringstream ss(msg);
         std::string username, hostname, servername, realname, tmp;
-        std::cout << "here 2" << std::endl;
         username = arg;
         ss >> hostname >> servername;
         getline(ss, tmp);

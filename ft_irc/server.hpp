@@ -74,10 +74,10 @@ class Server
         void socket_non_blocking();
         void socket_listening();
         // void socket_Accepting();
-        void socket_Accepting(Client *client);
+        void socket_Accepting();
         void server_socket_polling();
         void client_socket_polling(int client_fd);
-        void socket_receiving(int client_fd, Client *client);
+        void socket_receiving(int client_fd);
 
         // Signal functions:
         static void Signal_Handler(int signum);
@@ -91,10 +91,10 @@ class Server
         void close_server_socket();
         
         // Parsing received DATA
-        void    Parcing_and_Executing(std::string buffer, Buffer &Parser, Client *client);
+        void    Parcing_and_Executing(int fd ,std::string buffer, Buffer &Parser);
 
-        void registerClient(int fd, std::string raw, Client *client);
-        void processMessage(Client *client, const std::string& command, const std::string &arg, const std::string &msg);
+        void registerClient(int fd, std::string raw);
+        void processMessage(int fd, const std::string& command, const std::string &arg, const std::string &msg);
         Client* findClientByFd(int fd);
         Client* findClientByNick(const std::string& nickname);
         bool isNicknameInUse(const std::string& nickname);
@@ -107,7 +107,7 @@ class Server
         bool Port_valid(std::string port);
 
 
-        void    executing_commands(Buffer &Parser , Client *client);
+        void    executing_commands(int fd, Buffer &Parser);
         Client  *getClient(int fd);
         Client  *getClient(std::string nickname);
         Channel *getChannel(std::string name);

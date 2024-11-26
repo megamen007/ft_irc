@@ -21,6 +21,21 @@ std::string Buffer::get_msg()
     return this->Msg;
 }
 
+std::string Buffer::get_trg()
+{
+    return this->trg;
+}
+
+std::string Buffer::get_prv_msg()
+{
+    return get_msg() + this->trg;
+}
+
+std::string  Buffer::get_reason()
+{
+    return get_arg() + get_msg() + get_trg();
+}
+
 Buffer::Buffer(const Buffer& newBuffer)
 {
     *this = newBuffer;
@@ -33,6 +48,9 @@ Buffer &Buffer::operator=(Buffer const &newBuffer)
         this->Cmd = newBuffer.Cmd;
         this->Arg = newBuffer.Arg;
         this->Msg = newBuffer.Msg;
+        this->trg = newBuffer.trg;
+        this->prv_msg = newBuffer.prv_msg;
+        this->reason = newBuffer.reason;
     }
     return *this;
 }
@@ -47,7 +65,8 @@ void Buffer::print_parsed_data()
 {
         std::cout << "Command: " << Cmd << "\n"
                   << "Argument: " << Arg << "\n"
-                  << "Message: " << Msg << "\n";
+                  << "Message: " << Msg << "\n"
+                  << "target: " << trg << "\n"; 
 }
 
 void Buffer::split_buffer_from_nc(const std::string &buffer)
@@ -57,9 +76,11 @@ void Buffer::split_buffer_from_nc(const std::string &buffer)
     ss >> Cmd;
     trim(Cmd);                
     ss >> Arg;
-    trim(Arg);                  
-    std::getline(ss, Msg); 
-    trim(Msg);             
+    trim(Arg);
+    ss >> Msg;
+    trim(Msg);                
+    std::getline(ss, trg); 
+    trim(trg);             
 }
 
 void Buffer::trim(std::string &str)

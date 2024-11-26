@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
+/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/25 18:33:27 by otelliq          ###   ########.fr       */
+/*   Updated: 2024/11/26 02:05:12 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ Channel::Channel(const std::string& name) : name(name)
 }
 
 Channel::Channel(const std::string& name, const std::string& pswd) : name(name), password(pswd) {
-    has_password = true;
+    has_password = false;
     invite_only = false;
     has_topic = false;
     has_limit = false;

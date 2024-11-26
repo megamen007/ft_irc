@@ -164,7 +164,8 @@ void Channel::changeTopicMode(Client *admin, bool i){
 void Channel::add_admin(Client *admin, std::string name){
     this->operate = true;
     std::string reply_message;
-    if(name.empty()){
+    if(name.empty())
+    {
         reply_message = GetUserInfo(admin, false) + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +o " + name);
         sendMessage(reply_message, admin->get_clientfd());
         return;
@@ -180,23 +181,81 @@ void Channel::add_admin(Client *admin, std::string name){
     }
         
 }
-
-void Channel::addUser(Client* client,__unused std::string pass)
+void Channel::addUser(Client* client, std::string pass)
 {
-    if (has_password) {
-        // valid_pass(pass)
+    if (!client)
+     {
+        std::cout << "Client pointer is null in addUser!" << std::endl;
     }
-    std::string rpl;
 
-    // :mboudrio!mboudrio@88ABE6.25BF1D.D03F86.88C9BD.IP JOIN #some * :realname
-
-    rpl = client->getPrefix() + " JOIN " + name + " * :realname\r\n";
-    send_to_all(rpl);
-    Clients.push_back(client);
+    if (has_password)
+    {
+        if (pass == password)
+        {
+            std::string rpl = client->getPrefix() + " JOIN " + name + " * :realname\r\n";
+            std::cout << "madkoukin hna2\n";
+            
+            if (std::find(Clients.begin(), Clients.end(), client) == Clients.end())
+            {
+                Clients.push_back(client);
+                send_to_all(rpl);
+            } 
+            else 
+            {
+                std::cerr << "Client already exists in the channel!" << std::endl;
+            }
+        } else {
+            std::cerr << "Invalid Password" << std::endl;
+        }
+    } else
+    {
+        // :mboudrio!mboudrio@mboudrio JOIN #some * :realnam
+        // :mboudrio!mboudrio@88ABE6.25BF1D.D03F86.88C9BD.IP JOIN #some * :realna
+        // :mboudrio!mboudrio@88ABE6.25BF1D.D03F86.88C9BD.IP MODE #some -o mboudr
+        std::string rpl = ":" +  client->getPrefix() + " JOIN " + name + " * :realname\r\n";
+        std::cout << "madkoukin hna\n";
+        if (std::find(Clients.begin(), Clients.end(), client) == Clients.end())
+        {
+            Clients.push_back(client);
+            send_to_all(rpl);
+        } else {
+            std::cerr << "Client already exists in the channel!" << std::endl;
+        }
+    }
 }
+
+
+// void Channel::addUser(Client* client, std::string pass)
+// {
+//     if (has_password) 
+//     {
+//         if (pass == password)
+//         {
+//             std::string rpl;
+//             // :mboudrio!mboudrio@88ABE6.25BF1D.D03F86.88C9BD.IP JOIN #some * :realname
+//             rpl = client->getPrefix() + " JOIN " + name + " * :realname\r\n";
+//             send_to_all(rpl);
+//             Clients.push_back(client);
+//             // valid_pass(pass)
+//         }
+//         else 
+//             std::cout << "Invalid Password" << std::endl;
+//     }
+//     else 
+//     {
+//         std::string rpl;
+
+//         // :mboudrio!mboudrio@88ABE6.25BF1D.D03F86.88C9BD.IP JOIN #some * :realname
+
+//         rpl = client->getPrefix() + " JOIN " + name + " * :realname\r\n";
+//         send_to_all(rpl);
+//         Clients.push_back(client);
+//     }
+// }
 
 void Channel::addAdmin(Client* client)
 {
+        client->setoperatorstatus(true);
         admins.push_back(client); 
 }
 void Channel::addInvited(Client* client) {

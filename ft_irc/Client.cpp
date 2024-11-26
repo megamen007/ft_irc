@@ -13,7 +13,7 @@ Client::~Client()
 
 Client::Client()
 {
-    this->nickname = "jo";
+    this->nickname = "";
     this->username = "";
     this->hostname = "";
     this->servername = "";
@@ -81,7 +81,7 @@ std::string Client::getIPaddress()
 std::string Client::getPrefix()
 {
     // Format: :nickname!username@hostname
-    return getnickname() + "!" + getusername() + "@" + gethostname();
+    return getnickname() + "!" + getusername() + "@" + getIPaddress();
 }
 int Client::get_clientfd()
 {

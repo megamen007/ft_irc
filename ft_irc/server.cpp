@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
+/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/24 21:03:55 by otelliq          ###   ########.fr       */
+/*   Updated: 2024/11/26 05:51:22 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,8 +94,6 @@ void Server::client_socket_polling(int client_fd)
     NPoll.fd = client_fd;
     NPoll.events = POLLIN;
     NPoll.revents = 0;
-    
-    fds.push_back(NPoll);
 }
 
 void Server::Launching_server(int port, std::string password)
@@ -118,8 +116,6 @@ void Server::Launching_server(int port, std::string password)
 
 void Server::Server_cycle()
 {
-    Client *Exodia = new Client();
-    
     while(!get_Signal_Status())
     {
         if((poll(fds.data(), fds.size(), -1) == -1) && get_Signal_Status() == false)
@@ -133,9 +129,9 @@ void Server::Server_cycle()
             if (fds[i].revents & POLLIN)
             {
                 if (fds[i].fd == Serverfd)
-                    socket_Accepting(Exodia);
+                    socket_Accepting();
                 else 
-                    socket_receiving(fds[i].fd, Exodia);
+                    socket_receiving(fds[i].fd);
             }
             i++;
         }
@@ -144,8 +140,11 @@ void Server::Server_cycle()
 }
 
 
-void Server::socket_Accepting(Client *client)
+void Server::socket_Accepting()
 {
+    Client *client = new Client();
+    // client = getClient(fd);
+    
     struct sockaddr_in clientadd;
     socklen_t len = sizeof(clientadd);
 
@@ -158,21 +157,27 @@ void Server::socket_Accepting(Client *client)
     if (non_blocking_status < 0)
         throw(std::runtime_error(" ---> failed to make the socket non blocking "));
 
-    client_socket_polling(coming_fd);
+    // client_socket_polling(coming_fd);
 
+    struct pollfd NPoll;
+
+    NPoll.fd = coming_fd;
+    NPoll.events = POLLIN;
+    NPoll.revents = 0;
     client->setfd(coming_fd);
     client->setIPaddress(inet_ntoa(clientadd.sin_addr));
     Clients.push_back(client);
+    fds.push_back(NPoll);
     
     std::cout << " ---> Client connected " << std::endl;
 }
 
 
-void Server::socket_receiving(int client_fd, Client *client)
+void Server::socket_receiving(int client_fd)
 {
     char buffer[1024];
     Buffer Parser;
-    
+    Client *client = getClient(client_fd);
     memset(buffer, 0, sizeof(buffer));
 
     int r = recv(client_fd, buffer, sizeof(buffer), 0);
@@ -196,11 +201,13 @@ void Server::socket_receiving(int client_fd, Client *client)
     {
         std::cout << " Received " << r << "  bytes ... " << std::endl;
         std::cout << " Received Data :  " << getRawData() << std::endl;
-        registerClient(client_fd, buffer , client);
+        
+        if (!client->getlogedstatus())
+            registerClient(client_fd, buffer);
 
         std::cout << "logo" << client->getlogedstatus() << std::endl;
         if (client->getlogedstatus())
-            Parcing_and_Executing(buffer,Parser, client);
+            Parcing_and_Executing(client_fd, buffer, Parser);
     }
     
     if (std::string(buffer) == "exit") 
@@ -214,17 +221,21 @@ void Server::socket_receiving(int client_fd, Client *client)
 
 
 
-void Server::Parcing_and_Executing(std::string buffer, Buffer &Parser, Client *client)
+void Server::Parcing_and_Executing(int fd,std::string buffer, Buffer &Parser)
 {
     Parser.Parcing_core(buffer);
-    executing_commands(Parser , client);
+    executing_commands(fd , Parser);
 }
 
-Channel *create_channel(Client *cl, std::string name, std::string pass) {
+Channel *create_channel(Client *cl, std::string name, std::string pass)
+{
     Channel *chan = new Channel(name, pass);
-
+    std::cout << "wesh a jmi" << std::endl;
+    std::cout << sizeof(chan) << std::endl;
     chan->addAdmin(cl);
     chan->addUser(cl, pass);
+    chan->getMembers();
+    // chan->get
     return chan;
 }
 
@@ -234,21 +245,119 @@ void Server::addChannel(Channel *chan) {
 }
 
 
-void Server::executing_commands(Buffer &Parser , Client *client)
-{    
-    if (Parser.get_cmd() == "JOIN") {
-        if (Parser.get_arg()[0] != '#') { 
+void Server::executing_commands(int fd, Buffer &Parser)
+{   
+    std::string target_nick = Parser.get_target();
+    Client *target = findClientByNick(target_nick);//wesh target hna someone li khaso ykun f client li kaynin f channel wla li f client li kaynin f server
+    
+    Client *client = getClient(fd);
+    std::cout << Parser.get_cmd() <<std::endl; 
+    if (Parser.get_cmd() == "JOIN")
+    {
+        std::cout << Parser.get_arg()[0] << std::endl;
+        if (Parser.get_arg()[0] == '#') 
+        { 
+            std::cout << "ana 9na " << std::endl;
             Channel *chan = getChannel(Parser.get_arg());
-            if (chan != NULL) {
+            if (chan == NULL)
+            {
+                std::cout << "ana 7na " << std::endl;
                 chan = create_channel(client, Parser.get_arg(), Parser.get_msg());
                 addChannel(chan);
-            } else {
+            } 
+            else 
+            {
+                std::cout << "ana bna " << std::endl;
                 chan->addUser(client, Parser.get_msg());
             }
-        } else {
-        //TODO : implement error hundling 
         }
-    } else if (Parser.get_cmd() == "WHO") {}
+        // } else {
+        // //TODO : implement error hundling 
+        // }
+    } 
+    else if (Parser.get_cmd() == "WHO")
+    {
+        Channel *chan = getChannel(Parser.get_arg());
+        chan->WHO(client, target);
+    }
+    else if (Parser.get_cmd() == "KICK")
+    {
+        if (client->getoperatorstatus())
+        {
+            Channel *chan = getChannel(Parser.get_arg());
+            chan->KICK(client, target, Parser.get_msg());
+        }
+        else
+            std::cout << "U are not the father !" << std::endl;
+    }
+    else if (Parser.get_cmd() == "TOPIC")
+    {
+        if (client->getoperatorstatus())
+        {
+            Channel *chan = getChannel(Parser.get_arg());
+            chan->TOPIC(client, Parser.get_arg());
+        }
+        else
+            std::cout << "U are not the father !" << std::endl;
+    }
+    else if (Parser.get_cmd() == "INVITE")
+    {
+        if (client->getoperatorstatus())
+        { 
+            Channel *chan = getChannel(Parser.get_arg());
+            chan->INVITE(client, target);
+        }
+        else
+            std::cout << "U are not the father !" << std::endl;
+    }
+    else if (Parser.get_cmd() == "MODE")
+    {
+        if (client->getoperatorstatus())
+        {
+            Channel *chan = getChannel(Parser.get_arg());
+            chan->MODE(client, Parser.get_msg() , Parser.get_trg());
+        }
+        else
+            std::cout << "U are not the father !" << std::endl;
+    }
+    else if (Parser.get_cmd() == "PRIVEMSG")
+    {
+        Channel *chan = getChannel(Parser.get_arg());
+        chan->PRIVMSG(client , target, Parser.get_prv_msg());
+    }
+    else if (Parser.get_cmd() == "PART")
+    {
+        Channel *chan = getChannel(Parser.get_arg());
+        chan->PART(client , Parser.get_reason());
+    }
+
+    
+    
+    
+    // if (Parser.get_cmd().compare("KICK") == 0 || Parser.get_cmd().compare("kick") == 0)
+    //                 new_channel.KICK();
+    //             else if (Parser.get_cmd().compare("INVITE") == 0 || Parser.get_cmd().compare("invite") == 0)
+    //                 new_channel.INVITE();
+    //             else if (Parser.get_cmd().compare("MODE") == 0 || Parser.get_cmd().compare("mode") == 0)
+    //                 new_channel.MODE();
+    //             else if (Parser.get_cmd().compare("TOPIC") == 0 || Parser.get_cmd().compare("topic") == 0)
+    //                 new_channel.TOPIC();  
+    //             else if (Parser.get_cmd().compare("PRIVEMSG") == 0 || Parser.get_cmd().compare("privemsg") == 0)
+    //                 new_channel.PRIVMSG();
+    //             // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
+    //             //     new_channel.WHO();
+    
+    //         }
+    //         else
+    //         {
+    //             // normal User priveleges :
+    //             if (Parser.get_cmd().compare("PART") == 0 || Parser.get_cmd().compare("part") == 0)
+    //                 new_channel.PART();
+    //             else if (Parser.get_cmd().compare("PRIVEMSG") == 0  || Parser.get_cmd().compare("privemsg") == 0)
+    //                 new_channel.PRIVMSG();
+    //             // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
+    //             //     new_channel.WHO();
+                
 }
 
 Client* Server::findClientByNick(const std::string& nickname)
