@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/26 05:51:22 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/26 08:23:47 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,7 +144,6 @@ void Server::socket_Accepting()
 {
     Client *client = new Client();
     // client = getClient(fd);
-    
     struct sockaddr_in clientadd;
     socklen_t len = sizeof(clientadd);
 
@@ -206,6 +205,7 @@ void Server::socket_receiving(int client_fd)
             registerClient(client_fd, buffer);
 
         std::cout << "logo" << client->getlogedstatus() << std::endl;
+        
         if (client->getlogedstatus())
             Parcing_and_Executing(client_fd, buffer, Parser);
     }
