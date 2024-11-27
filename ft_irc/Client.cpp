@@ -158,26 +158,3 @@ void Client::client_data()
     std::cout << " clientfd : " << this->clientfd << std::endl;
 }
 
-
-// char *Client::getMessage() {
-//         static char buffer[1024];
-//         int bytesReceived = 0;
-
-//         for (int i = 0; i < 1024; i++) {
-//             buffer[i] = 0;
-//         }
-
-//         bytesReceived = recv(get_cli, buffer, sizeof(buffer) - 1, 0);
-
-//         if (bytesReceived < 0) {
-//             perror("recv failed");
-//             return NULL;  // Return NULL in case of error
-//         } else if (bytesReceived == 0) {
-//             printf("Client disconnected.\n");
-//             return NULL;  // Return NULL if client disconnects
-//         } else {
-//             buffer[bytesReceived] = '\0';  // Null-terminate the buffer
-//             return buffer;  // Return the message as a char array (C-style string)
-//         }
-//     }
-

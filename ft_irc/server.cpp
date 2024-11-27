@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/27 02:30:44 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/27 06:00:22 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -248,9 +248,6 @@ void Server::addChannel(Channel *chan) {
 
 void Server::executing_commands(int fd, Buffer &Parser)
 {   
-    // std::string target_nick = Parser.get_target();
-    // Client *target = findClientByNick(target_nick);//wesh target hna someone li khaso ykun f client li kaynin f channel wla li f client li kaynin f server
-    
     Client *client = getClient(fd);
     std::cout << Parser.get_cmd() <<std::endl; 
     if (Parser.get_cmd() == "JOIN")
@@ -287,84 +284,81 @@ void Server::executing_commands(int fd, Buffer &Parser)
             
         }
     }
-    // else if (Parser.get_cmd() == "KICK")
-    // {
-    //     if (client->getoperatorstatus())
-    //     {
-    //         Channel *chan = getChannel(Parser.get_arg());
-    //         chan->KICK(client, target, Parser.get_msg());
-    //     }
-    //     else
-    //         std::cout << "U are not the father !" << std::endl;
-    // }
+    else if (Parser.get_cmd() == "KICK")
+    {
+        if (client->getoperatorstatus())
+        {
+             std::string target_nick = Parser.get_target();
+            Client *target = findClientByNick(target_nick);
+            Channel *chan = getChannel(Parser.get_arg());
+                if (chan)
+            chan->KICK(client, target, Parser.get_msg());
+        }
+        else
+            std::cout << "U are not the father !" << std::endl;
+    }
     else if (Parser.get_cmd() == "TOPIC")
     {
         if (client->getoperatorstatus())
         {
             Channel *chan = getChannel(Parser.get_arg());
-            chan->TOPIC(client, Parser.get_arg());
+            if (chan)
+                chan->TOPIC(client, Parser.get_arg());
+            else
+            {
+                std::cout << "Channel doesnt exist, " << std::endl;
+            }
         }
         else
             std::cout << "U are not the father !" << std::endl;
     }
-    // else if (Parser.get_cmd() == "INVITE")
-    // {
-    //     if (client->getoperatorstatus())
-    //     { 
-    //         Channel *chan = getChannel(Parser.get_arg());
-    //         chan->INVITE(client, target);
-    //     }
-    //     else
-    //         std::cout << "U are not the father !" << std::endl;
-    // }
+    else if (Parser.get_cmd() == "INVITE")
+    {
+        if (client->getoperatorstatus())
+        { 
+            std::string target_nick = Parser.get_target();
+            Client *target = findClientByNick(target_nick);
+            Channel *chan = getChannel(Parser.get_arg());
+            if (chan)
+             chan->INVITE(client, target);
+            else
+                std::cout << "Channel doesnt exist," << std::endl;
+        }
+        else
+            std::cout << "U are not the father !" << std::endl;
+    }
     else if (Parser.get_cmd() == "MODE")
     {
         if (client->getoperatorstatus())
         {
             Channel *chan = getChannel(Parser.get_arg());
-            chan->MODE(client, Parser.get_msg() , Parser.get_trg());
+            
+            if (chan)
+                chan->MODE(client, Parser.get_msg() , Parser.get_trg());
+            else
+                std::cout << "Channel doesnt exist," << std::endl;
         }
         else
             std::cout << "U are not the father !" << std::endl;
     }
-    // else if (Parser.get_cmd() == "PRIVEMSG")
-    // {
-    //     Channel *chan = getChannel(Parser.get_arg());
-    //     chan->PRIVMSG(client , target, Parser.get_prv_msg());
-    // }
+    else if (Parser.get_cmd() == "PRIVEMSG")
+    {
+        std::string target_nick = Parser.get_target();
+        Client *target = findClientByNick(target_nick);
+        Channel *chan = getChannel(Parser.get_arg());
+        if (chan)
+        chan->PRIVMSG(client , target, Parser.get_prv_msg());
+        else
+                std::cout << "Channel doesnt exist," << std::endl;
+    }
     else if (Parser.get_cmd() == "PART")
     {
         Channel *chan = getChannel(Parser.get_arg());
-        chan->PART(client , Parser.get_reason());
-    }
-
-    
-    
-    
-    // if (Parser.get_cmd().compare("KICK") == 0 || Parser.get_cmd().compare("kick") == 0)
-    //                 new_channel.KICK();
-    //             else if (Parser.get_cmd().compare("INVITE") == 0 || Parser.get_cmd().compare("invite") == 0)
-    //                 new_channel.INVITE();
-    //             else if (Parser.get_cmd().compare("MODE") == 0 || Parser.get_cmd().compare("mode") == 0)
-    //                 new_channel.MODE();
-    //             else if (Parser.get_cmd().compare("TOPIC") == 0 || Parser.get_cmd().compare("topic") == 0)
-    //                 new_channel.TOPIC();  
-    //             else if (Parser.get_cmd().compare("PRIVEMSG") == 0 || Parser.get_cmd().compare("privemsg") == 0)
-    //                 new_channel.PRIVMSG();
-    //             // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
-    //             //     new_channel.WHO();
-    
-    //         }
-    //         else
-    //         {
-    //             // normal User priveleges :
-    //             if (Parser.get_cmd().compare("PART") == 0 || Parser.get_cmd().compare("part") == 0)
-    //                 new_channel.PART();
-    //             else if (Parser.get_cmd().compare("PRIVEMSG") == 0  || Parser.get_cmd().compare("privemsg") == 0)
-    //                 new_channel.PRIVMSG();
-    //             // else if (Parser.get_cmd().compare("WHO") == 0 || Parser.get_cmd().compare("who") == 0)
-    //             //     new_channel.WHO();
-                
+        if (chan)
+            chan->PART(client , Parser.get_reason());
+        else
+            std::cout << "Channel doesnt exist," << std::endl;
+    }           
 }
 
 Client* Server::findClientByNick(const std::string& nickname)
