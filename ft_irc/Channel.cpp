@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/26 02:05:12 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/27 02:15:11 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,7 +174,7 @@ std::string Channel::GetUserInfo(Client *admin, bool i){
     if(i)
         return ":" + admin->getnickname() + "!" + admin->getusername() + "@" + admin->getservername() + " ";
     else
-        return ":" + admin->getservername() + " ";
+        return ":" + admin->getservername();
 }
 
 

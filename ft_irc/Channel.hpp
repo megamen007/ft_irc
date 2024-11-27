@@ -118,6 +118,6 @@ class Channel
         void USER(Client *admin, std::string username, std::string realname);
         void PASS(Client *admin, std::string password);
         int  PRIVMSG(Client *admin, Client *target, std::string message);
-        void WHO(Client* admin, Client* target);
+        void WHO(Client* admin);
     
 };

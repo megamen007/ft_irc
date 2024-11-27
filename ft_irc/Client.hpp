@@ -46,7 +46,7 @@ class Client
         // Setters
             void setfd(int fd);
             void setnickname( std::string & nickName);
-            void setusername(std::string & userName);
+            void setusername(std::string  userName);
             void sethostname(std::string & hostname);
             void setservername(std::string & servername);
             void setrealname(std::string & relaname);

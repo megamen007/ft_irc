@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/26 08:23:47 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/27 02:30:44 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,6 +200,7 @@ void Server::socket_receiving(int client_fd)
     {
         std::cout << " Received " << r << "  bytes ... " << std::endl;
         std::cout << " Received Data :  " << getRawData() << std::endl;
+        std::cout << client->get_clientfd() << std::endl;
         
         if (!client->getlogedstatus())
             registerClient(client_fd, buffer);
@@ -247,8 +248,8 @@ void Server::addChannel(Channel *chan) {
 
 void Server::executing_commands(int fd, Buffer &Parser)
 {   
-    std::string target_nick = Parser.get_target();
-    Client *target = findClientByNick(target_nick);//wesh target hna someone li khaso ykun f client li kaynin f channel wla li f client li kaynin f server
+    // std::string target_nick = Parser.get_target();
+    // Client *target = findClientByNick(target_nick);//wesh target hna someone li khaso ykun f client li kaynin f channel wla li f client li kaynin f server
     
     Client *client = getClient(fd);
     std::cout << Parser.get_cmd() <<std::endl; 
@@ -259,6 +260,7 @@ void Server::executing_commands(int fd, Buffer &Parser)
         { 
             std::cout << "ana 9na " << std::endl;
             Channel *chan = getChannel(Parser.get_arg());
+            std::cout << client->getnickname() << " hiya smiya dyal l clinet li gay joini " << std::endl;
             if (chan == NULL)
             {
                 std::cout << "ana 7na " << std::endl;
@@ -277,19 +279,24 @@ void Server::executing_commands(int fd, Buffer &Parser)
     } 
     else if (Parser.get_cmd() == "WHO")
     {
+        std::cout << "dkkhalt hnaaa \n\n\n\n";
         Channel *chan = getChannel(Parser.get_arg());
-        chan->WHO(client, target);
-    }
-    else if (Parser.get_cmd() == "KICK")
-    {
-        if (client->getoperatorstatus())
-        {
-            Channel *chan = getChannel(Parser.get_arg());
-            chan->KICK(client, target, Parser.get_msg());
+        if (chan) {
+            chan->WHO(client);
+        } else {
+            
         }
-        else
-            std::cout << "U are not the father !" << std::endl;
     }
+    // else if (Parser.get_cmd() == "KICK")
+    // {
+    //     if (client->getoperatorstatus())
+    //     {
+    //         Channel *chan = getChannel(Parser.get_arg());
+    //         chan->KICK(client, target, Parser.get_msg());
+    //     }
+    //     else
+    //         std::cout << "U are not the father !" << std::endl;
+    // }
     else if (Parser.get_cmd() == "TOPIC")
     {
         if (client->getoperatorstatus())
@@ -300,16 +307,16 @@ void Server::executing_commands(int fd, Buffer &Parser)
         else
             std::cout << "U are not the father !" << std::endl;
     }
-    else if (Parser.get_cmd() == "INVITE")
-    {
-        if (client->getoperatorstatus())
-        { 
-            Channel *chan = getChannel(Parser.get_arg());
-            chan->INVITE(client, target);
-        }
-        else
-            std::cout << "U are not the father !" << std::endl;
-    }
+    // else if (Parser.get_cmd() == "INVITE")
+    // {
+    //     if (client->getoperatorstatus())
+    //     { 
+    //         Channel *chan = getChannel(Parser.get_arg());
+    //         chan->INVITE(client, target);
+    //     }
+    //     else
+    //         std::cout << "U are not the father !" << std::endl;
+    // }
     else if (Parser.get_cmd() == "MODE")
     {
         if (client->getoperatorstatus())
@@ -320,11 +327,11 @@ void Server::executing_commands(int fd, Buffer &Parser)
         else
             std::cout << "U are not the father !" << std::endl;
     }
-    else if (Parser.get_cmd() == "PRIVEMSG")
-    {
-        Channel *chan = getChannel(Parser.get_arg());
-        chan->PRIVMSG(client , target, Parser.get_prv_msg());
-    }
+    // else if (Parser.get_cmd() == "PRIVEMSG")
+    // {
+    //     Channel *chan = getChannel(Parser.get_arg());
+    //     chan->PRIVMSG(client , target, Parser.get_prv_msg());
+    // }
     else if (Parser.get_cmd() == "PART")
     {
         Channel *chan = getChannel(Parser.get_arg());

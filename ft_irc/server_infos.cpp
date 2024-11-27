@@ -234,7 +234,10 @@ void Server::processMessage(int fd, const std::string &command, const std::strin
 {
     Client *client = getClient(fd);
 
+    std::cout << "9bal mat arg\n";
     std::istringstream ss(arg);
+    std::cout << "wra  argli hiya " << arg << "\n";
+
     std::string granpa , used;
     if (command == "PASS")
     {
@@ -309,9 +312,11 @@ void Server::processMessage(int fd, const std::string &command, const std::strin
         getline(ss, tmp);
         realname = trim(tmp);
 
-        if (username.empty() || realname.empty() || servername.empty() || hostname.empty())
-            client->sendError(client , "461" , "" , " u need to enter a username,realname,servername,hostname  to acces the server ");
+        std::cout << "\nip == " << servername << "xddd\n xdd\n";
+        if (username.empty() || realname.empty() || servername.empty() || hostname.empty()) {
 
+            client->sendError(client , "461" , "" , " u need to enter a username,realname,servername,hostname  to acces the server ");
+        }
         else if (!client->getregistred())
         {
             client->sendError(client , "451", "" , "ERR_NOTREGISTERED1");

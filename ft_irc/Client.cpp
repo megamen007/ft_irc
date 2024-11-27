@@ -126,9 +126,11 @@ void Client::setnickname( std::string & nickName)
 {
     this->nickname = nickName;
 }
-void Client::setusername(std::string & userName)
+void Client::setusername(std::string userName)
 {
     this->username = userName;
+    std::cout << "userName == " << username << "\n\n";
+
 }
 void Client::setIPaddress(std::string Ipadd)
 {

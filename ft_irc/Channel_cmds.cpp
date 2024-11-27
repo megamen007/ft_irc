@@ -296,7 +296,7 @@ void Channel::remove_admin(Client *admin, std::string name) {
     }
 }
 
-void Channel::MODE(Client *admin, std::string mode, std::string arg){
+void Channel::MODE( Client *admin,  std::string mode,  std::string arg){
     std::cout << " Ara wa7ed Mode hna --#%& " << std::endl;
     std::string reply_message;
     if(!mode.empty()){
@@ -313,7 +313,8 @@ void Channel::MODE(Client *admin, std::string mode, std::string arg){
         //rpl list of modes
         reply_message += GetUserInfo(admin, false) + " 353 " + admin->getnickname() + " = " + this->GetName() + " :";
         for(size_t i = 0; i < Clients.size(); ++i){
-            reply_message += "@" + Clients[i]->getnickname() + " ";
+            if(is_Admin(Clients[i]))
+                reply_message += "@" + Clients[i]->getnickname() + " ";
         }
         reply_message += "\r\n";
         sendMessage(reply_message, admin->get_clientfd());
@@ -524,13 +525,28 @@ int Channel::PRIVMSG(Client *admin, Client *target, std::string message) {
 //         }
 //     }
 
-void Channel::WHO(Client* admin, Client* target) {
+
+// >> :luna.AfterNET.Org 352 mboudrio #some lo 88ABE6.25BF1D.D03F86.88C9BD.IP *.afternet.org mboudrio H@x :0 realname
+// >> :luna.AfterNET.Org 315 mboudrio #some :End of /WHO list
+// >> :127.0.0.1  315 mboudrio #some :End of /WHO list
+//  :10.11.2.5 315 mboudrio #some End of /WHOIS list
+//  :127.0.0.1 315 mboudrio #some :End of /WHOIS list
+
+// :10.11.2.5 352 mboudrio #some lo 127.0.0.1 mboudrio H@ :0 realname
+// :127.0.0.1 352 mboudrio #ch lo 127.0.0.1 mboudrio H@:0 realname
+
+
+void Channel::WHO(Client* admin) {
     std::string reply_message;
     for(size_t i = 0; i < Clients.size(); ++i){
+        std::cout << "count == " << i + 1 << "\n\n";
         if(is_Admin(Clients[i]))
-            reply_message += ":" + admin->getservername() + " 352 " + admin->getnickname() + " " + this->GetName() + " " + target->getusername() + " " + target->getIPaddress() + " " + target->getnickname() + " H" + ":0 realname\r\n";
+            reply_message = ":" + admin->getservername() + " 352 " + admin->getnickname() + " " + this->GetName() + " " + Clients[i]->getusername() + " " + Clients[i]->getIPaddress() + " " + Clients[i]->getnickname() + " H@" + " :0 realname\r\n";
         else
-            reply_message += ":" + admin->getservername() + " 352 " + admin->getnickname() + " " + this->GetName() + " " + target->getusername() + " " + target->getIPaddress() + " " + target->getnickname() + " G" + "@" + ":0 realname\r\n";
+            reply_message = ":" + admin->getservername() + " 352 " + admin->getnickname() + " " + this->GetName() + " " + Clients[i]->getusername() + " " + Clients[i]->getIPaddress() + " " + Clients[i]->getnickname() + " G" + " :0 realname\r\n";
+        sendMessage(reply_message, admin->get_clientfd());//if something goes wrong here, 7et sendMessage f loop   
     }
-    sendMessage(reply_message, admin->get_clientfd());//if something goes wrong here, 7et sendMessage f loop
+    sendMessage(GetUserInfo(admin, false) + RPL_ENDOFWHOIS(admin->getnickname(), this->GetName()), admin->get_clientfd());
+
+
 }
