@@ -43,7 +43,8 @@ class Channel
         std::string topic;
         std::string modes;
         std::string password;
-        std::string creation_time;
+        std::time_t creation_time;
+        std::time_t topic_time;
         bool invite_only;
         bool has_password;
         bool has_topic;
@@ -75,14 +76,17 @@ class Channel
         void SetMode(std::string mode);
         void SetTopic(std::string topic);
         void SetPassword(std::string password);
-        void SetTime(std::string time);
+        void SetTime(std::time_t time);
         void SetAdmin(Client *param);
         void sendMessage(std::string message, int destination_fd);
         void set_has_password(bool has_password);
 
         std::string GetName();
-        std::string get_time();
+        std::time_t get_topictime();
+        std::string get_modes();
+        std::time_t get_time();
         std::string get_topic();
+        std::vector<std::string> getinvites();
         std::string GetUserInfo(Client *admin, bool i);
         Client     *GetUser(std::string name);
         std::vector<Client *>  getMembers();
@@ -92,6 +96,7 @@ class Channel
         size_t get_maxusers();
         std::string get_password();
         bool get_has_password();
+        bool get_has_topic();
         // Client & get_Operator(std::string  & client_nick)
     
         bool is_Admin(Client *admin);
@@ -108,16 +113,5 @@ class Channel
         void send_to_all(std::string message);
         void remove_user(Client *admin);
         char *getMessage();
-
-        void MODE(Client *admin, std::string mode, std::string arg);
-        void KICK(Client *admin, Client *user, std::string reason);
-        void INVITE(Client *admin, Client *user);
-        void TOPIC(Client *admin, std::string topic);
-        void PART(Client *admin, std::string reason);
-        void NICK(Client *admin, std::string new_nick);
-        void USER(Client *admin, std::string username, std::string realname);
-        void PASS(Client *admin, std::string password);
-        int  PRIVMSG(Client *admin, Client *target, std::string message);
-        void WHO(Client* admin);
     
 };

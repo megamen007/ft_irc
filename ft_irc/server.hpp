@@ -18,6 +18,13 @@
 #include "Client.hpp"
 #include "Parcing_data.hpp"
 
+// TOPIc error messages //
+#define RPL_NOTOPIC(cli, chan)							(" 331 " + cli + " " + chan + " :No topic is set\r\n")
+#define RPL_TOPIC(cli, chan, topic)						(" 332 " + cli + " " + chan + " :" + topic + "\r\n")
+#define	RPL_TOPICWHOTIME(user, chan, setter, time)		(" 333 " + user + " " + chan + " "  + setter + " " + time + "\r\n")
+#define ERR_INVALIDMODEPARAM(nick, chanuser, mode, param, desc)		(" 696 " + nick + " " + chanuser + " " + mode + " " + param + " " + desc + "\r\n")
+#define ERR_CHANOPRIVSNEEDED(client, chan)				(" 482 " + client + " " + chan +  " :You're not channel operator\r\n")
+
 class Client;
 class Channel;
 class Buffer;
@@ -91,7 +98,10 @@ class Server
         void close_server_socket();
         
         // Parsing received DATA
-        void    Parcing_and_Executing(int fd ,std::string buffer, Buffer &Parser);
+        void    Parcing_and_Executing(int fd ,std::string buffer);
+
+        std::vector<std::string>  split_received_Buffer(std::string str);
+        std::vector<std::string>  split_cmd(std::string &cmd);
 
         void registerClient(int fd, std::string raw);
         void processMessage(int fd, const std::string& command, const std::string &arg, const std::string &msg);
@@ -101,18 +111,43 @@ class Server
         void sendWelcome(int fd);
         std::string  trim(std::string &str);
         std::vector<std::string> splitByCRLF(const std::string& input);
+        Channel * create_channel(Client *cl, std::string name, std::string pass);
 
         bool Valid_nick_name(std::string& nickname);
 
         bool Port_valid(std::string port);
+        void ssendMessage(std::string message, int destination_fd);
 
 
-        void    executing_commands(int fd, Buffer &Parser);
+        void    executing_commands(int fd, std::string &cmd);
         Client  *getClient(int fd);
-        Client  *getClient(std::string nickname);
+        Client  *getClientname(std::string nickname);
         Channel *getChannel(std::string name);
 
         // void Server::AddChannel(Channel newChannel);
+        // void MODE(Client *admin, std::string mode, std::string arg);
+        // void KICK(Client *admin, Client *user, std::string reason);
+        // void INVITE(Client *admin, Client *user);
+        // void TOPIC(Client *admin, std::string topic);
+        // void PART(Client *admin, std::string reason);
+        // void NICK(Client *admin, std::string new_nick);
+        // void USER(Client *admin, std::string username, std::string realname);
+        // void PASS(Client *admin, std::string password);
+        // int  PRIVMSG(Client *admin, Client *target, std::string message);
+        // void WHO(Client* admin);
+        // void Server::AddChannel(Channel newChannel);
+        void JOIN(Client* client, std::string &line);
+        void MODE(Client *admin, std::string &line);
+        void KICK(Client *admin,std::string &line);
+        void INVITE(Client *admin,std::string &line);
+        void TOPIC(Client *admin,std::string &line);
+        void PART(Client *admin,std::string &line);
+        void NICK(Client *admin,std::string &line);
+        void USER(Client *admin,std::string &line);
+        void PASS(Client *admin,std::string &line);
+        void  PRIVMSG(Client *admin,std::string &line);
+        void WHO(Client* admin, std::string &line);
+        
 };
 
 

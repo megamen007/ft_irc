@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/27 06:00:22 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/28 04:51:53 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,11 @@ void Server::socket_creation()
         throw(std::runtime_error(" ---> Socket Creation stage failed "));
     }
 }
+
+// void server::getserverIP()
+// {
+    
+// }
 
 sockaddr_in Server:: socket_infos()
 {
@@ -175,6 +180,7 @@ void Server::socket_Accepting()
 void Server::socket_receiving(int client_fd)
 {
     char buffer[1024];
+    std::vector<std::string> cmd;
     Buffer Parser;
     Client *client = getClient(client_fd);
     memset(buffer, 0, sizeof(buffer));
@@ -201,14 +207,22 @@ void Server::socket_receiving(int client_fd)
         std::cout << " Received " << r << "  bytes ... " << std::endl;
         std::cout << " Received Data :  " << getRawData() << std::endl;
         std::cout << client->get_clientfd() << std::endl;
+
         
-        if (!client->getlogedstatus())
-            registerClient(client_fd, buffer);
+        // if (!client->getlogedstatus())
+        //     registerClient(client_fd, buffer);
 
         std::cout << "logo" << client->getlogedstatus() << std::endl;
         
-        if (client->getlogedstatus())
-            Parcing_and_Executing(client_fd, buffer, Parser);
+        cmd = split_received_Buffer(getRawData());
+        // if (client->getlogedstatus())
+        // {
+            for (size_t i = 0; i < cmd.size(); i++)
+            {
+                Parcing_and_Executing(client_fd, cmd[i]);
+            }
+            
+        // }
     }
     
     if (std::string(buffer) == "exit") 
@@ -220,23 +234,35 @@ void Server::socket_receiving(int client_fd)
     
 }
 
-
-
-void Server::Parcing_and_Executing(int fd,std::string buffer, Buffer &Parser)
+std::vector<std::string>  Server::split_received_Buffer(std::string str)
 {
-    Parser.Parcing_core(buffer);
-    executing_commands(fd , Parser);
+    std::vector<std::string> vec;
+	std::istringstream stm(str);
+	std::string line;
+	while(std::getline(stm, line))
+	{
+		size_t pos = line.find_first_of("\r\n");
+		if(pos != std::string::npos)
+			line = line.substr(0, pos);
+		vec.push_back(line);
+	}
+	return vec; 
 }
 
-Channel *create_channel(Client *cl, std::string name, std::string pass)
+
+
+void Server::Parcing_and_Executing(int fd, std::string buffer)
+{
+    // Parser.Parcing_core(buffer);
+    executing_commands(fd , buffer);
+}
+
+Channel * Server::create_channel(Client *cl, std::string name, std::string pass)
 {
     Channel *chan = new Channel(name, pass);
-    std::cout << "wesh a jmi" << std::endl;
-    std::cout << sizeof(chan) << std::endl;
     chan->addAdmin(cl);
     chan->addUser(cl, pass);
     chan->getMembers();
-    // chan->get
     return chan;
 }
 
@@ -245,120 +271,88 @@ void Server::addChannel(Channel *chan) {
     Channels.push_back(chan);
 }
 
-
-void Server::executing_commands(int fd, Buffer &Parser)
+std::vector <std::string> Server::split_cmd(std::string &cmd)
+{
+    std::vector<std::string> vec;
+	std::istringstream stm(cmd);
+	std::string token;
+	while(stm >> token)
+	{
+		vec.push_back(token);
+		token.clear();
+	}
+	return vec;
+}
+void Server::executing_commands(int fd, std::string &cmd)
 {   
+
+    size_t found = cmd.find_first_not_of(" \t\v");
+	if(found != std::string::npos)
+		cmd = cmd.substr(found);
+        
     Client *client = getClient(fd);
-    std::cout << Parser.get_cmd() <<std::endl; 
-    if (Parser.get_cmd() == "JOIN")
+    std::vector<std::string> splited_cmd = split_cmd(cmd);
+    
+    
+    if (cmd.empty())
+        return;
+    else if (splited_cmd[0] == "PASS")
     {
-        std::cout << Parser.get_arg()[0] << std::endl;
-        if (Parser.get_arg()[0] == '#') 
-        { 
-            std::cout << "ana 9na " << std::endl;
-            Channel *chan = getChannel(Parser.get_arg());
-            std::cout << client->getnickname() << " hiya smiya dyal l clinet li gay joini " << std::endl;
-            if (chan == NULL)
-            {
-                std::cout << "ana 7na " << std::endl;
-                chan = create_channel(client, Parser.get_arg(), Parser.get_msg());
-                addChannel(chan);
-            } 
-            else 
-            {
-                std::cout << "ana bna " << std::endl;
-                chan->addUser(client, Parser.get_msg());
-            }
-        }
-        // } else {
-        // //TODO : implement error hundling 
-        // }
-    } 
-    else if (Parser.get_cmd() == "WHO")
-    {
-        std::cout << "dkkhalt hnaaa \n\n\n\n";
-        Channel *chan = getChannel(Parser.get_arg());
-        if (chan) {
-            chan->WHO(client);
-        } else {
-            
-        }
+        PASS(client, cmd);
     }
-    else if (Parser.get_cmd() == "KICK")
+    else if (splited_cmd[0] == "NICK")
     {
-        if (client->getoperatorstatus())
+        NICK(client, cmd);
+    }
+    else if (splited_cmd[0] == "USER")
+    {
+        USER(client, cmd);
+    }
+    // else if (splited_cmd[0] == "QUIT")
+    // {
+    //     QUIT(client, cmd);
+    // }
+    else if (client->getlogedstatus())
+    {
+        
+        if (splited_cmd[0] == "JOIN")
         {
-             std::string target_nick = Parser.get_target();
-            Client *target = findClientByNick(target_nick);
-            Channel *chan = getChannel(Parser.get_arg());
-                if (chan)
-            chan->KICK(client, target, Parser.get_msg());
+                JOIN(client, cmd);
         }
-        else
-            std::cout << "U are not the father !" << std::endl;
-    }
-    else if (Parser.get_cmd() == "TOPIC")
-    {
-        if (client->getoperatorstatus())
+        else if (splited_cmd[0] == "WHO")
         {
-            Channel *chan = getChannel(Parser.get_arg());
-            if (chan)
-                chan->TOPIC(client, Parser.get_arg());
-            else
-            {
-                std::cout << "Channel doesnt exist, " << std::endl;
-            }
+                WHO(client, cmd);
         }
-        else
-            std::cout << "U are not the father !" << std::endl;
-    }
-    else if (Parser.get_cmd() == "INVITE")
-    {
-        if (client->getoperatorstatus())
-        { 
-            std::string target_nick = Parser.get_target();
-            Client *target = findClientByNick(target_nick);
-            Channel *chan = getChannel(Parser.get_arg());
-            if (chan)
-             chan->INVITE(client, target);
-            else
-                std::cout << "Channel doesnt exist," << std::endl;
-        }
-        else
-            std::cout << "U are not the father !" << std::endl;
-    }
-    else if (Parser.get_cmd() == "MODE")
-    {
-        if (client->getoperatorstatus())
+        else if (splited_cmd[0] == "KICK")
         {
-            Channel *chan = getChannel(Parser.get_arg());
-            
-            if (chan)
-                chan->MODE(client, Parser.get_msg() , Parser.get_trg());
-            else
-                std::cout << "Channel doesnt exist," << std::endl;
+            KICK(client, cmd);
         }
-        else
-            std::cout << "U are not the father !" << std::endl;
+        else if (splited_cmd[0] == "TOPIC")
+        {
+            TOPIC(client, cmd);
+        }
+        else if (splited_cmd[0] == "INVITE")
+        {
+            INVITE(client, cmd);
+        }
+        else if (splited_cmd[0] == "MODE")
+        {
+            MODE(client, cmd);
+        }
+        else if (splited_cmd[0] == "PRIVMSG")
+        {
+            PRIVMSG(client , cmd); 
+        }
+        else if (splited_cmd[0] == "PART")
+        {
+            PART(client , cmd);
+        }           
     }
-    else if (Parser.get_cmd() == "PRIVEMSG")
-    {
-        std::string target_nick = Parser.get_target();
-        Client *target = findClientByNick(target_nick);
-        Channel *chan = getChannel(Parser.get_arg());
-        if (chan)
-        chan->PRIVMSG(client , target, Parser.get_prv_msg());
-        else
-                std::cout << "Channel doesnt exist," << std::endl;
-    }
-    else if (Parser.get_cmd() == "PART")
-    {
-        Channel *chan = getChannel(Parser.get_arg());
-        if (chan)
-            chan->PART(client , Parser.get_reason());
-        else
-            std::cout << "Channel doesnt exist," << std::endl;
-    }           
+    // else if (client->getlogedstatus())
+    // {
+        //  send error type not registred !
+    // }
+    
 }
 
 Client* Server::findClientByNick(const std::string& nickname)
@@ -371,3 +365,16 @@ Client* Server::findClientByNick(const std::string& nickname)
     return NULL;
 }
 
+void Server::ssendMessage(std::string message, int destination_fd)
+{
+    size_t sent = 0;
+    size_t msg_len = message.size();
+    char *msg = (char *)message.c_str();
+    while(sent < msg_len)
+    {
+        int i = send(destination_fd, msg + sent, msg_len - sent, 0);
+        if(i == -1)
+            throw std::runtime_error("send failed");
+        sent += i;
+    }
+}

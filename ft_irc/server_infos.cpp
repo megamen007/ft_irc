@@ -84,7 +84,7 @@ Client *Server::getClient(int fd)
     return NULL;
 }
 
-Client *Server::getClient(std::string nickname)
+Client *Server::getClientname(std::string nickname)
 {
     size_t i = 0;
     while (i < this->Clients.size())
@@ -180,41 +180,6 @@ void Server::Close_filedescriptors()
     close_server_socket();
 }
 
-void Server::registerClient(int fd, std::string raw)
-{
-    // client->setfd(fd);
-    // client->client_data();
-    Client *client = getClient(fd);
-    std::string command;
-    std::string arg;
-    std::string message;
-
-    if (raw.find("\r\n") != std::string::npos)
-    {
-        std::vector<std::string> lines;
-        lines = splitByCRLF(raw);
-        for (size_t i = 1; i < lines.size(); i++)
-        {
-            std::istringstream ss(lines[i]);
-            std::cout << "wax dkahlt hana?/n"; 
-            ss >> command;
-            ss >> arg;
-            std::getline(ss, message);
-            processMessage(fd , command, arg, message);
-        }
-    }
-    else
-    {
-        std::istringstream ss(raw);
-        ss >> command;
-        ss >> arg;
-        std::getline(ss, message);
-        processMessage(fd , command, arg, message);
-    }
-    std::cout << client->getnickname() << " howa nick name " << std::endl;
-}
-
-
 bool Server::Valid_nick_name(std::string& nickname)
 {
     size_t i = 0;
@@ -229,127 +194,6 @@ bool Server::Valid_nick_name(std::string& nickname)
     return true;
 }
 
-
-void Server::processMessage(int fd, const std::string &command, const std::string &arg, const std::string &msg)
-{
-    Client *client = getClient(fd);
-
-    std::cout << "9bal mat arg\n";
-    std::istringstream ss(arg);
-    std::cout << "wra  argli hiya " << arg << "\n";
-
-    std::string granpa , used;
-    if (command == "PASS")
-    {
-        std::string password;
-        ss >> password;
-
-        if (password.empty())
-            client->sendError(client , "461" , "" , " u need to enter a Password to acces the server ");
-
-        else if (!client->getregistred())
-        {
-            if (password == Password)
-            {
-
-                client->setregistred(true);
-            }
-            else
-            {
-                client->sendError(client , "464", "" , "ERR_PASSWDMISMATCH");
-            }
-        }
-        else 
-            client->sendError(client, "462" , "" , "ERR_ALREADYREGISTERED");
-    }
-    else if (command == "NICK")
-    {
-        std::string nickname;
-        ss >> nickname;
-
-        if (nickname.empty())
-            client->sendError(client , "461" , "" , " u need to enter a Nickname to acces the server ");
-
-        if (isNicknameInUse(nickname) && client->getnickname() != nickname)
-            client->sendError(client , "433", "" , "ERR_NICKNAMEINUSE");
-
-        if (!Valid_nick_name(nickname))
-            client->sendError(client , "432", "" , "ERR_ERRONEUSNICKNAME");
-
-        if (client->getregistred())
-        {
-            granpa = client->getnickname();
-            client->setnickname(nickname);
-            if (!granpa.empty() && granpa != nickname)
-            {
-                if (granpa == "212" && !client->getusername().empty())
-                {
-                    client->setlogedstatus(true);
-                    client->sendError(client , "1", "", "RPL_NICKCHANGE");
-                }
-                else
-                {
-                    client->sendError(client , "1", "", "RPL_NICKCHANGE");
-                }
-            }
-        }
-        else if (!client->getregistred())
-                client->sendError(client , "451", "" , "ERR_NOTREGISTERED2");
-
-        if (client->getregistred() && !client->getusername().empty() && !client->getnickname().empty() && client->getnickname() != "212" && !client->getlogedstatus())
-        {
-            std::cout << "dkhalt hna o " << client->getnickname() << " howa l nick" << std::endl;
-
-            client->setnickname(nickname);
-        }
-    }
-    else if (command == "USER")
-    {
-        std::istringstream ss(msg);
-        std::string username, hostname, servername, realname, tmp;
-        username = arg;
-        ss >> hostname >> servername;
-        getline(ss, tmp);
-        realname = trim(tmp);
-
-        std::cout << "\nip == " << servername << "xddd\n xdd\n";
-        if (username.empty() || realname.empty() || servername.empty() || hostname.empty()) {
-
-            client->sendError(client , "461" , "" , " u need to enter a username,realname,servername,hostname  to acces the server ");
-        }
-        else if (!client->getregistred())
-        {
-            client->sendError(client , "451", "" , "ERR_NOTREGISTERED1");
-        }
-
-        else if ( client->getnickname().empty() || username.empty() || realname.empty() || servername.empty() || hostname.empty())
-        {
-            client->sendError(client, "462" , "" , "ERR_ALREADYREGISTERED1");
-        }
-
-
-        else
-        {
-            client->setusername(username);
-            client->setservername(servername);
-            client->setrealname(realname);
-            client->sethostname(hostname);
-
-        }
-        if (client->getregistred() && !client->getusername().empty() && !client->getrealname().empty() && !client->getservername().empty() && !client->gethostname().empty() && !client->getnickname().empty())
-        {
-            client->setlogedstatus(true);
-        }
-            
-    }
-    else
-    {
-        client->sendError(client, "421" , "" , "ERR_UNKNOWNCOMMAND :  To register  1/PASS 2/NICK /USER");
-    }
-
-    if (client->getregistred() && client->getnickname().size() > 0 && client->getusername().size() > 0)
-        sendWelcome(client->get_clientfd());
-}
 
 Client *Server::findClientByFd(int fd)
 {

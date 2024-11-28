@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/27 02:15:11 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/28 06:09:49 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ Channel::Channel(){
     has_topic = false;
     has_limit = false;
     operate = false;
+    creation_time = std::time(NULL);
 }
 
 Channel::Channel(const std::string& name) : name(name) 
@@ -30,6 +31,7 @@ Channel::Channel(const std::string& name) : name(name)
     has_topic = false;
     has_limit = false;
     operate = false;
+    creation_time = std::time(NULL);
 }
 
 Channel::Channel(const std::string& name, const std::string& pswd) : name(name), password(pswd) {
@@ -38,6 +40,7 @@ Channel::Channel(const std::string& name, const std::string& pswd) : name(name),
     has_topic = false;
     has_limit = false;
     operate = false;
+    creation_time = std::time(NULL);
 }
 
 
@@ -57,6 +60,8 @@ Channel &Channel::operator=(const Channel &src){
     Clients = src.Clients;
     admins = src.admins;
     invites = src.invites;
+    creation_time = src.creation_time;
+    topic_time = src.topic_time;
     return *this;
 }
 
@@ -79,9 +84,29 @@ void Channel::SetTopic(std::string topic){
     has_topic = true;
 }
 
-void Channel::SetPassword(std::string password){
-    this->password = password;
-    has_password = true;
+void Channel::SetPassword(std::string password)
+{
+	topic.erase(0, 1);
+	if (topic.empty())
+    {
+		has_topic = false;
+		topic.clear();
+	} 
+    else
+    {
+		topic_time = std::time(NULL);
+		has_topic = true;
+		topic = topic;
+	}
+}
+
+std::time_t Channel::get_topictime()
+{
+    return topic_time;
+}
+std::string Channel::get_modes()
+{
+    return modes;
 }
 
 void Channel::SetMaxUsers(int max){
@@ -89,7 +114,7 @@ void Channel::SetMaxUsers(int max){
     has_limit = true;
 }
 
-void Channel::SetTime(std::string time)
+void Channel::SetTime(std::time_t time)
 {
     this->creation_time = time;
 }
@@ -108,11 +133,13 @@ void Channel::set_has_password(bool has_password)
 //         throw std::runtime_error("send failed: not all bytes sent");
 // }
 
-void Channel::sendMessage(std::string message, int destination_fd){
+void Channel::sendMessage(std::string message, int destination_fd)
+{
     size_t sent = 0;
     size_t msg_len = message.size();
     char *msg = (char *)message.c_str();
-    while(sent < msg_len){
+    while(sent < msg_len)
+    {
         int i = send(destination_fd, msg + sent, msg_len - sent, 0);
         if(i == -1)
             throw std::runtime_error("send failed");
@@ -124,13 +151,19 @@ std::string Channel::GetName(){
     return name;
 }
 
-std::string Channel::get_time(){
+std::time_t Channel::get_time()
+{
 	return this->creation_time;
 }
 
 bool Channel::get_has_password()
 {
     return this->has_password;
+}
+
+bool Channel::get_has_topic()
+{
+    return this->has_topic;
 }
 
 bool Channel::get_invite_only()
