@@ -6,6 +6,7 @@
 #include <string>
 #include <sys/socket.h>
 #include "Client.hpp"
+#include <ctime>
 
 // TOPIc error messages //
 #define RPL_NOTOPIC(cli, chan)							(" 331 " + cli + " " + chan + " :No topic is set\r\n")
@@ -100,6 +101,7 @@ class Channel
         // Client & get_Operator(std::string  & client_nick)
     
         bool is_Admin(Client *admin);
+        bool is_Invited(Client *admin);
         bool onChannel(Client *admin);
         bool is_inChannel(Client *admin);
 
@@ -108,7 +110,8 @@ class Channel
         void changeKeyMode(Client *admin, std::string key, bool i);
         void changeTopicMode(Client *admin, bool i);
         void add_admin(Client *admin, std::string name);
-        void remove_admin(Client *admin, std::string name);
+        void remove_admin(Client *admin);
+        void remove_Invited(Client *admin);
         void change_MaxUser(Client *admin, int i, std::string &param);
         void send_to_all(std::string message);
         void remove_user(Client *admin);
