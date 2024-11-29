@@ -286,70 +286,86 @@ void Server::JOIN(Client* client, std::string& line)
 
 void Server::PASS(Client * client , std::string & line)
 {
-
-    std::string cmd, password;
-    std::istringstream ss(line);
+    std::string rawline = line;
+    std::istringstream ss(rawline);
+    std::string cmd , passio;
     ss >> cmd;
-    ss >> password;
+	ss >> passio;
 
-
-    if (password.empty())
-        client->sendError(client , "461" , "" , " u need to enter a Password to acces the server ");
-
-    else if (!client->getregistred())
+    line = line.substr(4);
+	size_t pos = line.find_first_not_of("\t\v ");
+	if(pos < line.size())
+	{
+		line = line.substr(pos);
+		if(line[0] == ':')
+			line.erase(line.begin());
+	}
+	if(pos == std::string::npos || line.empty()) 
     {
-        if (password == Password)
-        {
-            client->setregistred(true);
-        }
-        else
-        {
-            client->sendError(client , "464", "" , "ERR_PASSWDMISMATCH");
-        }
+
+        std:: string msg_to_reply =  ":" + client->getIPaddress() + ERR_NOTENOUGHPARAM(client->getnickname(), passio);
+		ssendMessage(msg_to_reply , client->get_clientfd() );
+		// _sendResponse(ERR_NOTENOUGHPARAM(std::string("*")), fd);
     }
-    else 
-        client->sendError(client, "462" , "" , "ERR_ALREADYREGISTERED");
+	else if(!client->getregistred())
+	{
+		std::string pass = line;
+		if(pass == Password)
+			client->setregistred(true);
+		else
+        {
+            std:: string msg_to_reply =  ":" + client->getIPaddress() + ERR_INCORPASS(client->getnickname(), passio);
+		    ssendMessage(msg_to_reply , client->get_clientfd() );
+            // _sendResponse(ERR_INCORPASS(std::string("*")), fd);
+        }
+	}
+	else
+    {
+        std:: string msg_to_reply =  ":" + client->getIPaddress() + ERR_ALREADYREGISTERED(client->getnickname(), passio);
+		ssendMessage(msg_to_reply , client->get_clientfd() );
+        // _sendResponse(ERR_ALREADYREGISTERED(GetClient(fd)->GetNickName()), fd);
+    }
 }
 
 void Server::NICK(Client * client , std::string & line)
 {
     std::istringstream ss(line);
-    std::string nickname , cmd;
+    std::string cmd , nick;
     ss >> cmd;
-    ss >> nickname;
+	ss >> nick;
 
-    std::string granpa; 
-    if (nickname.empty())
-        client->sendError(client , "461" , "" , " u need to enter a Nickname to acces the server ");
-    if (isNicknameInUse(nickname) && client->getnickname() != nickname)
-        client->sendError(client , "433", "" , "ERR_NICKNAMEINUSE");
-    if (!Valid_nick_name(nickname))
-        client->sendError(client , "432", "" , "ERR_ERRONEUSNICKNAME");
-    if (client->getregistred())
+	if (!nick.empty()) 
     {
-        granpa = client->getnickname();
-        client->setnickname(nickname);
-        if (!granpa.empty() && granpa != nickname)
+		if (!client)
         {
-            if (granpa == "212" && !client->getusername().empty())
+			if (nick[0] == '#')
             {
-                client->setlogedstatus(true);
-                client->sendError(client , "1", "", "RPL_NICKCHANGE");
-            }
+				std:: string msg_to_reply =  ":" + client->getIPaddress() + ERR_ERRONEUSNICKNAME(client->getnickname(), nick);
+				ssendMessage(msg_to_reply , client->get_clientfd() );
+			}
             else
             {
-                client->sendError(client , "1", "", "RPL_NICKCHANGE");
-            }
-    }
-    }
-    else if (!client->getregistred())
-            client->sendError(client , "451", "" , "ERR_NOTREGISTERED2");
-    if (client->getregistred() && !client->getusername().empty() && !client->getnickname().empty() && client->getnickname() != "212" && !client->getlogedstatus())
+				std:: string msg_to_reply = ":"  + client->getPrefix() + " NICK :" + nick + "\r\n";
+				client->setnickname(nick);
+				for (size_t i = 0; i < Clients.size(); ++i)
+                {
+		            ssendMessage( msg_to_reply, Clients[i]->get_clientfd());
+	            }
+			}
+		}
+        else
+        {
+			std:: string msg_to_reply = ":" + client->getIPaddress() + ERR_NICKNAMEINUSE(client->getnickname(), nick);
+			ssendMessage( msg_to_reply, client->get_clientfd());
+		}
+	}
+    else
     {
-        std::cout << "dkhalt hna o " << client->getnickname() << " howa l nick" << std::endl;
-        client->setnickname(nickname);
-    }
+		std:: string msg_to_reply = ":" + client->getIPaddress() + ERR_NONICKNAMEGIVEN(client->getnickname());
+		ssendMessage( msg_to_reply, client->get_clientfd());
+	}
 }
+
 
 void Server::USER(Client * client , std::string & line)
 {
@@ -467,34 +483,6 @@ void Server::USER(Client * client , std::string & line)
 //     }
 // }
 
-// void MODE( Client *admin, std::string &line){
-//     std::cout << " Ara wa7ed Mode hna --#%& " << std::endl;
-//     std::string reply_message;
-//     if(!mode.empty()){
-//         if(is_Admin(admin))
-//             admin_MODE(admin, mode, arg);
-//         else{
-//             reply_message = GetUserInfo(admin, false) + ERR_CHANOPRIVSNEEDED(admin->getnickname(), this->GetName());
-//             sendMessage(reply_message, admin->get_clientfd());
-//             return;
-//         }
-//     }
-//     else{
-//         reply_message = GetUserInfo(admin, true) + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), this->modes);
-//         //rpl list of modes
-//         reply_message += GetUserInfo(admin, false) + " 353 " + admin->getnickname() + " = " + this->GetName() + " :";
-//         for(size_t i = 0; i < Clients.size(); ++i){
-//             if(is_Admin(Clients[i]))
-//                 reply_message += "@" + Clients[i]->getnickname() + " ";
-//         }
-//         reply_message += "\r\n";
-//         sendMessage(reply_message, admin->get_clientfd());
-//         sendMessage(GetUserInfo(admin, false) + RPL_ENDOFWHOIS(admin->getnickname(), this->GetName()), admin->get_clientfd());
-//         sendMessage(reply_message, admin->get_clientfd());
-//         reply_message = GetUserInfo(admin, true) + RPL_CREATIONTIME(admin->getnickname(), this->GetName(), this->get_time());
-//         sendMessage(reply_message, admin->get_clientfd());
-//     }
-// }
 
 void Server::KICK(Client *admin,  std::string &line)
 {
