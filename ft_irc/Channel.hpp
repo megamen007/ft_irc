@@ -118,5 +118,11 @@ class Channel
         void send_to_all(std::string message);
         void remove_user(Client *admin);
         char *getMessage();
+        void rpl_topic(Client *cli, std::string topic);
+        void rpl_list(Client *cli);
+        void rpl_mode(Client *cli);
+        void valid_mode(Client *cli, std::string &modes, std::string param);
+        void plus_modes(Client *cli, char c, std::string param);
+        void minus_modes(Client *cli, char c, std::string param);
     
 };

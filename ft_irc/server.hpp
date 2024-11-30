@@ -165,7 +165,8 @@ class Server
         // void WHO(Client* admin);
         // void Server::AddChannel(Channel newChannel);
         void JOIN(Client* client, std::string &line);
-        void MODE(Client *admin, std::string &line);
+        void MODE( Client *client, std::stringstream &ss);
+        
         void KICK(Client *admin,std::string &line);
         void INVITE(Client *admin,std::string &line);
         void TOPIC(Client *admin,std::string &line);

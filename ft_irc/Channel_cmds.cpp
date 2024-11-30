@@ -929,3 +929,26 @@ void Server::WHO(Client* admin, std::string &line)
     // }
     // sendMessage(GetUserInfo(admin, false) + RPL_ENDOFWHOIS(admin->getnickname(), this->GetName()), admin->get_clientfd());
 
+void Server::MODE( Client *client, std::stringstream &ss){
+    std::string chan_name, mode, arg, reply_message;
+    ss >> chan_name >> mode >> arg;
+    Channel *chan = getChannel(chan_name);
+    if(chan){
+        if(!mode.empty()){
+            if(chan->is_inChannel(client)){
+                chan->valid_mode(client, mode, arg);
+            }else{
+                if(client)
+                    reply_message = ":" + client->getIPaddress() + ERR_CHANOPRIVSNEEDED(client->getnickname(), chan_name);
+            } 
+        } else {
+            if(!chan->get_topic().empty())
+                chan->rpl_topic(client, "fda");
+            chan->rpl_list(client);
+            chan->rpl_mode(client);
+        }
+    }else{
+            if(client)
+            ssendMessage(":" + client->getIPaddress() + ERR_NOSUCHCHANNEL(client->getnickname(), chan_name), client->get_clientfd());
+    }
+}

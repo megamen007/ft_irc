@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/28 06:09:49 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/11/30 01:07:30 by otelliq          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,3 +211,131 @@ std::string Channel::GetUserInfo(Client *admin, bool i){
 }
 
 
+void Channel::valid_mode(Client *cli, std::string &modes, std::string param){
+    char mode_char = modes[0];
+    size_t i = 0;
+
+    if (mode_char == '+')
+        i++;
+    if (mode_char != '-'){
+        for(; i < modes.size(); ++i){
+            if(modes[i] == 'i' || modes[i] == 'k' || modes[i] == 'l' || modes[i] == 'o' || modes[i] == 't'){
+                plus_modes(cli, modes, param);
+            }
+            else{ 
+                //hadchi li lt7t mkhwr
+                std::string reply_message = GetUserInfo(cli, false) + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
+                sendMessage(reply_message, cli->get_clientfd());
+            }
+        }
+    } else {
+            for(i = 1; i < modes.size(); ++i){
+                if(modes[i] == 'i' || modes[i] == 'k' || modes[i] == 'l' || modes[i] == 'o' || modes[i] == 't')
+                    minus_modes(cli, get_modes(), param);//plus modes katakhd char
+                else
+                {//ta hadchi mkhwr
+                    std::string reply_message = GetUserInfo(cli, false) + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
+                    sendMessage(reply_message, cli->get_clientfd());
+                }
+
+        }
+    }
+}
+
+void Channel::plus_modes(Client *cli, char c, std::string param){
+    if(c == 'i'){
+        changeInviteMode(cli, true);
+    }
+    else if(c == 'k'){
+        changeKeyMode(cli, param, true);
+    }
+    else if(c == 'l'){
+        change_MaxUser(cli, 1, param);
+    }
+    else if(c == 'o'){
+        add_admin(cli, param);
+    }
+    else if(c == 't'){
+        changeTopicMode(cli, true);
+    }
+}
+
+void Channel::minus_modes(Client *cli, char c, std::string param){
+    if(c == 'i'){
+        changeInviteMode(cli, false);
+    }
+    else if(c == 'k'){
+        changeKeyMode(cli, param, false);
+    }
+    else if(c == 'l'){
+        change_MaxUser(cli, 0, param);
+    }
+    else if(c == 'o'){
+        remove_admin(cli, param);
+    }
+    else if(c == 't'){
+        changeTopicMode(cli, false);
+    }
+}
+
+void Channel::rpl_topic(Client *cli, std::string topic){
+    std::string reply_message;
+    if(topic.find(':') == std::string::npos){
+        if(onChannel(cli)){
+            if(get_has_topic()){
+                reply_message = ":" + cli->getnickname() + " " + RPL_TOPIC(cli->getnickname(), this->GetName(), topic);
+                sendMessage(reply_message, cli->get_clientfd());
+                reply_message = ":" + cli->getnickname() + " " + RPL_TOPICWHOTIME(cli->getnickname(), this->GetName(), cli->getnickname(), std::to_string(get_topictime()));
+                sendMessage(reply_message, cli->get_clientfd());
+            }
+            else{
+                reply_message = ":" + cli->getnickname() + " " + RPL_NOTOPIC(cli->getnickname(), this->GetName());
+                sendMessage(reply_message, cli->get_clientfd());
+            }
+        }
+        else{
+            reply_message = ":" cli->getIPaddress() + ERR_NOTONCHANNEL(cli->getnickname(), this->GetName());
+            sendMessage(reply_message, cli->get_clientfd());
+        }
+        return;
+    }
+    if(is_Admin(cli)){
+        if(modes.find('t') == std::string::npos){
+            //topicsetter????
+            SetTopic(topic);
+			reply_message = ":" + cli->getPrefix() +  " TOPIC " + GetName() + " " + get_topic() + "\r\n";
+            send_to_all(reply_message);
+        }
+        else{
+			reply_message = ":" + cli->getIPaddress() + ERR_INVALIDMODEPARAM(cli->getnickname(), GetName(), "TOPIC", get_topic(), "Channel Topic Restrection Are On");
+            sendMessage(reply_message, cli->get_clientfd());
+            }
+    }
+    else{
+        reply_message = ":" + cli->getIPaddress() + ERR_CHANOPRIVSNEEDED(cli->getnickname(), GetName());
+        sendMessage(reply_message, cli->get_clientfd());
+        }
+}
+
+void Channel::rpl_mode(Client *cli){
+    //hadchi rah mahouwach
+    sendMessage(GetUserInfo(cli, true) + RPL_CHANNELMODEIS(cli->getnickname(), GetName(), get_modes()), cli->get_clientfd());
+    sendMessage(GetUserInfo(cli, true) + RPL_CREATIONTIME(cli->getnickname(), GetName(), std::to_string(get_time())), cli->get_clientfd());
+}
+
+void Channel::rpl_list(Client *cli){
+    std::string reply_message;
+                            //had l IP khass tkoun dyal server
+    reply_message += ":" + cli->getIPaddress() + " 353 " + cli->getnickname() + " = ";
+    reply_message += GetName() + " :";
+    for(size_t i = 0; i < Clients.size(); ++i){
+        if(is_Admin(Clients[i]))
+        reply_message += "@";
+        reply_message += Clients[i]->getnickname() + " ";
+    }
+	reply_message += "\r\n";
+    sendMessage(reply_message, cli->get_clientfd());
+    //ta tchouf m3ak chnou l prob hna
+    reply_message += ":" + cli->getIPaddress() + RPL_ENDOFNAMES(cli->getnickname, cli->GetName());
+    sendMessage(reply_message, cli->get_clientfd());
+}
