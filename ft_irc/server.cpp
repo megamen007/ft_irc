@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/28 04:51:53 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/05 04:39:29 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,6 +176,22 @@ void Server::socket_Accepting()
     std::cout << " ---> Client connected " << std::endl;
 }
 
+std::string Server::getServerIP()
+{
+    struct sockaddr_in server_address;
+    socklen_t address_len = sizeof(server_address);
+
+    // Retrieve the address of the socket
+    if (getsockname(Serverfd, (struct sockaddr*)&server_address, &address_len) == -1)
+    {
+        throw(std::runtime_error(" ---> Failed to get server IP address"));
+    }
+
+    // Convert the address to a string
+    return std::string(inet_ntoa(server_address.sin_addr));
+}
+
+
 
 void Server::socket_receiving(int client_fd)
 {
@@ -308,10 +324,10 @@ void Server::executing_commands(int fd, std::string &cmd)
     {
         USER(client, cmd);
     }
-    // else if (splited_cmd[0] == "QUIT")
-    // {
-    //     QUIT(client, cmd);
-    // }
+    else if (splited_cmd[0] == "QUIT")
+    {
+        QUIT(client, cmd);
+    }
     else if (client->getlogedstatus())
     {
         
@@ -346,12 +362,18 @@ void Server::executing_commands(int fd, std::string &cmd)
         else if (splited_cmd[0] == "PART")
         {
             PART(client , cmd);
-        }           
+        }
+        else
+        {
+            std::string msg_to_reply =  ":" + getServerIP() + ERR_UNKNOWNCOMMAND(client->getnickname(), splited_cmd[0]);
+            ssendMessage(msg_to_reply , client->get_clientfd() );
+        }        
     }
-    // else if (client->getlogedstatus())
-    // {
-        //  send error type not registred !
-    // }
+    else if (!client->getlogedstatus())
+    {
+        std::string msg_to_reply =  ":" + getServerIP() + ERR_NOTREGISTERED(client->getnickname());
+        ssendMessage(msg_to_reply , client->get_clientfd() );
+    }
     
 }
 

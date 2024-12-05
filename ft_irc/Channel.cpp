@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
+/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/11/30 01:07:30 by otelliq          ###   ########.fr       */
+/*   Updated: 2024/12/05 06:30:12 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,8 +75,14 @@ Channel::~Channel(){
     invites.clear();
 }
 
-void Channel::SetName(std::string name){
+void Channel::SetName(std::string name)
+{
     this->name = name;
+}
+
+void Channel::SetMode(std::string mode)
+{
+    this->mode = mode;
 }
 
 void Channel::SetTopic(std::string topic){
@@ -191,19 +197,40 @@ std::string Channel::get_topic()
 }
 
 //  rah dert wa7ed change hna pookie  zdet & lat9wdha 3lik wla chy haja .
-Client *Channel::GetUser(std::string name){
-    for(size_t i = 0; i < Clients.size(); ++i){
+Client *Channel::GetUser(std::string name)
+{
+    for(size_t i = 0; i < Clients.size(); ++i)
+    {
         if(name == Clients[i]->getnickname())
             return Clients[i];
     }
     return NULL;
 }
 
-std::vector<Client *>  Channel::getMembers(){
+size_t Channel::GetClientsNumber()
+{
+    // check it later :
+    return Clients.size() + admins.size() + Invites.size();
+}
+
+
+Client *Channel::getOperator(std::string name)
+{
+    for(size_t i = 0; i < admins.size(); ++i)
+    {
+        if(name == admins[i]->getnickname())
+            return admins[i];
+    }
+    return NULL;
+}
+
+std::vector<Client *>  Channel::getMembers()
+{
     return Clients;
 }
 
-std::string Channel::GetUserInfo(Client *admin, bool i){
+std::string Channel::GetUserInfo(Client *admin, bool i)
+{
     if(i)
         return ":" + admin->getnickname() + "!" + admin->getusername() + "@" + admin->getservername() + " ";
     else
@@ -211,25 +238,31 @@ std::string Channel::GetUserInfo(Client *admin, bool i){
 }
 
 
-void Channel::valid_mode(Client *cli, std::string &modes, std::string param){
+void Channel::valid_mode(Client *cli, std::string &modes, std::string param)
+{
     char mode_char = modes[0];
     size_t i = 0;
 
     if (mode_char == '+')
         i++;
-    if (mode_char != '-'){
-        for(; i < modes.size(); ++i){
-            if(modes[i] == 'i' || modes[i] == 'k' || modes[i] == 'l' || modes[i] == 'o' || modes[i] == 't'){
-                plus_modes(cli, modes, param);
+    if (mode_char != '-')
+    {
+        for(; i < modes.size(); ++i)
+        {
+            if(modes[i] == 'i' || modes[i] == 'k' || modes[i] == 'l' || modes[i] == 'o' || modes[i] == 't')
+            {
+                plus_modes(cli, modes[i], param);
             }
-            else{ 
+            else
+            { 
                 //hadchi li lt7t mkhwr
                 std::string reply_message = GetUserInfo(cli, false) + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
                 sendMessage(reply_message, cli->get_clientfd());
             }
         }
     } else {
-            for(i = 1; i < modes.size(); ++i){
+            for(i = 1; i < modes.size(); ++i)
+            {
                 if(modes[i] == 'i' || modes[i] == 'k' || modes[i] == 'l' || modes[i] == 'o' || modes[i] == 't')
                     minus_modes(cli, get_modes(), param);//plus modes katakhd char
                 else
@@ -242,20 +275,26 @@ void Channel::valid_mode(Client *cli, std::string &modes, std::string param){
     }
 }
 
-void Channel::plus_modes(Client *cli, char c, std::string param){
-    if(c == 'i'){
+void Channel::plus_modes(Client *cli, char c, std::string param)
+{
+    if(c == 'i')
+    {
         changeInviteMode(cli, true);
     }
-    else if(c == 'k'){
+    else if(c == 'k')
+    {
         changeKeyMode(cli, param, true);
     }
-    else if(c == 'l'){
+    else if(c == 'l')
+    {
         change_MaxUser(cli, 1, param);
     }
-    else if(c == 'o'){
+    else if(c == 'o')
+    {
         add_admin(cli, param);
     }
-    else if(c == 't'){
+    else if(c == 't')
+    {
         changeTopicMode(cli, true);
     }
 }
@@ -294,7 +333,7 @@ void Channel::rpl_topic(Client *cli, std::string topic){
             }
         }
         else{
-            reply_message = ":" cli->getIPaddress() + ERR_NOTONCHANNEL(cli->getnickname(), this->GetName());
+            reply_message = ":" +  cli->getIPaddress() + ERR_NOTONCHANNEL(cli->getnickname(), this->GetName());
             sendMessage(reply_message, cli->get_clientfd());
         }
         return;

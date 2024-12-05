@@ -19,16 +19,19 @@
 #include "Parcing_data.hpp"
 
 // TOPIc error messages //
-
+#define ERR_INCORPASS(client)                           ("464 " + client + " :Password incorrect\r\n")
+#define ERR_NOTENOUGHPARAM(client)                      ("461 " + client + " :Not enough parameters\r\n")
+#define ERR_ALREADYREGISTERED(nick)						(" 462 " + nick + " :You may not reregister\r\n")
 #define RPL_WELCOME()									(" 001 :Welcome to the Internet Relay Network \r\n")
 #define ERR_PASSWDMISMATCH()							(" 464 :Password incorrect\r\n")
 #define RPL_ENDOFWHOIS(cli, chan)						(" 315 " + cli + " " + chan + " :End of /WHOIS list\r\n")
 #define RPL_ENDOFNAMES(cli, channel)					(" 366 " + cli + " " + chan + " :End of /NAMES list\r\n")
 #define ERR_NOSUCHNICK(client,nick)						(" 401 "  + client + " " + nick + ":No such nick/channel\r\n")
+#define ERR_NOTREGISTERED(nickname)                     (": 451 " + nickname + " :You have not registered!\r\n")
 
 // CHANNEL error messages //
 #define ERR_NEEDMOREPARAMS(client, command)				(" 461 " + client + " " + command + " :Not enough parameters\r\n")
-#define ERR_NEEDMOREPARAMS1()							(" 461 :Not enough parameters\r\n")
+#define ERR_NEEDMOREPARAMS()							(" 461 :Not enough parameters\r\n")
 #define ERR_USERNOTINCHANNEL(client, nick, chan) 		(" 441 " + client + " " + nick + " " + chan + " :They aren't on that channel\r\n")
 #define ERR_NOTONCHANNEL(client, chan)  				(" 442 " + client + " " + chan +  " :You're not on that channel\r\n")
 #define ERR_USERONCHANNEL(client, nick, chan)			(" 443 " + client + " " + nick + " " + chan +  " :is already on channel\r\n")
@@ -113,6 +116,8 @@ class Server
         void server_socket_polling();
         void client_socket_polling(int client_fd);
         void socket_receiving(int client_fd);
+        std::string getServerIP();
+
 
         // Signal functions:
         static void Signal_Handler(int signum);
@@ -152,21 +157,8 @@ class Server
         Client  *getClientname(std::string nickname);
         Channel *getChannel(std::string name);
 
-        // void Server::AddChannel(Channel newChannel);
-        // void MODE(Client *admin, std::string mode, std::string arg);
-        // void KICK(Client *admin, Client *user, std::string reason);
-        // void INVITE(Client *admin, Client *user);
-        // void TOPIC(Client *admin, std::string topic);
-        // void PART(Client *admin, std::string reason);
-        // void NICK(Client *admin, std::string new_nick);
-        // void USER(Client *admin, std::string username, std::string realname);
-        // void PASS(Client *admin, std::string password);
-        // int  PRIVMSG(Client *admin, Client *target, std::string message);
-        // void WHO(Client* admin);
-        // void Server::AddChannel(Channel newChannel);
         void JOIN(Client* client, std::string &line);
-        void MODE( Client *client, std::stringstream &ss);
-        
+        void MODE( Client *client, std::string &line);
         void KICK(Client *admin,std::string &line);
         void INVITE(Client *admin,std::string &line);
         void TOPIC(Client *admin,std::string &line);
@@ -174,8 +166,9 @@ class Server
         void NICK(Client *admin,std::string &line);
         void USER(Client *admin,std::string &line);
         void PASS(Client *admin,std::string &line);
-        void  PRIVMSG(Client *admin,std::string &line);
+        void PRIVMSG(Client *admin,std::string &line);
         void WHO(Client* admin, std::string &line);
+        void QUIT(Client *clio, std::string &line);
         
 };
 

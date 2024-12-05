@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include "Client.hpp"
 #include <ctime>
-
+#include "server.hpp"
 // TOPIc error messages //
 #define RPL_NOTOPIC(cli, chan)							(" 331 " + cli + " " + chan + " :No topic is set\r\n")
 #define RPL_TOPIC(cli, chan, topic)						(" 332 " + cli + " " + chan + " :" + topic + "\r\n")
@@ -20,7 +20,7 @@
 
 // CHANNEL error messages //
 #define ERR_NEEDMOREPARAMS(client, command)				(" 461 " + client + " " + command + " :Not enough parameters\r\n")
-#define ERR_NEEDMOREPARAMS1()							(" 461 :Not enough parameters\r\n")
+#define ERR_NEEDMOREPARAMS()							(" 461 :Not enough parameters\r\n")
 #define ERR_USERNOTINCHANNEL(client, nick, chan) 		(" 441 " + client + " " + nick + " " + chan + " :They aren't on that channel\r\n")
 #define ERR_NOTONCHANNEL(client, chan)  				(" 442 " + client + " " + chan +  " :You're not on that channel\r\n")
 #define ERR_USERONCHANNEL(client, nick, chan)			(" 443 " + client + " " + nick + " " + chan +  " :is already on channel\r\n")
@@ -35,14 +35,14 @@
 #define RPL_INVITING(client, nick, chan)				(" 341 " + client + " " + nick + " " + chan + "\r\n")
 
 class Client;
-
 class Channel
 {
     private:
 
+        Server& server;
         std::string name;
         std::string topic;
-        std::string modes;
+        std::string mode;
         std::string password;
         std::time_t creation_time;
         std::time_t topic_time;
@@ -90,6 +90,7 @@ class Channel
         std::vector<std::string> getinvites();
         std::string GetUserInfo(Client *admin, bool i);
         Client     *GetUser(std::string name);
+        Client *getOperator(std::string name);
         std::vector<Client *>  getMembers();
         // Client     *Get_Operator(std::string name);
         bool get_invite_only();
@@ -99,7 +100,7 @@ class Channel
         bool get_has_password();
         bool get_has_topic();
         // Client & get_Operator(std::string  & client_nick)
-    
+        size_t GetClientsNumber();
         bool is_Admin(Client *admin);
         bool is_Invited(Client *admin);
         bool onChannel(Client *admin);
