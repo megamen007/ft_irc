@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/05 06:30:12 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/06 18:58:09 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,7 +210,7 @@ Client *Channel::GetUser(std::string name)
 size_t Channel::GetClientsNumber()
 {
     // check it later :
-    return Clients.size() + admins.size() + Invites.size();
+    return Clients.size() + admins.size();
 }
 
 
@@ -256,7 +256,7 @@ void Channel::valid_mode(Client *cli, std::string &modes, std::string param)
             else
             { 
                 //hadchi li lt7t mkhwr
-                std::string reply_message = GetUserInfo(cli, false) + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
+                std::string reply_message = getServerIP() + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
                 sendMessage(reply_message, cli->get_clientfd());
             }
         }
@@ -267,7 +267,7 @@ void Channel::valid_mode(Client *cli, std::string &modes, std::string param)
                     minus_modes(cli, get_modes(), param);//plus modes katakhd char
                 else
                 {//ta hadchi mkhwr
-                    std::string reply_message = GetUserInfo(cli, false) + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
+                    std::string reply_message = getServerIP() + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
                     sendMessage(reply_message, cli->get_clientfd());
                 }
 
@@ -299,7 +299,8 @@ void Channel::plus_modes(Client *cli, char c, std::string param)
     }
 }
 
-void Channel::minus_modes(Client *cli, char c, std::string param){
+void Channel::minus_modes(Client *cli, char c, std::string param)
+{
     if(c == 'i'){
         changeInviteMode(cli, false);
     }
@@ -310,7 +311,7 @@ void Channel::minus_modes(Client *cli, char c, std::string param){
         change_MaxUser(cli, 0, param);
     }
     else if(c == 'o'){
-        remove_admin(cli, param);
+        remove_admino(cli, param);
     }
     else if(c == 't'){
         changeTopicMode(cli, false);

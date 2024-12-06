@@ -20,7 +20,7 @@
 
 // CHANNEL error messages //
 #define ERR_NEEDMOREPARAMS(client, command)				(" 461 " + client + " " + command + " :Not enough parameters\r\n")
-#define ERR_NEEDMOREPARAMS()							(" 461 :Not enough parameters\r\n")
+// #define ERR_NEEDMOREPARAMS()							(" 461 :Not enough parameters\r\n")
 #define ERR_USERNOTINCHANNEL(client, nick, chan) 		(" 441 " + client + " " + nick + " " + chan + " :They aren't on that channel\r\n")
 #define ERR_NOTONCHANNEL(client, chan)  				(" 442 " + client + " " + chan +  " :You're not on that channel\r\n")
 #define ERR_USERONCHANNEL(client, nick, chan)			(" 443 " + client + " " + nick + " " + chan +  " :is already on channel\r\n")
@@ -106,14 +106,13 @@ class Channel
         bool onChannel(Client *admin);
         bool is_inChannel(Client *admin);
         Client* GetClientInChannel(std::string name);
-
-
-        void admin_MODE(Client *admin, std::string mode, std::string arg);
+                void admin_MODE(Client *admin, std::string mode, std::string arg);
         void changeInviteMode(Client *admin, bool i);
         void changeKeyMode(Client *admin, std::string key, bool i);
         void changeTopicMode(Client *admin, bool i);
         void add_admin(Client *admin, std::string name);
         void remove_admin(Client *admin);
+        void remove_admino(Client *admin, std::string name);
         void remove_Invited(Client *admin);
         void change_MaxUser(Client *admin, int i, std::string &param);
         void send_to_all(std::string message);

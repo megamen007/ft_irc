@@ -103,48 +103,81 @@ void Channel::admin_MODE(Client *admin, std::string mode, std::string arg){
     }
 }
 
+static int keys(const std::string  &str)
+{
+    for(std::string::const_iterator it = str.begin(); it != str.end(); ++it)
+    {
+        if (!isdigit(*it))
+        {
+            return 0;
+        }
+    }
+
+    std::istringstream ss(str);
+    int result;
+    ss >> result;
+
+    if (result <= 0)
+    {
+        return 0;
+    }
+    return result;
+}
+
 void Channel::change_MaxUser(Client *admin, int i, std::string &param)
 {
     std::string reply_message;
-    int max_users = std::stoi(param);//change this later
-    if(i){
-        if(param.empty()){
-            reply_message = GetUserInfo(admin, false) + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +l ");
-            sendMessage(reply_message, admin->get_clientfd());
-            return;
-    }
-        if(max_users <= 0)
+    int max_us;
+    if(i)
+    {
+        if(param.empty())
         {
-            reply_message = GetUserInfo(admin, false) + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +l ");
+            reply_message = getServerIP() + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +l ");
             sendMessage(reply_message, admin->get_clientfd());
             return;
         }
-        else{
-            has_limit = true;
-            SetMaxUsers(max_users);
-            send_to_all(GetUserInfo(admin, true) + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " +l "));
+        max_us= keys(param);
+        if(max_users == 0)
+        {
+            reply_message = getServerIP() + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , "l" , param , "Invalid Number .");
+            sendMessage(reply_message, admin->get_clientfd());
+        }
+        else if ( max_us < GetClientsNumber())
+        {
+            reply_message = getServerIP() + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , "l" , param , "Sorry we Inform u that we Can`t set Limit lower than existing Members.");
+            sendMessage(reply_message, admin->get_clientfd());
+        }
+        else
+        {
+            this->has_limit = true;
+            SetMaxUsers(max_us);
+            setMode("l");
+            reply_message = ":" + admin->getPrefix() + " MODE " + this->GetName() + " +l " + param + "\r\n";
+            sendMessage(reply_message, admin->get_clientfd());
         }
     }
     else
     {
         has_limit = false;
-        send_to_all(GetUserInfo(admin, true) + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " +l "));
+        reply_message = ":" + admin->getPrefix() + " MODE " + this->GetName() +  " -l " + "\r\n"; 
     }
 }
 
 void Channel::changeInviteMode(Client *admin, bool i)
 {
+    std::string reply_message;
     if(i)
     {
         this->invite_only = true;
-        std::string reply_message = ":" + admin->getPrefix() + "MODE" + this->name + "+i" + "\r\n";
+        reply_message = ":" + admin->getPrefix() + "MODE" + this->name + "+i" + "\r\n";
         SetMode("i");    
     }
     else
     {
         this->invite_only = false;
-        std::string reply_message = ":" + admin->getPrefix() + "MODE" + this->name + "-i" + "\r\n";
+        reply_message = ":" + admin->getPrefix() + "MODE" + this->name + "-i" + "\r\n";
     }
+    send_to_all(reply_message);
 }
 
 void Channel::changeKeyMode(Client *admin, std::string key, bool i)
@@ -154,33 +187,38 @@ void Channel::changeKeyMode(Client *admin, std::string key, bool i)
     {
         if(key.empty())
         {
-            reply_message =  + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +k");
+            reply_message = ":" + getServerIP() + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +k");
             sendMessage(reply_message, admin->get_clientfd());
             return;
         }
-        else
-        {
-            SetPassword(key);
-            this->has_password = true;
-            reply_message = GetUserInfo(admin, false) + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " +k" );
-        }
+        SetPassword(key);
+        SetMode("k");
+        this->has_password = true;
+        reply_message = admin->getPrefix() + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " +k" );
+        sendMessage(reply_message, admin->get_clientfd());
     }
     else{
         this->has_password = false;
-        reply_message = GetUserInfo(admin, false) + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " -k" );
+        reply_message = admin->getPrefix() + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " -k" );
+        sendMessage(reply_message, admin->get_clientfd());
     }
 
 }
 
-void Channel::changeTopicMode(Client *admin, bool i){
+void Channel::changeTopicMode(Client *admin, bool i)
+{
     std::string reply_message;
-    if(i){
+    if(i)
+    {
         this->has_topic = true;
-        send_to_all(GetUserInfo(admin, false) + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " +t" ));
+        SetMode("t");
+        reply_message = ":" + admin->getPrefix() +  " MODE " + this->GetName() + " +t " + "\r\n";
+        send_to_all(reply_message);
     }
-    else{
-        this->has_topic = false;
-        send_to_all(GetUserInfo(admin, false) + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " -t" ));
+    else
+    {
+        reply_message = ":" + admin->getPrefix() +  " MODE " + this->GetName() + " -t " + "\r\n";
+        send_to_all(reply_message);
     }
 }
 
@@ -200,6 +238,31 @@ void Channel::remove_admin(Client *admin)
     }
 }
 
+void Channel::remove_admino(Client *admin, std::string name)
+{
+    std::string  reply_message;
+    if (name.empty())
+    {
+        reply_message = getServerIP() + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +o " + name);
+        sendMessage(reply_message, admin->get_clientfd());
+        return;
+    }
+
+    Client *clio = getOperator(name);
+    if (clio)
+    {
+        remove_admin(clio);
+        reply_message = ":" + admin->getPrefix() + " MODE " + this->GetName() + " -o " + name + "\r\n";
+        send_to_all(reply_message);
+    }
+    else 
+    {
+        reply_message = getServerIP() + ERR_USERNOTINCHANNEL(admin->getnickname(), name , this->GetName());
+        sendMessage(reply_message, admin->get_clientfd());
+    }
+
+}
+
 void Channel::remove_user(Client *admin)
 {
     std::vector<Client*>::iterator it = std::find(invites.begin(), invites.end(), admin);
@@ -209,22 +272,26 @@ void Channel::remove_user(Client *admin)
 }
 
 
-void Channel::add_admin(Client *admin, std::string name){
+void Channel::add_admin(Client *admin, std::string name)
+{
     this->operate = true;
     std::string reply_message;
     if(name.empty())
     {
-        reply_message = GetUserInfo(admin, false) + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +o " + name);
+        reply_message = getServerIP() + ERR_NEEDMOREPARAMS(admin->getnickname(), "MODE" + " +o " + name);
         sendMessage(reply_message, admin->get_clientfd());
         return;
     }
     Client *user = GetUser(name);
-    if(user){
+    if(user)
+    {
         admins.push_back(user);
-        send_to_all(GetUserInfo(admin, true) + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " +o " + admin->getnickname()));
+        reply_message = admin->getPrefix() + " MODE " + this->GetName() + "+o" + name + "\r\n";
+        send_to_all(reply_message);
     }
-    else{
-        reply_message= GetUserInfo(user, false) + ERR_USERNOTINCHANNEL(admin->getnickname(), user->getnickname(), this->GetName());
+    else
+    {
+        reply_message = getServerIP() + ERR_USERNOTINCHANNEL(admin->getnickname(), name, this->GetName());
         sendMessage(reply_message, admin->get_clientfd());
     }
         
