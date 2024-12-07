@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/07 17:52:47 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/07 19:10:24 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -352,7 +352,7 @@ void Channel::rpl_topic(Client *cli, std::string topic, std::string serverIPadd)
         }
         else
         {
-			reply_message = ":" + serverIPadd + ERR_INVALIDMODEPARAM(cli->getnickname(), GetName(), "TOPIC", get_topic(), "Channel Topic Restrection Are On");
+			reply_message = ":" + serverIPadd + ERR_INVALIDMODEPARAM(cli->getnickname(), GetName(), " TOPIC ", get_topic(), "Channel Topic Restrection Are On");
             sendMessage(reply_message, cli->get_clientfd());
         }
     }

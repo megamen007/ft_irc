@@ -68,19 +68,19 @@ void Channel::change_MaxUser(Client *admin, int i, std::string &param, std::stri
     {
         if(param.empty())
         {
-            reply_message = serverIPadd + ERR_NEEDMOREPARAM(admin->getnickname(), "MODE" + " +l ");
+            reply_message = serverIPadd + ERR_NEEDMOREPARAM(admin->getnickname(), " MODE " + " +l ");
             sendMessage(reply_message, admin->get_clientfd());
             return;
         }
         max_us= keys(param);
         if(max_users == 0)
         {
-            reply_message = serverIPadd + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , "l" , param , "Invalid Number .");
+            reply_message = serverIPadd + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , " l " , param , " Invalid Number . ");
             sendMessage(reply_message, admin->get_clientfd());
         }
         else if ( max_us < GetClientsNumber())
         {
-            reply_message = serverIPadd + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , "l" , param , "Sorry we Inform u that we Can`t set Limit lower than existing Members.");
+            reply_message = serverIPadd + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , " l " , param , " Sorry we Inform u that we Can`t set Limit lower than existing Members. ");
             sendMessage(reply_message, admin->get_clientfd());
         }
         else
@@ -105,13 +105,13 @@ void Channel::changeInviteMode(Client *admin, bool i)
     if(i)
     {
         this->invite_only = true;
-        reply_message = ":" + admin->getPrefix() + "MODE" + this->name + "+i" + "\r\n";
+        reply_message = ":" + admin->getPrefix() + " MODE " + this->name + " +i " + "\r\n";
         SetMode("i");    
     }
     else
     {
         this->invite_only = false;
-        reply_message = ":" + admin->getPrefix() + "MODE" + this->name + "-i" + "\r\n";
+        reply_message = ":" + admin->getPrefix() + " MODE " + this->name + " -i " + "\r\n";
     }
     send_to_all(reply_message);
 }
@@ -123,19 +123,19 @@ void Channel::changeKeyMode(Client *admin, std::string key, bool i, std::string 
     {
         if(key.empty())
         {
-            reply_message = ":" + serverIPadd + ERR_NEEDMOREPARAM(admin->getnickname(), "MODE" + " +k");
+            reply_message = ":" + serverIPadd + ERR_NEEDMOREPARAM(admin->getnickname(), " MODE " + " +k ");
             sendMessage(reply_message, admin->get_clientfd());
             return;
         }
         SetPassword(key);
         SetMode("k");
         this->has_password = true;
-        reply_message = admin->getPrefix() + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " +k" );
+        reply_message = admin->getPrefix() + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " +k " );
         sendMessage(reply_message, admin->get_clientfd());
     }
     else{
         this->has_password = false;
-        reply_message = admin->getPrefix() + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " -k" );
+        reply_message = admin->getPrefix() + RPL_CHANNELMODEIS(admin->getnickname(), this->GetName(), " -k " );
         sendMessage(reply_message, admin->get_clientfd());
     }
 
@@ -179,7 +179,7 @@ void Channel::remove_admino(Client *admin, std::string name, std::string serverI
     std::string  reply_message;
     if (name.empty())
     {
-        reply_message = serverIPadd + ERR_NEEDMOREPARAM(admin->getnickname(), "MODE" + " +o " + name);
+        reply_message = serverIPadd + ERR_NEEDMOREPARAM(admin->getnickname(), " MODE " + " +o " + name);
         sendMessage(reply_message, admin->get_clientfd());
         return;
     }
@@ -233,7 +233,7 @@ void Channel::add_admin(Client *admin, std::string name, std::string serverIPadd
     if(user)
     {
         admins.push_back(user);
-        reply_message = admin->getPrefix() + " MODE " + this->GetName() + "+o" + name + "\r\n";
+        reply_message = ":" + admin->getPrefix() + " MODE " + this->GetName() + " +o " + name + "\r\n";
         send_to_all(reply_message);
     }
     else
@@ -254,7 +254,7 @@ void Channel::addUser(Client* client, std::string pass)
     {
         if (pass == password)
         {
-            std::string rpl = client->getPrefix() + " JOIN " + name + " * :realname\r\n";
+            std::string rpl = ":" + client->getPrefix() + " JOIN " + name + " * :realname\r\n";
             std::cout << "madkoukin hna2\n";
             
             if (std::find(Clients.begin(), Clients.end(), client) == Clients.end())
@@ -665,6 +665,7 @@ void Server::PART(Client *admin, std::string &line)
 
             if(chan->is_Admin(admin))
                 chan->remove_admin(admin);
+
             if(admin)
             {
                 reply_message = ":" + admin->getPrefix() + " PART " + chan->GetName() + " :leaving channel\r\n";
@@ -868,7 +869,10 @@ void Server::MODE( Client *client, std::string &line)
     }
     else
     {
-            if(client)
-            ssendMessage(":" + getServerIP() + ERR_NOSUCHCHANNEL(client->getnickname(), chan_name), client->get_clientfd());
+        if(client)
+        {
+            reply_message = ":" + getServerIP() + ERR_NOSUCHCHANNEL(client->getnickname(), chan_name);
+        }
+        ssendMessage( reply_message, client->get_clientfd());
     }
 }
