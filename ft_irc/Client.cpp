@@ -132,6 +132,14 @@ void Client::setusername(std::string userName)
     std::cout << "userName == " << username << "\n\n";
 
 }
+bool Client::getpsdverified()
+{
+    return pass_verified;
+}
+void Client::setpsdverified(bool verified)
+{
+    pass_verified = verified;
+}
 void Client::setIPaddress(std::string Ipadd)
 {
     this->clientIP = Ipadd;

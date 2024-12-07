@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/05 04:39:29 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/07 17:15:18 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,21 +224,12 @@ void Server::socket_receiving(int client_fd)
         std::cout << " Received Data :  " << getRawData() << std::endl;
         std::cout << client->get_clientfd() << std::endl;
 
-        
-        // if (!client->getlogedstatus())
-        //     registerClient(client_fd, buffer);
-
         std::cout << "logo" << client->getlogedstatus() << std::endl;
-        
         cmd = split_received_Buffer(getRawData());
-        // if (client->getlogedstatus())
-        // {
-            for (size_t i = 0; i < cmd.size(); i++)
-            {
-                Parcing_and_Executing(client_fd, cmd[i]);
-            }
-            
-        // }
+        for (size_t i = 0; i < cmd.size(); i++)
+        {
+            Parcing_and_Executing(client_fd, cmd[i]);
+        }
     }
     
     if (std::string(buffer) == "exit") 
@@ -273,7 +264,7 @@ void Server::Parcing_and_Executing(int fd, std::string buffer)
     executing_commands(fd , buffer);
 }
 
-Channel * Server::create_channel(Client *cl, std::string name, std::string pass)
+Channel* Server::create_channel(Client *cl, std::string name, std::string pass)
 {
     Channel *chan = new Channel(name, pass);
     chan->addAdmin(cl);
@@ -282,6 +273,15 @@ Channel * Server::create_channel(Client *cl, std::string name, std::string pass)
     return chan;
 }
 
+void Channel::addAdmin(Client* client)
+{
+        client->setoperatorstatus(true);
+        admins.push_back(client); 
+}
+
+void Channel::addInvited(Client* client) {
+    invites.push_back(client);
+}
 
 void Server::addChannel(Channel *chan) {
     Channels.push_back(chan);
@@ -328,9 +328,9 @@ void Server::executing_commands(int fd, std::string &cmd)
     {
         QUIT(client, cmd);
     }
-    else if (client->getlogedstatus())
+    else if (client->getregistred())
     {
-        
+        std::cout << " hadu machy 7na -------------------------------------------------------" << client->getregistred() << std::endl;
         if (splited_cmd[0] == "JOIN")
         {
                 JOIN(client, cmd);
@@ -369,8 +369,9 @@ void Server::executing_commands(int fd, std::string &cmd)
             ssendMessage(msg_to_reply , client->get_clientfd() );
         }        
     }
-    else if (!client->getlogedstatus())
+    else if (!client->getregistred())
     {
+        std::cout << "hadu huma 7na" << client->getregistred() << std::endl;
         std::string msg_to_reply =  ":" + getServerIP() + ERR_NOTREGISTERED(client->getnickname());
         ssendMessage(msg_to_reply , client->get_clientfd() );
     }

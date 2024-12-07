@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/06 18:58:09 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/07 17:52:47 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,15 @@
 
 // Canonical Form:
 
-Channel::Channel(){
+Channel::Channel()
+{
     name = "default";
     invite_only = false;
     has_password = false;
     has_topic = false;
     has_limit = false;
     operate = false;
+    max_users = 0;
     creation_time = std::time(NULL);
 }
 
@@ -31,25 +33,29 @@ Channel::Channel(const std::string& name) : name(name)
     has_topic = false;
     has_limit = false;
     operate = false;
+    max_users = 0;
     creation_time = std::time(NULL);
 }
 
-Channel::Channel(const std::string& name, const std::string& pswd) : name(name), password(pswd) {
+Channel::Channel(const std::string& name, const std::string& pswd) : name(name), password(pswd) 
+{
     has_password = false;
     invite_only = false;
     has_topic = false;
     has_limit = false;
     operate = false;
+    max_users = 0;
     creation_time = std::time(NULL);
 }
 
 
-Channel &Channel::operator=(const Channel &src){
+Channel &Channel::operator=(const Channel &src)
+{
     if(this == &src)
         return *this;
     name = src.name;
     topic = src.topic;
-    modes = src.modes;
+    mode = src.mode;
     password = src.password;
     invite_only = src.invite_only;
     has_password = src.has_password;
@@ -65,7 +71,8 @@ Channel &Channel::operator=(const Channel &src){
     return *this;
 }
 
-Channel::Channel(Channel const &src){
+Channel::Channel(Channel const &src)
+{
     *this = src;
 }
 
@@ -85,14 +92,9 @@ void Channel::SetMode(std::string mode)
     this->mode = mode;
 }
 
-void Channel::SetTopic(std::string topic){
-    this->topic = topic;
-    has_topic = true;
-}
-
-void Channel::SetPassword(std::string password)
+void Channel::SetTopic(std::string Topic)
 {
-	topic.erase(0, 1);
+    topic.erase(0, 1);
 	if (topic.empty())
     {
 		has_topic = false;
@@ -102,8 +104,13 @@ void Channel::SetPassword(std::string password)
     {
 		topic_time = std::time(NULL);
 		has_topic = true;
-		topic = topic;
+		this->topic = Topic;
 	}
+}
+
+void Channel::SetPassword(std::string passd)
+{
+	this->password = passd;
 }
 
 std::time_t Channel::get_topictime()
@@ -112,7 +119,7 @@ std::time_t Channel::get_topictime()
 }
 std::string Channel::get_modes()
 {
-    return modes;
+    return mode;
 }
 
 void Channel::SetMaxUsers(int max){
@@ -129,15 +136,6 @@ void Channel::set_has_password(bool has_password)
 {
     this->has_password = has_password;
 }
-
-
-// void Channel::sendMessage(std::string message, int destination_fd){
-//     int i;
-//     if((i = send(destination_fd, message.c_str(), message.size(), 0)) == -1)
-//         throw std::runtime_error("send failed");
-//     if(i != (int)message.size())
-//         throw std::runtime_error("send failed: not all bytes sent");
-// }
 
 void Channel::sendMessage(std::string message, int destination_fd)
 {
@@ -207,6 +205,7 @@ Client *Channel::GetUser(std::string name)
     return NULL;
 }
 
+
 size_t Channel::GetClientsNumber()
 {
     // check it later :
@@ -238,7 +237,7 @@ std::string Channel::GetUserInfo(Client *admin, bool i)
 }
 
 
-void Channel::valid_mode(Client *cli, std::string &modes, std::string param)
+void Channel::valid_mode(Client *cli, std::string &modes, std::string param, std::string serverIPadd)
 {
     char mode_char = modes[0];
     size_t i = 0;
@@ -251,12 +250,11 @@ void Channel::valid_mode(Client *cli, std::string &modes, std::string param)
         {
             if(modes[i] == 'i' || modes[i] == 'k' || modes[i] == 'l' || modes[i] == 'o' || modes[i] == 't')
             {
-                plus_modes(cli, modes[i], param);
+                plus_modes(cli, modes[i], param, serverIPadd);
             }
             else
             { 
-                //hadchi li lt7t mkhwr
-                std::string reply_message = getServerIP() + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
+                std::string reply_message = serverIPadd + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
                 sendMessage(reply_message, cli->get_clientfd());
             }
         }
@@ -264,10 +262,10 @@ void Channel::valid_mode(Client *cli, std::string &modes, std::string param)
             for(i = 1; i < modes.size(); ++i)
             {
                 if(modes[i] == 'i' || modes[i] == 'k' || modes[i] == 'l' || modes[i] == 'o' || modes[i] == 't')
-                    minus_modes(cli, get_modes(), param);//plus modes katakhd char
+                    minus_modes(cli, modes[i], param, serverIPadd);
                 else
-                {//ta hadchi mkhwr
-                    std::string reply_message = getServerIP() + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
+                {
+                    std::string reply_message = serverIPadd + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
                     sendMessage(reply_message, cli->get_clientfd());
                 }
 
@@ -275,7 +273,7 @@ void Channel::valid_mode(Client *cli, std::string &modes, std::string param)
     }
 }
 
-void Channel::plus_modes(Client *cli, char c, std::string param)
+void Channel::plus_modes(Client *cli, char c, std::string param, std::string serverIPadd)
 {
     if(c == 'i')
     {
@@ -283,15 +281,15 @@ void Channel::plus_modes(Client *cli, char c, std::string param)
     }
     else if(c == 'k')
     {
-        changeKeyMode(cli, param, true);
+        changeKeyMode(cli, param, true, serverIPadd);
     }
     else if(c == 'l')
     {
-        change_MaxUser(cli, 1, param);
+        change_MaxUser(cli, 1, param, serverIPadd);
     }
     else if(c == 'o')
     {
-        add_admin(cli, param);
+        add_admin(cli, param , serverIPadd);
     }
     else if(c == 't')
     {
@@ -299,83 +297,95 @@ void Channel::plus_modes(Client *cli, char c, std::string param)
     }
 }
 
-void Channel::minus_modes(Client *cli, char c, std::string param)
+void Channel::minus_modes(Client *cli, char c, std::string param , std::string serverIPadd)
 {
     if(c == 'i'){
         changeInviteMode(cli, false);
     }
     else if(c == 'k'){
-        changeKeyMode(cli, param, false);
+        changeKeyMode(cli, param, false, serverIPadd);
     }
     else if(c == 'l'){
-        change_MaxUser(cli, 0, param);
+        change_MaxUser(cli, 0, param, serverIPadd);
     }
     else if(c == 'o'){
-        remove_admino(cli, param);
+        remove_admino(cli, param, serverIPadd);
     }
     else if(c == 't'){
         changeTopicMode(cli, false);
     }
 }
 
-void Channel::rpl_topic(Client *cli, std::string topic){
+void Channel::rpl_topic(Client *cli, std::string topic, std::string serverIPadd)
+{
     std::string reply_message;
-    if(topic.find(':') == std::string::npos){
-        if(onChannel(cli)){
-            if(get_has_topic()){
-                reply_message = ":" + cli->getnickname() + " " + RPL_TOPIC(cli->getnickname(), this->GetName(), topic);
+    if(topic.find(':') == std::string::npos)
+    {
+        if(onChannel(cli))
+        {
+            if(get_has_topic())
+            {
+                reply_message = ":" + serverIPadd + " " + RPL_TOPIC(cli->getnickname(), this->GetName(), topic);
                 sendMessage(reply_message, cli->get_clientfd());
-                reply_message = ":" + cli->getnickname() + " " + RPL_TOPICWHOTIME(cli->getnickname(), this->GetName(), cli->getnickname(), std::to_string(get_topictime()));
+                reply_message = ":" + serverIPadd + " " + RPL_TOPICWHOTIME(cli->getnickname(), this->GetName(), cli->getnickname(), std::to_string(get_topictime()));
                 sendMessage(reply_message, cli->get_clientfd());
             }
             else{
-                reply_message = ":" + cli->getnickname() + " " + RPL_NOTOPIC(cli->getnickname(), this->GetName());
+                reply_message = ":" + serverIPadd + " " + RPL_NOTOPIC(cli->getnickname(), this->GetName());
                 sendMessage(reply_message, cli->get_clientfd());
             }
         }
-        else{
-            reply_message = ":" +  cli->getIPaddress() + ERR_NOTONCHANNEL(cli->getnickname(), this->GetName());
+        else
+        {
+            reply_message = ":" +  serverIPadd + ERR_NOTONCHANNEL(cli->getnickname(), this->GetName());
             sendMessage(reply_message, cli->get_clientfd());
         }
         return;
     }
-    if(is_Admin(cli)){
-        if(modes.find('t') == std::string::npos){
-            //topicsetter????
+    if(is_Admin(cli))
+    {
+        if(mode.find('t') == std::string::npos)
+        {
             SetTopic(topic);
 			reply_message = ":" + cli->getPrefix() +  " TOPIC " + GetName() + " " + get_topic() + "\r\n";
             send_to_all(reply_message);
         }
-        else{
-			reply_message = ":" + cli->getIPaddress() + ERR_INVALIDMODEPARAM(cli->getnickname(), GetName(), "TOPIC", get_topic(), "Channel Topic Restrection Are On");
+        else
+        {
+			reply_message = ":" + serverIPadd + ERR_INVALIDMODEPARAM(cli->getnickname(), GetName(), "TOPIC", get_topic(), "Channel Topic Restrection Are On");
             sendMessage(reply_message, cli->get_clientfd());
-            }
-    }
-    else{
-        reply_message = ":" + cli->getIPaddress() + ERR_CHANOPRIVSNEEDED(cli->getnickname(), GetName());
-        sendMessage(reply_message, cli->get_clientfd());
         }
+    }
+    else
+    {
+        reply_message = ":" + serverIPadd + ERR_CHANOPRIVSNEEDED(cli->getnickname(), GetName());
+        sendMessage(reply_message, cli->get_clientfd());
+    }
 }
 
-void Channel::rpl_mode(Client *cli){
-    //hadchi rah mahouwach
-    sendMessage(GetUserInfo(cli, true) + RPL_CHANNELMODEIS(cli->getnickname(), GetName(), get_modes()), cli->get_clientfd());
-    sendMessage(GetUserInfo(cli, true) + RPL_CREATIONTIME(cli->getnickname(), GetName(), std::to_string(get_time())), cli->get_clientfd());
-}
-
-void Channel::rpl_list(Client *cli){
+void Channel::rpl_mode(Client *cli, std::string serverIPadd)
+{
     std::string reply_message;
-                            //had l IP khass tkoun dyal server
-    reply_message += ":" + cli->getIPaddress() + " 353 " + cli->getnickname() + " = ";
+    reply_message = ":" + serverIPadd + RPL_CHANNELMODEIS(cli->getnickname(), GetName(), get_modes());
+    sendMessage(reply_message, cli->get_clientfd());
+    reply_message = ":" + serverIPadd + RPL_CREATIONTIME(cli->getnickname(), GetName(), std::to_string(get_time()));
+    sendMessage(reply_message , cli->get_clientfd());
+}
+
+void Channel::rpl_list(Client *cli, std::string serverIPadd)
+{
+    std::string reply_message;
+    reply_message += ":" + serverIPadd + " 353 " + cli->getnickname() + " = ";
     reply_message += GetName() + " :";
-    for(size_t i = 0; i < Clients.size(); ++i){
+    
+    for(size_t i = 0; i < Clients.size(); ++i)
+    {
         if(is_Admin(Clients[i]))
         reply_message += "@";
         reply_message += Clients[i]->getnickname() + " ";
     }
 	reply_message += "\r\n";
     sendMessage(reply_message, cli->get_clientfd());
-    //ta tchouf m3ak chnou l prob hna
-    reply_message += ":" + cli->getIPaddress() + RPL_ENDOFNAMES(cli->getnickname, cli->GetName());
+    reply_message = ":" + serverIPadd + RPL_ENDOFNAMES(cli->getnickname(), GetName());
     sendMessage(reply_message, cli->get_clientfd());
 }

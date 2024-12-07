@@ -25,13 +25,13 @@
 #define RPL_WELCOME()									(" 001 :Welcome to the Internet Relay Network \r\n")
 #define ERR_PASSWDMISMATCH()							(" 464 :Password incorrect\r\n")
 #define RPL_ENDOFWHOIS(cli, chan)						(" 315 " + cli + " " + chan + " :End of /WHOIS list\r\n")
-#define RPL_ENDOFNAMES(cli, channel)					(" 366 " + cli + " " + chan + " :End of /NAMES list\r\n")
+#define RPL_ENDOFNAMES(cli, chan)					(" 366 " + cli + " " + chan + " :End of /NAMES list\r\n")
 #define ERR_NOSUCHNICK(client,nick)						(" 401 "  + client + " " + nick + ":No such nick/channel\r\n")
 #define ERR_NOTREGISTERED(nickname)                     (": 451 " + nickname + " :You have not registered!\r\n")
 
 // CHANNEL error messages //
 #define ERR_NEEDMOREPARAMS(client, command)				(" 461 " + client + " " + command + " :Not enough parameters\r\n")
-#define ERR_NEEDMOREPARAMS()							(" 461 :Not enough parameters\r\n")
+#define ERR_NEEDMOREPARAMSS()							(" 461 :Not enough parameters\r\n")
 #define ERR_USERNOTINCHANNEL(client, nick, chan) 		(" 441 " + client + " " + nick + " " + chan + " :They aren't on that channel\r\n")
 #define ERR_NOTONCHANNEL(client, chan)  				(" 442 " + client + " " + chan +  " :You're not on that channel\r\n")
 #define ERR_USERONCHANNEL(client, nick, chan)			(" 443 " + client + " " + nick + " " + chan +  " :is already on channel\r\n")
@@ -43,7 +43,6 @@
 #define	RPL_CHANNELMODEIS(cli, chan, mode)				(" 324 " + cli + " " + chan + " " + mode + "\r\n")
 #define RPL_CREATIONTIME(cli, chan, creationTime)   	(" 329 " + cli + " " + chan + " " + creationTime + "\r\n")
 #define ERR_CHANOPRIVSNEEDED(client, chan)				(" 482 " + client + " " + chan +  " :You're not channel operator\r\n")
-#define RPL_INVITING(client, nick, chan)
 #define ERR_NICKNAMEINUSE(user, nickname)   (" 433 " + user + " " + nickname + " :Nickname is already in use\r\n")
 #define ERR_NONICKNAMEGIVEN(user)           (" 431 " + user + " : No nickname given\r\n")  
 #define ERR_ERRONEUSNICKNAME(user, nick)    (" 432 " + user + " " + nick + " :Erroneus nickname\r\n");
@@ -87,10 +86,12 @@ class Server
         int getPort();
         int getFd();
         int get_Signal_Status();
+        bool getpsdverified();
         std::string getRawData();
         std::vector<Channel *> get_Channels();
 
         // Setters
+        void setpsdverified(bool verified);
         void setFd(int fd);
         void setPort(int port);
         void setPassword(std::string password);
@@ -151,7 +152,7 @@ class Server
         bool Port_valid(std::string port);
         void ssendMessage(std::string message, int destination_fd);
 
-
+        void checkRegistration(Client *client);
         void    executing_commands(int fd, std::string &cmd);
         Client  *getClient(int fd);
         Client  *getClientname(std::string nickname);

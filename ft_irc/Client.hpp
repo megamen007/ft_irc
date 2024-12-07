@@ -26,6 +26,7 @@ class Client
         std::string  username;
         std::string  hostname;
         std::string  servername;
+        bool pass_verified;
         std::string  realname;
         bool has_joined;
 
@@ -54,8 +55,12 @@ class Client
             void setregistred(bool reg);
             void setoperatorstatus(bool oper);
             void setlogedstatus(bool log);
+            void setpsdverified(bool verified);
+
         
         // Getters
+
+            bool getpsdverified();
             std::string getnickname();
             std::string getusername();
             std::string gethostname();
@@ -68,8 +73,4 @@ class Client
             bool getlogedstatus();
             int get_clientfd();
             void client_data();
-
-
-            void sendError(Client *client, const std::string& errorCode, const std::string& channel, const std::string& message);
-
 };

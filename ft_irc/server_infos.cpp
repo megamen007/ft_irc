@@ -205,15 +205,15 @@ Client *Server::findClientByFd(int fd)
     return NULL; // Client not found
 }
 
-bool Server::isNicknameInUse(const std::string &nickname)
-{
-    for (std::vector<Client *>::iterator it = Clients.begin(); it != Clients.end(); ++it)
-    {
-        if ((*it)->getnickname() == nickname)
-            return true;
-    }
-    return false;
-}
+// bool Server::isNicknameInUse(const std::string &nickname)
+// {
+//     for (std::vector<Client *>::iterator it = Clients.begin(); it != Clients.end(); ++it)
+//     {
+//         if ((*it)->getnickname() == nickname)
+//             return true;
+//     }
+//     return false;
+// }
 
 void Server::sendWelcome(int fd)
 {
@@ -228,132 +228,6 @@ std::string Server::trim(std::string &str)
     return str;
 }
 
-std::vector<std::string> Server::splitByCRLF(const std::string &input)
-{
-    std::vector<std::string> result;
-    std::string::size_type start = 0, end;
-
-    while ((end = input.find("\r\n", start)) != std::string::npos)
-    {
-        result.push_back(input.substr(start, end - start));
-        start = end + 2; 
-    }
-
-    if (start < input.length())
-        result.push_back(input.substr(start));
-
-    return result;
-}
 
 
-void Client::sendError(Client *client, const std::string& errorCode, const std::string& channel, const std::string& message)
-{
-    std::string errorMsg;
-
-    // JOIN ERRORS //
-    if (errorCode == "403")
-    {  // ERR_NOSUCHCHANNEL
-        errorMsg = "403 " + client->getnickname() + " " + channel + " :No such channel\r\n";
-    }
-
-    else if (errorCode == "471") 
-    {  // ERR_CHANNELISFULL
-        errorMsg = "471 " + client->getnickname() + " " + channel + " :Cannot join channel (+l)\r\n";
-    }
-    else if (errorCode == "405") 
-    {  // ERR_TOOMANYCHANNELS
-        errorMsg = "405 " + client->getnickname() + " " + channel + " :You have joined too many channels\r\n";
-    }
-
-    else if (errorCode == "471") 
-    {  // ERR_CHANNELISFULL
-        errorMsg = "471 " + client->getnickname() + " " + channel + " :Cannot join channel (+l)\r\n";
-    }
-
-    else if (errorCode == "473") 
-    {  // ERR_INVITEONLYCHAN
-        errorMsg = "473 " + client->getnickname() + " " + channel + " :Cannot join channel (+i)\r\n";
-    }
-
-    else if (errorCode == "474") 
-    {  // ERR_BANNEDFROMCHAN
-        errorMsg = "474 " + client->getnickname() + " " + channel + " :Cannot join channel (+b)\r\n";
-    }
-
-    else if (errorCode == "475") 
-    {  // ERR_BADCHANNELKEY
-        errorMsg = "475 " + client->getnickname() + " " + channel + " :Cannot join channel (+k)\r\n";
-    }
-
-    // PRIVEMSG ERRORS //
-    else if (errorCode == "404")
-    {  // ERR_CANNOTSENDTOCHAN
-        errorMsg = "404 " + client->getnickname() + " " + channel + " :Cannot send to channel\r\n";
-    }
-    
-    // the command they sent isn’t known by the server //
-    else if (errorCode == "421") 
-    {  // ERR_UNKNOWNCOMMAND
-        errorMsg = "421 " + client->getnickname() + " " + message + " :Unknown command\r\n";
-    }
-
-    // PASS //
-
-    else if (errorCode == "464")
-    {  //ERR_PASSWDMISMATCH
-        errorMsg = "464 " + client->getnickname() + " " + message + " :Password incorrect\r\n";
-    }
-
-    // NICK //
-    else if (errorCode == "432") 
-    {  // ERR_ERRONEUSNICKNAME
-        errorMsg = "432 " + client->getnickname() + " " + message + " :Erroneus nickname\r\n";
-    }
-    else if (errorCode == "433") 
-    {  // ERR_NICKNAMEINUSE
-        errorMsg = "433 " + client->getnickname() + " " + message + " :Nickname is already in use\r\n";
-    }
-
-    // KICK //
-    else if (errorCode == "441") 
-    {  // ERR_USERNOTINCHANNEL
-        errorMsg = "441 " + client->getnickname() + " " + message + " :They aren't on that channel\r\n";
-    }
-
-    else if (errorCode == "442") 
-    {  // ERR_NOTONCHANNEL
-        errorMsg = "442 " + client->getnickname() + " " + message + " :You're not on that channel\r\n";
-    }
-
-    // NEED MORE PARAMS //
-    else if (errorCode == "461") 
-    {  // ERR_NEEDMOREPARAMS
-        errorMsg = "461 " + client->getnickname() + " " + message + " :Not enough parameters\r\n";
-    }
-
-    // Registration system //checked
-    // Returned when a client->tries to change a detail that can only be set during registration (such as resending the PASS or USER after registration).
-    else if (errorCode == "462") 
-    {  // ERR_ALREADYREGISTERED
-        errorMsg = "462 " + client->getnickname() + message + " :You may not reregister\r\n";
-    }
-
-    else if (errorCode == "451") 
-    {  // ERR_NOTREGISTERED
-        errorMsg = "451 " + client->getnickname() + " " + message + " :You have not registered\r\n";
-    }
-
-    else if (errorCode == "1")
-    {   // Replies :
-        errorMsg =  client->getnickname() + " " + message + "  \r\n";  
-    }
-
-
-    else {
-        errorMsg = errorCode + " :Unknown error\r\n";
-    }
-
-    // Sending the error message to the client
-    send(client->get_clientfd(), errorMsg.c_str(), errorMsg.length(), 0);
-}
 

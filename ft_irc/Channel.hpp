@@ -8,6 +8,7 @@
 #include "Client.hpp"
 #include <ctime>
 #include "server.hpp"
+
 // TOPIc error messages //
 #define RPL_NOTOPIC(cli, chan)							(" 331 " + cli + " " + chan + " :No topic is set\r\n")
 #define RPL_TOPIC(cli, chan, topic)						(" 332 " + cli + " " + chan + " :" + topic + "\r\n")
@@ -15,12 +16,11 @@
 #define RPL_WELCOME()									(" 001 :Welcome to the Internet Relay Network \r\n")
 #define ERR_PASSWDMISMATCH()							(" 464 :Password incorrect\r\n")
 #define RPL_ENDOFWHOIS(cli, chan)						(" 315 " + cli + " " + chan + " :End of /WHOIS list\r\n")
-#define RPL_ENDOFNAMES(cli, channel)					(" 366 " + cli + " " + chan + " :End of /NAMES list\r\n")
+// #define RPL_ENDOFNAMES(cli, chan)					(" 366 " + cli + " " + chan + " :End of /NAMES list\r\n")
 #define ERR_NOSUCHNICK(client,nick)						(" 401 "  + client + " " + nick + ":No such nick/channel\r\n")
 
 // CHANNEL error messages //
-#define ERR_NEEDMOREPARAMS(client, command)				(" 461 " + client + " " + command + " :Not enough parameters\r\n")
-// #define ERR_NEEDMOREPARAMS()							(" 461 :Not enough parameters\r\n")
+#define ERR_NEEDMOREPARAM(client, command)				(" 461 " + client + " " + command + " :Not enough parameters\r\n")
 #define ERR_USERNOTINCHANNEL(client, nick, chan) 		(" 441 " + client + " " + nick + " " + chan + " :They aren't on that channel\r\n")
 #define ERR_NOTONCHANNEL(client, chan)  				(" 442 " + client + " " + chan +  " :You're not on that channel\r\n")
 #define ERR_USERONCHANNEL(client, nick, chan)			(" 443 " + client + " " + nick + " " + chan +  " :is already on channel\r\n")
@@ -39,7 +39,6 @@ class Channel
 {
     private:
 
-        Server& server;
         std::string name;
         std::string topic;
         std::string mode;
@@ -106,23 +105,23 @@ class Channel
         bool onChannel(Client *admin);
         bool is_inChannel(Client *admin);
         Client* GetClientInChannel(std::string name);
-                void admin_MODE(Client *admin, std::string mode, std::string arg);
+        void admin_MODE(Client *admin, std::string mode, std::string arg);
         void changeInviteMode(Client *admin, bool i);
-        void changeKeyMode(Client *admin, std::string key, bool i);
+        void changeKeyMode(Client *admin, std::string key, bool i, std::string serverIPadd);
         void changeTopicMode(Client *admin, bool i);
-        void add_admin(Client *admin, std::string name);
+        void add_admin(Client *admin, std::string name, std::string serverIPadd);
         void remove_admin(Client *admin);
-        void remove_admino(Client *admin, std::string name);
+        void remove_admino(Client *admin, std::string name,std::string serverIPadd);
         void remove_Invited(Client *admin);
-        void change_MaxUser(Client *admin, int i, std::string &param);
+        void change_MaxUser(Client *admin, int i, std::string &param, std::string serverIPadd);
         void send_to_all(std::string message);
         void remove_user(Client *admin);
         char *getMessage();
-        void rpl_topic(Client *cli, std::string topic);
-        void rpl_list(Client *cli);
-        void rpl_mode(Client *cli);
-        void valid_mode(Client *cli, std::string &modes, std::string param);
-        void plus_modes(Client *cli, char c, std::string param);
-        void minus_modes(Client *cli, char c, std::string param);
+        void rpl_topic(Client *cli, std::string topic,std::string serverIPadd);
+        void rpl_list(Client *cli, std::string serverIPadd);
+        void rpl_mode(Client *cli, std::string serverIPadd);
+        void valid_mode(Client *cli, std::string &modes, std::string param, std::string serverIPadd);
+        void plus_modes(Client *cli, char c, std::string param, std::string serverIPadd);
+        void minus_modes(Client *cli, char c, std::string param, std::string serverIPadd);
     
 };
