@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/07 19:10:24 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/07 20:14:46 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,8 +193,6 @@ std::string Channel::get_topic()
 {
     return this->topic;
 }
-
-//  rah dert wa7ed change hna pookie  zdet & lat9wdha 3lik wla chy haja .
 Client *Channel::GetUser(std::string name)
 {
     for(size_t i = 0; i < Clients.size(); ++i)
@@ -204,7 +202,6 @@ Client *Channel::GetUser(std::string name)
     }
     return NULL;
 }
-
 
 size_t Channel::GetClientsNumber()
 {
@@ -254,7 +251,7 @@ void Channel::valid_mode(Client *cli, std::string &modes, std::string param, std
             }
             else
             { 
-                std::string reply_message = serverIPadd + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
+                std::string reply_message = ":" + serverIPadd + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
                 sendMessage(reply_message, cli->get_clientfd());
             }
         }
@@ -265,7 +262,7 @@ void Channel::valid_mode(Client *cli, std::string &modes, std::string param, std
                     minus_modes(cli, modes[i], param, serverIPadd);
                 else
                 {
-                    std::string reply_message = serverIPadd + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
+                    std::string reply_message =  ":" + serverIPadd + ERR_UNKNOWNMODE(cli->getnickname(), modes[i]);
                     sendMessage(reply_message, cli->get_clientfd());
                 }
 

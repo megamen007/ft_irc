@@ -68,19 +68,19 @@ void Channel::change_MaxUser(Client *admin, int i, std::string &param, std::stri
     {
         if(param.empty())
         {
-            reply_message = serverIPadd + ERR_NEEDMOREPARAM(admin->getnickname(), " MODE " + " +l ");
+            reply_message = ":" +  serverIPadd + ERR_NEEDMOREPARAM(admin->getnickname(), " MODE " + " +l ");
             sendMessage(reply_message, admin->get_clientfd());
             return;
         }
         max_us= keys(param);
         if(max_users == 0)
         {
-            reply_message = serverIPadd + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , " l " , param , " Invalid Number . ");
+            reply_message = ":" + serverIPadd + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , " l " , param , " Invalid Number . ");
             sendMessage(reply_message, admin->get_clientfd());
         }
         else if ( max_us < GetClientsNumber())
         {
-            reply_message = serverIPadd + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , " l " , param , " Sorry we Inform u that we Can`t set Limit lower than existing Members. ");
+            reply_message = ":" + serverIPadd + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , " l " , param , " Sorry we Inform u that we Can`t set Limit lower than existing Members. ");
             sendMessage(reply_message, admin->get_clientfd());
         }
         else
@@ -179,7 +179,7 @@ void Channel::remove_admino(Client *admin, std::string name, std::string serverI
     std::string  reply_message;
     if (name.empty())
     {
-        reply_message = serverIPadd + ERR_NEEDMOREPARAM(admin->getnickname(), " MODE " + " +o " + name);
+        reply_message = ":" + serverIPadd + ERR_NEEDMOREPARAM(admin->getnickname(), " MODE " + " +o " + name);
         sendMessage(reply_message, admin->get_clientfd());
         return;
     }
@@ -193,7 +193,7 @@ void Channel::remove_admino(Client *admin, std::string name, std::string serverI
     }
     else 
     {
-        reply_message = serverIPadd + ERR_USERNOTINCHANNEL(admin->getnickname(), name , this->GetName());
+        reply_message = ":" + serverIPadd + ERR_USERNOTINCHANNEL(admin->getnickname(), name , this->GetName());
         sendMessage(reply_message, admin->get_clientfd());
     }
 
@@ -225,7 +225,7 @@ void Channel::add_admin(Client *admin, std::string name, std::string serverIPadd
     std::string reply_message;
     if(name.empty())
     {
-        reply_message = serverIPadd + ERR_NEEDMOREPARAM(admin->getnickname(), "MODE" + " +o " + name);
+        reply_message = ":" + serverIPadd + ERR_NEEDMOREPARAM(admin->getnickname(), "MODE" + " +o " + name);
         sendMessage(reply_message, admin->get_clientfd());
         return;
     }
@@ -238,7 +238,7 @@ void Channel::add_admin(Client *admin, std::string name, std::string serverIPadd
     }
     else
     {
-        reply_message = serverIPadd + ERR_USERNOTINCHANNEL(admin->getnickname(), name, this->GetName());
+        reply_message = ":" +  serverIPadd + ERR_USERNOTINCHANNEL(admin->getnickname(), name, this->GetName());
         sendMessage(reply_message, admin->get_clientfd());
     }
         
@@ -246,7 +246,7 @@ void Channel::add_admin(Client *admin, std::string name, std::string serverIPadd
 void Channel::addUser(Client* client, std::string pass)
 {
     if (!client)
-     {
+    {
         std::cout << "Client pointer is null in addUser!" << std::endl;
     }
 
@@ -254,9 +254,7 @@ void Channel::addUser(Client* client, std::string pass)
     {
         if (pass == password)
         {
-            std::string rpl = ":" + client->getPrefix() + " JOIN " + name + " * :realname\r\n";
-            std::cout << "madkoukin hna2\n";
-            
+            std::string rpl = ":" + client->getPrefix() + " JOIN " + name + " * :realname\r\n";            
             if (std::find(Clients.begin(), Clients.end(), client) == Clients.end())
             {
                 Clients.push_back(client);
@@ -315,10 +313,12 @@ void Server::JOIN(Client* client, std::string& line)
 }
 
 
-// Helper function to check if a nickname is already in use
-bool Server::isNicknameInUse(const std::string &nick) {
-    for (size_t i = 0; i < Clients.size(); ++i) {
-        if (Clients[i]->getnickname() == nick) {
+bool Server::isNicknameInUse(const std::string &nick)
+{
+    for (size_t i = 0; i < Clients.size(); ++i)
+    {
+        if (Clients[i]->getnickname() == nick)
+        {
             return true;
         }
     }
@@ -334,7 +334,6 @@ void Server::checkRegistration(Client *client)
     }
 }
 
-// PASS command implementation
 void Server::PASS(Client *client, std::string &line)
 {
     std::string rawline = line;
@@ -345,24 +344,33 @@ void Server::PASS(Client *client, std::string &line)
     // Trim whitespace and handle cases where the password is empty
     line = line.substr(4);
     size_t pos = line.find_first_not_of("\t\v ");
-    if (pos < line.size()) {
+    if (pos < line.size())
+    {
         line = line.substr(pos);
         if (line[0] == ':')
             line.erase(line.begin());
     }
 
-    if (pos == std::string::npos || line.empty()) {
+    if (pos == std::string::npos || line.empty())
+    {
         // Missing password
         std::string msg_to_reply = ":" + getServerIP() + ERR_NOTENOUGHPARAM(client->getnickname());
         ssendMessage(msg_to_reply, client->get_clientfd());
-    } else if (!client->getpsdverified()) {
-        if (line == Password) {
+    }
+    else if (!client->getpsdverified())
+    {
+        if (line == Password)
+        {
             client->setpsdverified(true);
-        } else {
+        }
+        else
+        {
             std::string msg_to_reply = ":" + getServerIP() + ERR_INCORPASS(client->getnickname());
             ssendMessage(msg_to_reply, client->get_clientfd());
         }
-    } else {
+    } 
+    else 
+    {
         // Password already provided
         std::string msg_to_reply = ":" + getServerIP() + ERR_ALREADYREGISTERED(client->getnickname());
         ssendMessage(msg_to_reply, client->get_clientfd());
@@ -370,29 +378,37 @@ void Server::PASS(Client *client, std::string &line)
 
 }
 
-// NICK command implementation
-void Server::NICK(Client *client, std::string &line) {
+void Server::NICK(Client *client, std::string &line)
+{
     std::istringstream ss(line);
     std::string cmd, nick;
     ss >> cmd >> nick;
 
-    if (nick.empty()) {
+    if (nick.empty())
+    {
         // No nickname provided
         std::string msg_to_reply = ":" + getServerIP() + ERR_NONICKNAMEGIVEN(client->getnickname());
         ssendMessage(msg_to_reply, client->get_clientfd());
-    } else if (isNicknameInUse(nick)) {
+    }
+    else if (isNicknameInUse(nick))
+    {
         // Nickname already in use
         std::string msg_to_reply = ":" + getServerIP() + ERR_NICKNAMEINUSE(client->getnickname(), nick);
         ssendMessage(msg_to_reply, client->get_clientfd());
-    } else if (nick[0] == '#') {
+    }
+    else if (nick[0] == '#')
+    {
         // Invalid nickname
         std::string msg_to_reply = ":" + getServerIP() + ERR_ERRONEUSNICKNAME(client->getnickname(), nick);
         ssendMessage(msg_to_reply, client->get_clientfd());
-    } else {
+    }
+    else
+    {
         // Set nickname and notify other clients
         client->setnickname(nick);
         std::string msg_to_reply = ":" + client->getPrefix() + " NICK :" + nick + "\r\n";
-        for (size_t i = 0; i < Clients.size(); ++i) {
+        for (size_t i = 0; i < Clients.size(); ++i)
+        {
             ssendMessage(msg_to_reply, Clients[i]->get_clientfd());
         }
     }
@@ -400,15 +416,16 @@ void Server::NICK(Client *client, std::string &line) {
     checkRegistration(client);
 }
 
-// USER command implementation
-void Server::USER(Client *client, std::string &line) {
+void Server::USER(Client *client, std::string &line)
+{
     std::istringstream ss(line);
     std::string cmd, username, hostname, servername, realname;
     ss >> cmd >> username >> hostname >> servername;
 
     // Extract the realname (remainder of the line after the first three tokens)
     size_t realnamePos = line.find(':');
-    if (realnamePos != std::string::npos) {
+    if (realnamePos != std::string::npos)
+    {
         realname = line.substr(realnamePos + 1);
     }
 
@@ -448,7 +465,6 @@ void Server::KICK(Client *admin,  std::string &line)
     Channel *chan = getChannel(chan_name);
     Client  *clio = getClientname(nick);
 
-    std::cout << " Ara wa7ed kick hna --#%& " << std::endl;
     std::string reply_message;
 
     if (chan)
@@ -544,7 +560,7 @@ void Server::INVITE(Client *admin, std::string &line){
                 }
                 else
                 {
-                    std::string msg_to_reply = getServerIP() + ERR_USERONCHANNEL(admin->getnickname() , clio->getnickname(), chan_name);
+                    std::string msg_to_reply = ":" + getServerIP() + ERR_USERONCHANNEL(admin->getnickname() , clio->getnickname(), chan_name);
                     ssendMessage(msg_to_reply, admin->get_clientfd());
                 }
             }
@@ -571,7 +587,6 @@ void Server::INVITE(Client *admin, std::string &line){
 
 void Server::TOPIC(Client *admin, std::string &line)
 {
-    std::cout << " Ara wa7ed Topic hna --#%& " << std::endl;
     std::istringstream ss(line);
     std::string cmd , chan_name , topic;
     std::string reply_message;
@@ -710,7 +725,6 @@ void Server::PRIVMSG(Client *admin, std::string &line)
     ss >> nicknameiichannel;
     std::getline(ss, msg);
 
-    std::cout << " Ara wa7ed Privmsg hna --#%& " << std::endl;
     if (nicknameiichannel[0] == '#')
     {
         Channel *chan = getChannel(nicknameiichannel);
@@ -718,7 +732,7 @@ void Server::PRIVMSG(Client *admin, std::string &line)
         {
             if (!chan->onChannel(admin))
             {
-                std::string error_msg = ERR_NOTONCHANNEL(admin->getnickname(), chan->GetName());
+                std::string error_msg = ":" + ERR_NOTONCHANNEL(admin->getnickname(), chan->GetName());
                 send(admin->get_clientfd(), error_msg.c_str(), error_msg.length(), 0);
             }
 

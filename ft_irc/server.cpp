@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/07 17:15:18 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/07 20:12:07 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@ void Server::Signal_Handler(int signum)
 
 void Server::socket_creation()
 {
-    // 1 - socket creation 
     // socket(domaine , type , protocol);
     Serverfd =  socket(AF_INET, SOCK_STREAM, 0);
     if (Serverfd < 0)
@@ -32,11 +31,6 @@ void Server::socket_creation()
         throw(std::runtime_error(" ---> Socket Creation stage failed "));
     }
 }
-
-// void server::getserverIP()
-// {
-    
-// }
 
 sockaddr_in Server:: socket_infos()
 {
@@ -224,21 +218,18 @@ void Server::socket_receiving(int client_fd)
         std::cout << " Received Data :  " << getRawData() << std::endl;
         std::cout << client->get_clientfd() << std::endl;
 
-        std::cout << "logo" << client->getlogedstatus() << std::endl;
         cmd = split_received_Buffer(getRawData());
         for (size_t i = 0; i < cmd.size(); i++)
         {
             Parcing_and_Executing(client_fd, cmd[i]);
         }
-    }
-    
-    if (std::string(buffer) == "exit") 
-    {
-        std::cout << "You requested to exit. Closing connection." << std::endl;
-        close(client_fd);
-        Remove_Client(client_fd);
-    }
-    
+    } 
+    // if (std::string(buffer) == "exit") 
+    // {
+    //     std::cout << "You requested to exit. Closing connection." << std::endl;
+    //     close(client_fd);
+    //     Remove_Client(client_fd);
+    // }
 }
 
 std::vector<std::string>  Server::split_received_Buffer(std::string str)
@@ -260,7 +251,6 @@ std::vector<std::string>  Server::split_received_Buffer(std::string str)
 
 void Server::Parcing_and_Executing(int fd, std::string buffer)
 {
-    // Parser.Parcing_core(buffer);
     executing_commands(fd , buffer);
 }
 
@@ -309,7 +299,6 @@ void Server::executing_commands(int fd, std::string &cmd)
     Client *client = getClient(fd);
     std::vector<std::string> splited_cmd = split_cmd(cmd);
     
-    
     if (cmd.empty())
         return;
     else if (splited_cmd[0] == "PASS")
@@ -330,7 +319,6 @@ void Server::executing_commands(int fd, std::string &cmd)
     }
     else if (client->getregistred())
     {
-        std::cout << " hadu machy 7na -------------------------------------------------------" << client->getregistred() << std::endl;
         if (splited_cmd[0] == "JOIN")
         {
                 JOIN(client, cmd);
@@ -371,11 +359,9 @@ void Server::executing_commands(int fd, std::string &cmd)
     }
     else if (!client->getregistred())
     {
-        std::cout << "hadu huma 7na" << client->getregistred() << std::endl;
         std::string msg_to_reply =  ":" + getServerIP() + ERR_NOTREGISTERED(client->getnickname());
         ssendMessage(msg_to_reply , client->get_clientfd() );
     }
-    
 }
 
 Client* Server::findClientByNick(const std::string& nickname)

@@ -30,7 +30,6 @@ class Buffer
         std::string get_prv_msg();
         std::string get_reason();
         
-
     // members functions
         void Parcing_core(std::string &buffer);
         void print_parsed_data();

@@ -202,22 +202,12 @@ Client *Server::findClientByFd(int fd)
         if ((*it)->get_clientfd() == fd)
             return *it;
     }
-    return NULL; // Client not found
+    return NULL;
 }
-
-// bool Server::isNicknameInUse(const std::string &nickname)
-// {
-//     for (std::vector<Client *>::iterator it = Clients.begin(); it != Clients.end(); ++it)
-//     {
-//         if ((*it)->getnickname() == nickname)
-//             return true;
-//     }
-//     return false;
-// }
 
 void Server::sendWelcome(int fd)
 {
-    std::cout << "Client " << fd << " Welcome to the HAKUNA MATATA Realm.\n";
+    std::cout << "Client " << fd << " Welcome to the HAKUNA MATATA Realm $IRC SERVER$.\n";
 }
 
 
