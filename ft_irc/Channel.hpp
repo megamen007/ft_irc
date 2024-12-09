@@ -107,7 +107,7 @@ class Channel
         size_t GetClientsNumber();
         bool is_Admin(Client *admin);
         bool is_Invited(Client *admin);
-        bool onChannel(Client *admin);
+        bool onChannel(Client *admin); 
         bool is_inChannel(Client *admin);
         Client* GetClientInChannel(std::string name);
         void admin_MODE(Client *admin, std::string mode, std::string arg);

@@ -13,7 +13,8 @@ int main(int ac, char **av)
     try
     {
         // list of signals that interrupt the irc server : 
-            signal(SIGINT, Server::Signal_Handler);
+        signal(SIGINT, Server::Signal_Handler);
+        signal(SIGQUIT, Server::Signal_Handler);
 
         // Launching the Server:
         if (!Excalibur.Port_valid(av[1]))

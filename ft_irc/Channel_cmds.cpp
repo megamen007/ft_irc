@@ -204,22 +204,17 @@ void Channel::remove_admino(Client *admin, std::string name, std::string serverI
 void Channel::remove_user(Client *admin)
 {
     std::vector<Client*>::iterator it = std::find(Clients.begin(), Clients.end(), admin);
-    if (it != Clients.end()) {
+    if (it != Clients.end())
+    {
         Clients.erase(it);
-        std::cout << "User removed from the main Clients list in the channel." << std::endl;
     }
 
     it = std::find(invites.begin(), invites.end(), admin);
-    if (it != invites.end()) {
+    if (it != invites.end())
+    {
         invites.erase(it);
-        std::cout << "User removed from the invites list." << std::endl;
-    }
-
-    if (Clients.empty()) {
-        std::cout << "The channel is now empty." << std::endl;//ta n7iydo had l prints
     }
 }
-
 
 void Channel::add_admin(Client *admin, std::string name, std::string serverIPadd)
 {
@@ -247,44 +242,6 @@ void Channel::add_admin(Client *admin, std::string name, std::string serverIPadd
 }
 void Channel::addUser(Client* client, std::string pass, std::string serverIP)
 {
-    // if (!client)
-    // {
-    //     std::cout << "Client pointer is null in addUser!" << std::endl;
-    // }
-
-    // if (has_password)
-    // {
-    //     if (pass == password)
-    //     {
-    //         std::string rpl = ":" + client->getPrefix() + " JOIN " + name + " * :realname\r\n";            
-    //         if (std::find(Clients.begin(), Clients.end(), client) == Clients.end())
-    //         {
-    //             Clients.push_back(client);
-    //             send_to_all(rpl);
-    //         } 
-    //         else 
-    //         {
-    //             std::cerr << "Client already exists in the channel!" << std::endl;
-    //         }
-    //     }
-    //     else
-    //     {
-    //         std::cerr << "Invalid Password" << std::endl;
-    //     }
-    // }
-    // else
-    // {
-    //     std::string rpl = ":" +  client->getPrefix() + " JOIN " + name + " * :realname\r\n";
-    //     if (std::find(Clients.begin(), Clients.end(), client) == Clients.end())
-    //     {
-    //         Clients.push_back(client);
-    //         send_to_all(rpl);
-    //     }
-    //     else
-    //     {
-    //         std::cerr << "Client already exists in the channel!" << std::endl;
-    //     }
-    // }
     if (has_password)
     {
         if (pass.empty()) // Check if the user has provided a password
@@ -392,6 +349,7 @@ void Server::JOIN(Client* client, std::string& line)
     ss >> cmd;
     ss >> chan_name;
     std::getline(ss, pass);
+    trim(pass);
     std::string serverio = getServerIP();
     if (chan_name[0] == '#') 
     { 
@@ -566,7 +524,7 @@ void Server::KICK(Client *admin,  std::string &line)
     ss >> chan_name;
     ss >> nick;
     std::getline(ss, reason);
-
+    trim(reason);
     Channel *chan = getChannel(chan_name);
     Client  *clio = getClientname(nick);
 
@@ -697,6 +655,7 @@ void Server::TOPIC(Client *admin, std::string &line)
     ss >> cmd;
     ss >> chan_name;
     std::getline(ss, topic);
+    trim(topic);
     topic.erase(0, 1);
     Channel *chan = getChannel(chan_name);
     if (chan)
@@ -769,6 +728,7 @@ void Server::PART(Client *admin, std::string &line)
     ss >> cmd;
     ss >> chan_name;
     std::getline(ss, reason);
+    trim(reason);
     Channel *chan = getChannel(chan_name);
     std::string reply_message;
 
@@ -823,7 +783,7 @@ void Server::PRIVMSG(Client *admin, std::string &line)
     ss >> cmd;
     ss >> nicknameiichannel;
     std::getline(ss, msg);
-
+    trim(msg);
     if (nicknameiichannel[0] == '#')
     {
         Channel *chan = getChannel(nicknameiichannel);
@@ -831,7 +791,7 @@ void Server::PRIVMSG(Client *admin, std::string &line)
         {
             if (!chan->onChannel(admin))
             {
-                std::string error_msg = ":" + ERR_NOTONCHANNEL(admin->getnickname(), chan->GetName());
+                std::string error_msg = ":" + getServerIP() + ERR_NOTONCHANNEL(admin->getnickname(), chan->GetName());
                 send(admin->get_clientfd(), error_msg.c_str(), error_msg.length(), 0);
             }
             size_t pos = msg.find(':');
@@ -839,18 +799,16 @@ void Server::PRIVMSG(Client *admin, std::string &line)
             {
                 msg = msg.substr(pos + 1);
             }
-                std::string msg_to_send = ":" + admin->getPrefix() + " PRIVMSG " + chan->GetName() + " : " + msg + "\r\n";
-                chan->send_to_all(msg_to_send);
+            std::string msg_to_send = ":" + admin->getPrefix() + " PRIVMSG " + chan->GetName() + " : " + msg + "\r\n";
+            chan->send_to_all(msg_to_send);
         }
         else
         {
             if (admin)
             {
-                // _server->getIpaddress() is the same as admin->getIPaddress()
                 std::string msg_to_send = ":" +  getServerIP()  + ERR_NOSUCHCHANNEL(admin->getnickname(), nicknameiichannel);
                 send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
             }
-
         }
     }
     else 
@@ -870,7 +828,6 @@ void Server::PRIVMSG(Client *admin, std::string &line)
         {
             if (admin)
             {
-                // _server->getIpaddress()
                 std::string msg_to_send = ":" + getServerIP() + ERR_NOSUCHNICK(admin->getnickname(), nicknameiichannel);
                 send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
             }
@@ -898,51 +855,75 @@ void Server::WHO(Client* admin, std::string &line)
         }
     }
 }
+void Server::removeChannel(Channel *chan)
+{
+    std::string msg_to_reply;
+    
+    for (size_t i = 0; i < chan->Clients.size() ; ++i)
+    {
+        if (chan->is_inChannel(Clients[i]))
+        {
+
+            if(chan->is_Admin(Clients[i]))
+                chan->remove_admin(Clients[i]);
+
+            if(Clients[i])
+            {
+                msg_to_reply = ":" + Clients[i]->getPrefix() + " PART " + chan->GetName() + " :leaving channel\r\n";
+                chan->send_to_all(msg_to_reply);
+                chan->remove_user(Clients[i]);
+            }
+        }
+        else
+        {
+            std::string msg_to_send = ":" +  getServerIP()  + ERR_NOSUCHCHANNEL(Clients[i]->getnickname(), chan->GetName());
+            send(Clients[i]->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
+        }
+    }
+
+    std::vector<Channel *>::iterator it = std::find(Channels.begin() , Channels.end(), chan);
+    if (it != Channels.end())
+    {
+        Channels.erase(it);
+    }
+    delete chan;
+}
 
 void Server::QUIT(Client *clio, std::string &line)
 {
     std::string cmd, reason;
     std::istringstream ss(line);
 
-    // Extract the first word (command) and the rest (reason)
     ss >> cmd;
-    std::getline(ss, reason); // Get the rest of the line as the reason
+    std::getline(ss, reason);
+    trim(reason);
 
-    // Trim leading spaces from the reason
-    size_t start_pos = reason.find_first_not_of(' ');
-    if (start_pos != std::string::npos)
-        reason = reason.substr(start_pos);
-
-    // Add default quit message if no reason is provided
     if (reason.empty())
         reason = "Quit";
 
-    // Ensure the reason starts with a colon
-    if (reason[0] != ':')
-        reason = ":" + reason;
-
-    // Notify all channels and clients
     for (size_t i = 0; i < Channels.size(); ++i)
     {
-        // Check if the client is in the channel as a member or admin
         if (Channels[i]->GetUser(clio->getnickname()) || Channels[i]->getOperator(clio->getnickname()))
         {
-            // Remove the client/admin from the channel
-            Channels[i]->remove_user(clio);
-            Channels[i]->remove_admin(clio);
-
-            // Delete the channel if it's empty
-            if (Channels[i]->GetClientsNumber() == 0)
+            if(Channels[i]->is_Admin(clio))
             {
-                Channels.erase(Channels.begin() + i);
-                --i; // Adjust index after erase
-            }
-            else
-            {
-                // Notify remaining clients in the channel
                 std::string msg_to_send = ":" + clio->getnickname() + "!~" + clio->getusername() + "@localhost QUIT " + reason + "\r\n";
                 Channels[i]->send_to_all(msg_to_send);
+                Channels[i]->remove_admin(clio);
             }
+            
+            else
+            {
+                std::string msg_to_send = ":" + clio->getnickname() + "!~" + clio->getusername() + "@localhost QUIT " + reason + "\r\n";
+                Channels[i]->send_to_all(msg_to_send);
+                Channels[i]->remove_user(clio);
+            }
+
+            if (Channels[i]->GetClientsNumber() == 0)
+            {
+                removeChannel(Channels[i]);
+            }
+            delete clio;
         }
     }
 }

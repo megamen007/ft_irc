@@ -6,20 +6,21 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/09 01:15:37 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/09 22:55:13 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "server.hpp"
 
-int Server::Signal_status = 0;
+bool Server::Signal_status = 0;
 
 void Server::Signal_Handler(int signum)
 {
-    (void)signum;
-
-    std::cout << " Signal " << signum << "received. " << std::endl;
-    Signal_status = signum; 
+    if (signum == 2)
+        std::cout << " Signal " << " SIGINT " << " received. " << std::endl;
+    else if (signum == 3 )
+        std::cout << " Signal " << " SIGQUIT " << " received. " << std::endl;
+    Signal_status = true; 
 }
 
 void Server::socket_creation()
@@ -115,13 +116,13 @@ void Server::Launching_server(int port, std::string password)
 
 void Server::Server_cycle()
 {
-    while(!get_Signal_Status())
+    while(get_Signal_Status() == false)
     {
         if((poll(fds.data(), fds.size(), -1) == -1) && get_Signal_Status() == false)
         {
             throw(std::runtime_error(" ---> poll stage failed "));
         }
-
+        
         size_t i = 0;
         while( i < fds.size())
         {
@@ -223,12 +224,6 @@ void Server::socket_receiving(int client_fd)
             Parcing_and_Executing(client_fd, cmd[i]);
         }
     } 
-    // if (std::string(buffer) == "exit") 
-    // {
-    //     std::cout << "You requested to exit. Closing connection." << std::endl;
-    //     close(client_fd);
-    //     Remove_Client(client_fd);
-    // }
 }
 
 std::vector<std::string>  Server::split_received_Buffer(std::string str)
@@ -245,8 +240,6 @@ std::vector<std::string>  Server::split_received_Buffer(std::string str)
 	}
 	return vec; 
 }
-
-
 
 void Server::Parcing_and_Executing(int fd, std::string buffer)
 {

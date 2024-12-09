@@ -63,7 +63,7 @@ class Server
 
         int Port;
         std::string Password;
-        static int Signal_status;
+        static bool Signal_status;
         int Serverfd;
         int flags_status;
         std::string RawData;
@@ -110,6 +110,7 @@ class Server
         void socket_Binding(sockaddr_in serveradd);
         void socket_non_blocking();
         void socket_listening();
+
         // void socket_Accepting();
         void socket_Accepting();
         void server_socket_polling();
@@ -117,6 +118,7 @@ class Server
         void socket_receiving(int client_fd);
         std::string getServerIP();
 
+        void removeChannel(Channel *chan);
 
         // Signal functions:
         static void Signal_Handler(int signum);
