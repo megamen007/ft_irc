@@ -11,7 +11,7 @@
 
 // TOPIc error messages //
 #define RPL_NOTOPIC(cli, chan)							(" 331 " + cli + " " + chan + " :No topic is set\r\n")
-#define RPL_TOPIC(cli, chan, topic)						(" 332 " + cli + " " + chan + " :" + topic + "\r\n")
+#define RPL_TOPIC(cli, chan, topic)						(" 332 " + cli + " " + chan  + topic + "\r\n")
 
 #define RPL_WELCOME()									(" 001 :Welcome to the Internet Relay Network \r\n")
 #define ERR_PASSWDMISMATCH()							(" 464 :Password incorrect\r\n")
@@ -33,6 +33,9 @@
 #define RPL_CREATIONTIME(cli, chan, creationTime)   	(" 329 " + cli + " " + chan + " " + creationTime + "\r\n")
 #define ERR_CHANOPRIVSNEEDED(client, chan)				(" 482 " + client + " " + chan +  " :You're not channel operator\r\n")
 #define RPL_INVITING(client, nick, chan)				(" 341 " + client + " " + nick + " " + chan + "\r\n")
+#define ERR_INVITEONLYCHAN(nick, chan)								(" 473 " + nick + " " + chan + " :Cannot join channel (+i)\r\n")
+#define ERR_CHANNELISFULL(nick, chan)								(" 471 " + nick + " " + chan + " :Cannot join channel (+l)\r\n")
+#define ERR_INVALIDKEY(nick, chan)									(" 525 " + nick + " " + chan + " :Key is not well-formed\r\n")
 
 class Client;
 class Channel
@@ -48,9 +51,11 @@ class Channel
         bool invite_only;
         bool has_password;
         bool has_topic;
+        bool has_rest;
         bool has_limit;
         bool operate;
         size_t max_users;
+        size_t users;
 
     public:
 
@@ -66,14 +71,14 @@ class Channel
         Channel &operator=(const Channel &src);
         
         void addAdmin(Client* client);
-        void addUser(Client* client,  std::string pass);
+        void addUser(Client* client,  std::string pass, std::string serverIP);
         void addInvited(Client* client);
     
 
         void SetLimit(int limit);
         void SetMaxUsers(int max);
         void SetName(std::string name);
-        void SetMode(std::string mode);
+        void SetMode(char mode);
         void SetTopic(std::string topic);
         void SetPassword(std::string password);
         void SetTime(std::time_t time);
@@ -116,6 +121,7 @@ class Channel
         void change_MaxUser(Client *admin, int i, std::string &param, std::string serverIPadd);
         void send_to_all(std::string message);
         void remove_user(Client *admin);
+        bool validPassio(std::string passio);
         char *getMessage();
         void rpl_topic(Client *cli, std::string topic,std::string serverIPadd);
         void rpl_list(Client *cli, std::string serverIPadd);

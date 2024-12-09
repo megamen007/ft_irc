@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/07 20:12:07 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/09 01:15:37 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,7 +191,6 @@ void Server::socket_receiving(int client_fd)
 {
     char buffer[1024];
     std::vector<std::string> cmd;
-    Buffer Parser;
     Client *client = getClient(client_fd);
     memset(buffer, 0, sizeof(buffer));
 
@@ -256,9 +255,10 @@ void Server::Parcing_and_Executing(int fd, std::string buffer)
 
 Channel* Server::create_channel(Client *cl, std::string name, std::string pass)
 {
+    std::string serverIP = getServerIP();
     Channel *chan = new Channel(name, pass);
     chan->addAdmin(cl);
-    chan->addUser(cl, pass);
+    chan->addUser(cl, pass,serverIP);
     chan->getMembers();
     return chan;
 }
@@ -321,11 +321,11 @@ void Server::executing_commands(int fd, std::string &cmd)
     {
         if (splited_cmd[0] == "JOIN")
         {
-                JOIN(client, cmd);
+            JOIN(client, cmd);
         }
         else if (splited_cmd[0] == "WHO")
         {
-                WHO(client, cmd);
+            WHO(client, cmd);
         }
         else if (splited_cmd[0] == "KICK")
         {

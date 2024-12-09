@@ -16,7 +16,6 @@
 
 #include "Channel.hpp"
 #include "Client.hpp"
-#include "Parcing_data.hpp"
 
 // TOPIc error messages //
 #define ERR_INCORPASS(client)                           ("464 " + client + " :Password incorrect\r\n")
@@ -48,7 +47,7 @@
 #define ERR_ERRONEUSNICKNAME(user, nick)    (" 432 " + user + " " + nick + " :Erroneus nickname\r\n");
 
 #define RPL_NOTOPIC(cli, chan)							(" 331 " + cli + " " + chan + " :No topic is set\r\n")
-#define RPL_TOPIC(cli, chan, topic)						(" 332 " + cli + " " + chan + " :" + topic + "\r\n")
+#define RPL_TOPIC(cli, chan, topic)						(" 332 " + cli + " " + chan +  topic + "\r\n")
 #define	RPL_TOPICWHOTIME(user, chan, setter, time)		(" 333 " + user + " " + chan + " "  + setter + " " + time + "\r\n")
 #define ERR_INVALIDMODEPARAM(nick, chanuser, mode, param, desc)		(" 696 " + nick + " " + chanuser + " " + mode + " " + param + " " + desc + "\r\n")
 #define ERR_CHANOPRIVSNEEDED(client, chan)				(" 482 " + client + " " + chan +  " :You're not channel operator\r\n")
@@ -57,7 +56,6 @@
 
 class Client;
 class Channel;
-class Buffer;
 
 class Server
 {

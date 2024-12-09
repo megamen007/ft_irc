@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/07 20:14:46 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/09 00:08:40 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ Channel::Channel(const std::string& name) : name(name)
     has_limit = false;
     operate = false;
     max_users = 0;
+    users = 0;
+    mode = "";
     creation_time = std::time(NULL);
 }
 
@@ -45,6 +47,8 @@ Channel::Channel(const std::string& name, const std::string& pswd) : name(name),
     has_limit = false;
     operate = false;
     max_users = 0;
+    users = 0;
+    mode = "";
     creation_time = std::time(NULL);
 }
 
@@ -63,6 +67,7 @@ Channel &Channel::operator=(const Channel &src)
     has_limit = src.has_limit;
     operate = src.operate;
     max_users = src.max_users;
+    users = src.users;
     Clients = src.Clients;
     admins = src.admins;
     invites = src.invites;
@@ -87,7 +92,7 @@ void Channel::SetName(std::string name)
     this->name = name;
 }
 
-void Channel::SetMode(std::string mode)
+void Channel::SetMode(char mode)
 {
     this->mode = mode;
 }
@@ -191,7 +196,9 @@ std::string Channel::get_password()
 
 std::string Channel::get_topic()
 {
-    return this->topic;
+    if (has_topic)
+        return this->topic;
+    return ("");
 }
 Client *Channel::GetUser(std::string name)
 {
@@ -255,7 +262,9 @@ void Channel::valid_mode(Client *cli, std::string &modes, std::string param, std
                 sendMessage(reply_message, cli->get_clientfd());
             }
         }
-    } else {
+    }
+    else
+    {
             for(i = 1; i < modes.size(); ++i)
             {
                 if(modes[i] == 'i' || modes[i] == 'k' || modes[i] == 'l' || modes[i] == 'o' || modes[i] == 't')
@@ -266,7 +275,7 @@ void Channel::valid_mode(Client *cli, std::string &modes, std::string param, std
                     sendMessage(reply_message, cli->get_clientfd());
                 }
 
-        }
+            }
     }
 }
 
@@ -296,7 +305,8 @@ void Channel::plus_modes(Client *cli, char c, std::string param, std::string ser
 
 void Channel::minus_modes(Client *cli, char c, std::string param , std::string serverIPadd)
 {
-    if(c == 'i'){
+    if(c == 'i')
+    {
         changeInviteMode(cli, false);
     }
     else if(c == 'k'){
@@ -310,6 +320,10 @@ void Channel::minus_modes(Client *cli, char c, std::string param , std::string s
     }
     else if(c == 't'){
         changeTopicMode(cli, false);
+    }
+    if (mode.find(c) != std::string::npos)
+    {
+        mode.erase(mode.find(c), 1);
     }
 }
 
@@ -344,12 +358,12 @@ void Channel::rpl_topic(Client *cli, std::string topic, std::string serverIPadd)
         if(mode.find('t') == std::string::npos)
         {
             SetTopic(topic);
-			reply_message = ":" + cli->getPrefix() +  " TOPIC " + GetName() + " " + get_topic() + "\r\n";
+			reply_message = ":" + cli->getPrefix() +  " TOPIC " + GetName() + " " + topic + "\r\n";
             send_to_all(reply_message);
         }
         else
         {
-			reply_message = ":" + serverIPadd + ERR_INVALIDMODEPARAM(cli->getnickname(), GetName(), " TOPIC ", get_topic(), "Channel Topic Restrection Are On");
+			reply_message = ":" + serverIPadd + ERR_INVALIDMODEPARAM(cli->getnickname(), GetName(), " TOPIC ", topic , "Channel Topic Restrection Are On");
             sendMessage(reply_message, cli->get_clientfd());
         }
     }
