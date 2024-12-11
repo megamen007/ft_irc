@@ -8,10 +8,11 @@
 #include "Client.hpp"
 #include <ctime>
 #include "server.hpp"
+#include <cstdlib>
 
 // TOPIc error messages //
 #define RPL_NOTOPIC(cli, chan)							(" 331 " + cli + " " + chan + " :No topic is set\r\n")
-#define RPL_TOPIC(cli, chan, topic)						(" 332 " + cli + " " + chan  + topic + "\r\n")
+#define RPL_TOPIC(cli, chan, topic)						(" 332 " + cli + " " + chan  + " :" + topic + "\r\n")
 
 #define RPL_WELCOME()									(" 001 :Welcome to the Internet Relay Network \r\n")
 #define ERR_PASSWDMISMATCH()							(" 464 :Password incorrect\r\n")
@@ -35,7 +36,8 @@
 #define RPL_INVITING(client, nick, chan)				(" 341 " + client + " " + nick + " " + chan + "\r\n")
 #define ERR_INVITEONLYCHAN(nick, chan)								(" 473 " + nick + " " + chan + " :Cannot join channel (+i)\r\n")
 #define ERR_CHANNELISFULL(nick, chan)								(" 471 " + nick + " " + chan + " :Cannot join channel (+l)\r\n")
-#define ERR_INVALIDKEY(nick, chan)									(" 525 " + nick + " " + chan + " :Key is not well-formed\r\n")
+#define ERR_BADCHANNELKEY(nick, chan)								(" 475 " + nick + " " + chan + " :Cannot join channel (+k)\r\n")
+// #define ERR_BADCHANNELKEY(nick, chan)									(" 525 " + nick + " " + chan + " :Key is not well-formed\r\n")
 
 class Client;
 class Channel
@@ -120,6 +122,7 @@ class Channel
         void remove_Invited(Client *admin);
         void change_MaxUser(Client *admin, int i, std::string &param, std::string serverIPadd);
         void send_to_all(std::string message);
+        void send_to_all_except_me(std::string message, Client *clio);
         void remove_user(Client *admin);
         bool validPassio(std::string passio);
         char *getMessage();

@@ -218,6 +218,3 @@ std::string Server::trim(std::string &str)
     return str;
 }
 
-
-
-

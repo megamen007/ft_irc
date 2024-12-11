@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/09 00:08:40 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/11 23:19:34 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ Channel::Channel()
     name = "default";
     invite_only = false;
     has_password = false;
-    has_topic = false;
+    has_topic = true;
     has_limit = false;
     operate = false;
     max_users = 0;
@@ -30,7 +30,7 @@ Channel::Channel(const std::string& name) : name(name)
 {
     invite_only = false;
     has_password = false;
-    has_topic = false;
+    has_topic = true;
     has_limit = false;
     operate = false;
     max_users = 0;
@@ -43,7 +43,7 @@ Channel::Channel(const std::string& name, const std::string& pswd) : name(name),
 {
     has_password = false;
     invite_only = false;
-    has_topic = false;
+    has_topic = true;
     has_limit = false;
     operate = false;
     max_users = 0;
@@ -99,18 +99,10 @@ void Channel::SetMode(char mode)
 
 void Channel::SetTopic(std::string Topic)
 {
-    topic.erase(0, 1);
-	if (topic.empty())
-    {
-		has_topic = false;
-		topic.clear();
-	} 
-    else
-    {
-		topic_time = std::time(NULL);
-		has_topic = true;
-		this->topic = Topic;
-	}
+    topic_time = std::time(NULL);
+    this->topic = Topic;
+    std::cout << "GET topic :" << Topic << std::endl;
+    std::cout << "GET topic :" << this->topic << std::endl;
 }
 
 void Channel::SetPassword(std::string passd)
@@ -122,8 +114,25 @@ std::time_t Channel::get_topictime()
 {
     return topic_time;
 }
+
+std::string size_tToString(size_t value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
 std::string Channel::get_modes()
 {
+    std::string modes = "+";
+    
+    modes += this->has_topic ? "t" : "";
+    modes += this->has_limit ? "l": "";
+    modes += this->invite_only ? "i": "";
+    modes += this->has_password ? "k": "";
+    modes += this->has_limit ? " " + size_tToString(this->max_users): "";
+    modes += this->has_password ? " " + this->password: "";
+    this->mode = modes;
+    std::cout << "get modes: " << modes << std::endl;
+
     return mode;
 }
 
@@ -196,9 +205,7 @@ std::string Channel::get_password()
 
 std::string Channel::get_topic()
 {
-    if (has_topic)
-        return this->topic;
-    return ("");
+    return this->topic;
 }
 Client *Channel::GetUser(std::string name)
 {

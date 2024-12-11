@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/09 22:55:13 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/10 20:58:27 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -294,53 +294,53 @@ void Server::executing_commands(int fd, std::string &cmd)
     
     if (cmd.empty())
         return;
-    else if (splited_cmd[0] == "PASS")
+    else if (splited_cmd[0] == "PASS" || splited_cmd[0] == "pass")
     {
         PASS(client, cmd);
     }
-    else if (splited_cmd[0] == "NICK")
+    else if (splited_cmd[0] == "NICK" || splited_cmd[0] == "nick")
     {
         NICK(client, cmd);
     }
-    else if (splited_cmd[0] == "USER")
+    else if (splited_cmd[0] == "USER" || splited_cmd[0] == "user")
     {
         USER(client, cmd);
     }
-    else if (splited_cmd[0] == "QUIT")
+    else if (splited_cmd[0] == "QUIT" || splited_cmd[0] == "quit")
     {
         QUIT(client, cmd);
     }
     else if (client->getregistred())
     {
-        if (splited_cmd[0] == "JOIN")
+        if (splited_cmd[0] == "JOIN" || splited_cmd[0] == "join")
         {
             JOIN(client, cmd);
         }
-        else if (splited_cmd[0] == "WHO")
+        else if (splited_cmd[0] == "WHO" || splited_cmd[0] == "who")
         {
             WHO(client, cmd);
         }
-        else if (splited_cmd[0] == "KICK")
+        else if (splited_cmd[0] == "KICK" || splited_cmd[0] == "kick")
         {
             KICK(client, cmd);
         }
-        else if (splited_cmd[0] == "TOPIC")
+        else if (splited_cmd[0] == "TOPIC" || splited_cmd[0] == "topic")
         {
             TOPIC(client, cmd);
         }
-        else if (splited_cmd[0] == "INVITE")
+        else if (splited_cmd[0] == "INVITE" || splited_cmd[0] == "invite")
         {
             INVITE(client, cmd);
         }
-        else if (splited_cmd[0] == "MODE")
+        else if (splited_cmd[0] == "MODE" || splited_cmd[0] == "mode")
         {
             MODE(client, cmd);
         }
-        else if (splited_cmd[0] == "PRIVMSG")
+        else if (splited_cmd[0] == "PRIVMSG" || splited_cmd[0] == "privmsg")
         {
             PRIVMSG(client , cmd); 
         }
-        else if (splited_cmd[0] == "PART")
+        else if (splited_cmd[0] == "PART" || splited_cmd[0] == "part")
         {
             PART(client , cmd);
         }

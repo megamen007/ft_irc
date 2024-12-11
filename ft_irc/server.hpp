@@ -18,8 +18,8 @@
 #include "Client.hpp"
 
 // TOPIc error messages //
-#define ERR_INCORPASS(client)                           ("464 " + client + " :Password incorrect\r\n")
-#define ERR_NOTENOUGHPARAM(client)                      ("461 " + client + " :Not enough parameters\r\n")
+#define ERR_INCORPASS(client)                           (" 464 " + client + " :Password incorrect\r\n")
+#define ERR_NOTENOUGHPARAM(client)                      (" 461 " + client + " :Not enough parameters\r\n")
 #define ERR_ALREADYREGISTERED(nick)						(" 462 " + nick + " :You may not reregister\r\n")
 #define RPL_WELCOME()									(" 001 :Welcome to the Internet Relay Network \r\n")
 #define ERR_PASSWDMISMATCH()							(" 464 :Password incorrect\r\n")
@@ -47,7 +47,7 @@
 #define ERR_ERRONEUSNICKNAME(user, nick)    (" 432 " + user + " " + nick + " :Erroneus nickname\r\n");
 
 #define RPL_NOTOPIC(cli, chan)							(" 331 " + cli + " " + chan + " :No topic is set\r\n")
-#define RPL_TOPIC(cli, chan, topic)						(" 332 " + cli + " " + chan +  topic + "\r\n")
+#define RPL_TOPIC(cli, chan, topic)						(" 332 " + cli + " " + chan + " :" + topic + "\r\n")
 #define	RPL_TOPICWHOTIME(user, chan, setter, time)		(" 333 " + user + " " + chan + " "  + setter + " " + time + "\r\n")
 #define ERR_INVALIDMODEPARAM(nick, chanuser, mode, param, desc)		(" 696 " + nick + " " + chanuser + " " + mode + " " + param + " " + desc + "\r\n")
 #define ERR_CHANOPRIVSNEEDED(client, chan)				(" 482 " + client + " " + chan +  " :You're not channel operator\r\n")

@@ -1,7 +1,4 @@
-
 #include "Channel.hpp"
-
-
 
 bool Channel::is_Admin(Client *admin){
     if(std::find(admins.begin(), admins.end(), admin) != admins.end())
@@ -35,6 +32,15 @@ void Channel::send_to_all(std::string message)
     for(size_t i = 0; i < Clients.size(); ++i)
     {
         sendMessage(message, Clients[i]->get_clientfd());
+    }
+}
+
+void Channel::send_to_all_except_me(std::string message, Client *clio)
+{
+    for(size_t i = 0; i < Clients.size(); ++i)
+    {
+        if (Clients[i] != clio)
+            sendMessage(message, Clients[i]->get_clientfd());
     }
 }
 
@@ -78,11 +84,11 @@ void Channel::change_MaxUser(Client *admin, int i, std::string &param, std::stri
             reply_message = ":" + serverIPadd + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , " l " , param , " Invalid Number . ");
             sendMessage(reply_message, admin->get_clientfd());
         }
-        else if ( max_us < GetClientsNumber())
-        {
-            reply_message = ":" + serverIPadd + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , " l " , param , " Sorry we Inform u that we Can`t set Limit lower than existing Members. ");
-            sendMessage(reply_message, admin->get_clientfd());
-        }
+        // else if ( max_us < GetClientsNumber())
+        // {
+        //     reply_message = ":" + serverIPadd + ERR_INVALIDMODEPARAM(admin->getnickname(), this->GetName() , " l " , param , " Sorry we Inform u that we Can`t set Limit lower than existing Members. ");
+        //     sendMessage(reply_message, admin->get_clientfd());
+        // }
         else
         {
             this->has_limit = true;
@@ -95,7 +101,8 @@ void Channel::change_MaxUser(Client *admin, int i, std::string &param, std::stri
     else
     {
         has_limit = false;
-        reply_message = ":" + admin->getPrefix() + " MODE " + this->GetName() +  " -l " + "\r\n"; 
+        reply_message = ":" + admin->getPrefix() + " MODE " + this->GetName() +  " -l " +  "\r\n";
+        sendMessage(reply_message, admin->get_clientfd()); 
     }
 }
 
@@ -136,7 +143,7 @@ void Channel::changeKeyMode(Client *admin, std::string key, bool i, std::string 
     }
     else{
         this->has_password = false;
-        reply_message = ":" + admin->getPrefix() + " MODE " + this->GetName() + " +k " + key + "\r\n";
+        reply_message = ":" + admin->getPrefix() + " MODE " + this->GetName() + " -k " + key + "\r\n";
         sendMessage(reply_message, admin->get_clientfd());
     }
 
@@ -147,14 +154,15 @@ void Channel::changeTopicMode(Client *admin, bool i)
     std::string reply_message;
     if(i)
     {
-        this->has_rest = true;
+        this->has_topic = true;
         SetMode('t');
         reply_message = ":" + admin->getPrefix() +  " MODE " + this->GetName() + " +t " + "\r\n";
         send_to_all(reply_message);
     }
     else
     {
-        this->has_rest = false;
+        // this->has_rest = false;
+        this->has_topic = false;
         reply_message = ":" + admin->getPrefix() +  " MODE " + this->GetName() + " -t " + "\r\n";
         send_to_all(reply_message);
     }
@@ -208,12 +216,6 @@ void Channel::remove_user(Client *admin)
     {
         Clients.erase(it);
     }
-
-    it = std::find(invites.begin(), invites.end(), admin);
-    if (it != invites.end())
-    {
-        invites.erase(it);
-    }
 }
 
 void Channel::add_admin(Client *admin, std::string name, std::string serverIPadd)
@@ -240,102 +242,44 @@ void Channel::add_admin(Client *admin, std::string name, std::string serverIPadd
     }
         
 }
+
 void Channel::addUser(Client* client, std::string pass, std::string serverIP)
 {
-    if (has_password)
+    if (has_password && !validPassio(pass))
     {
-        if (pass.empty()) // Check if the user has provided a password
-        {
-            // Inform the client that the password is required
-            std::string msg_to_reply = ":" + serverIP + ERR_NEEDMOREPARAMS(client->getnickname(), "JOIN");
-            sendMessage(msg_to_reply, client->get_clientfd());
-            return;
-        }
-        std::cout << "48" << pass << std::endl;
-        std::cout << "24" << password << std::endl; 
-       if (!validPassio(pass))
-       {
-            std::string msg_to_reply = ":" + serverIP + ERR_INVALIDKEY(client->getnickname(), pass);
-            sendMessage(msg_to_reply , client->get_clientfd());
-       }
+        std::string msg_to_reply = ":" + serverIP + ERR_BADCHANNELKEY(client->getnickname(), pass);
+        sendMessage(msg_to_reply, client->get_clientfd());
+        return;
     }
-    std::cout << "has_limit" << std::endl;
-    if (has_limit)
+
+    if (has_limit && users + 1 > max_users)
     {
-        std::cout << "users" << users << std::endl;
-        std::cout << "max_users" << max_users << std::endl;
-        
-        if (users + 1 > max_users) 
-        {
-            std::string msg_to_reply = ":" + serverIP + ERR_CHANNELISFULL(client->getnickname(), GetName());
-            sendMessage(msg_to_reply , client->get_clientfd());
-        }
+        std::string msg_to_reply = ":" + serverIP + ERR_CHANNELISFULL(client->getnickname(), GetName());
+        sendMessage(msg_to_reply, client->get_clientfd());
+        return;
     }
-    if (invite_only)
+
+    if (invite_only && !is_Invited(client))
     {
-        if (is_Invited(client))
-        {
-            Clients.push_back(client);
-            users++;
-            std::string msg_to_reply;
-            std::cout << "jmixa" << invite_only << std::endl;
-            if (invite_only)
-            {
-                std::cout << "--->" << is_Invited(client) << std::endl;
-                if (is_Invited(client))
-                {
-                    msg_to_reply = ":" + client->getPrefix() + " JOIN " + GetName() +  " * :realname" + "\r\n";
-                    send_to_all(msg_to_reply);
-                }
-                else
-                {
-                    msg_to_reply = ":" + serverIP + ERR_INVITEONLYCHAN(client->getnickname(), GetName());
-                    sendMessage(msg_to_reply, client->get_clientfd());
-                }
-            }
-            else
-            {
-                if (client)
-                {
-                    msg_to_reply = ":" + client->getPrefix() + " JOIN " + GetName() +  " * :realname" + "\r\n";
-                    send_to_all(msg_to_reply);
-                }
-            }
-        }
-        else
-        {
-            std::string msg_to_reply = ":" + serverIP + ERR_INVITEONLYCHAN(client->getnickname(), GetName());
-        }
-   }
-   else
-   {
-        std::cout << " wselt hna " << std::endl;
-            Clients.push_back(client);
-            users++;
-            std::string msg_to_reply;
-            if (invite_only)
-            {
-                if (is_Invited(client))
-                {
-                    msg_to_reply = ":" + client->getPrefix() + " JOIN " + GetName() +  " * :realname" + "\r\n";
-                    send_to_all(msg_to_reply);
-                }
-                else
-                {
-                    msg_to_reply = ":" + serverIP + ERR_INVITEONLYCHAN(client->getnickname(), GetName());
-                    sendMessage(msg_to_reply, client->get_clientfd());
-                }
-            }
-            else
-            {
-                if (client)
-                {
-                    msg_to_reply = ":" + client->getPrefix() + " JOIN " + GetName() +  " * :realname" + "\r\n";
-                    send_to_all(msg_to_reply);
-                }
-            }
-   }
+        std::string msg_to_reply = ":" + serverIP + ERR_INVITEONLYCHAN(client->getnickname(), GetName());
+        sendMessage(msg_to_reply, client->get_clientfd());
+        return;
+    }
+
+    // Prevent duplicates
+    if (std::find(Clients.begin(), Clients.end(), client) != Clients.end())
+    {
+        return;
+    }
+
+    // Success: Add user
+    Clients.push_back(client);
+    users++;
+    std::string msg_to_reply = ":" + client->getPrefix() + " JOIN " + GetName() + " * :realname\r\n";
+    send_to_all(msg_to_reply);
 }
+
+
 bool    Channel::validPassio(std::string passio)
 {
     if (passio == password)
@@ -475,7 +419,6 @@ void Server::NICK(Client *client, std::string &line)
             ssendMessage(msg_to_reply, Clients[i]->get_clientfd());
         }
     }
-
     checkRegistration(client);
 }
 
@@ -516,79 +459,133 @@ void Server::USER(Client *client, std::string &line)
     checkRegistration(client);
 }
 
-void Server::KICK(Client *admin,  std::string &line)
+// void Server::KICK(Client *admin,  std::string &line)
+// {
+//     std::istringstream ss(line);
+//     std::string cmd, chan_name, nick, reason;
+//     ss >> cmd;
+//     ss >> chan_name;
+//     ss >> nick;
+//     std::getline(ss, reason);
+//     trim(reason);
+
+//     Channel *chan = getChannel(chan_name);
+//     Client  *clio = getClientname(nick);
+
+//     std::string reply_message;
+//     if (chan)
+//     {
+//         std::cout << "vvv"  << sizeof(clio) << std::endl;
+//         if(clio)
+//         {
+//             std::cout <<  "ppp"  << chan->onChannel(clio) << std::endl;
+//             if(chan->onChannel(clio))
+//             {
+//                 std::cout << "____________________\n";
+//                 if(chan->is_Admin(clio))
+//                 {
+//                     std::cout << "________j___________\n";
+//                     chan->remove_admin(clio);
+//                 }
+//                 if(chan->is_Invited(clio))
+//                 {
+//                     std::cout << "________k___________\n";
+//                     chan->remove_Invited(clio);
+//                 } 
+//                 std::string msg_to_reply = ":" + admin->getPrefix() + " KICK " + chan->GetName() + " " + clio->getnickname() + " " + reason + "\r\n" ;
+//                 chan->send_to_all(reply_message);
+//                 // chan->remove_user(clio);
+//             }
+//             else 
+//             {
+//                 std::string msg_to_send = ":" +  getServerIP() + ERR_NOTONCHANNEL(clio->getnickname(), chan_name);
+//                 send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
+//             }
+//             if (chan->is_Admin(admin) && !chan->is_Admin(clio))
+//             {
+//                 std::cout <<  "ddd"  << chan->onChannel(clio) << std::endl;
+//                 if (chan->onChannel(clio))
+//                 {
+//                     if (chan->is_Invited(clio))
+//                         chan->remove_Invited(clio);
+
+//                     std::string msg_to_reply = ":" + admin->getPrefix() + " KICK " + chan_name +  " " + clio->getnickname() + " " + reason + "\r\n";
+//                     chan->send_to_all(msg_to_reply);
+//                     chan->remove_user(clio);
+//                 } 
+//                 else
+//                 {
+//                     std::string msg_to_reply =  ":" + getServerIP() + ERR_NOTONCHANNEL(clio->getnickname(), chan_name);
+//                     ssendMessage( msg_to_reply , admin->get_clientfd());
+//                 }
+//             }
+//             else
+//             {
+//                 std::string msg_to_reply = ":" + getServerIP() + ERR_CHANOPRIVSNEEDED(admin->getnickname(), chan_name);
+//                 ssendMessage( msg_to_reply  ,admin->get_clientfd() );
+//             }
+//         }
+//         else
+//         {
+//             std::string msg_to_send = ":" +  getServerIP() + ERR_NOTONCHANNEL(nick, chan_name);
+//             send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
+//         }
+//     }
+//     else
+//     {
+//         if (admin)
+//         {
+//             std::string msg_to_send = ":" +  getServerIP() + ERR_NOSUCHCHANNEL(admin->getnickname(), chan_name);
+//             send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
+//         }
+//     }
+
+// }
+void Server::KICK(Client *admin, std::string &line)
 {
     std::istringstream ss(line);
     std::string cmd, chan_name, nick, reason;
-    ss >> cmd;
-    ss >> chan_name;
-    ss >> nick;
+    ss >> cmd >> chan_name >> nick;
     std::getline(ss, reason);
-    trim(reason);
+    trim(reason); // Ensure 'reason' is clean of leading/trailing spaces.
+
     Channel *chan = getChannel(chan_name);
-    Client  *clio = getClientname(nick);
+    Client *clio = getClientname(nick);
 
-    std::string reply_message;
-    if (chan)
-    {
-        if(clio)
-        {
-            if(chan->is_inChannel(clio))
-            {
-                if(chan->is_Admin(clio))
-                {
-                    chan->remove_admin(clio);
-                }
-                if(chan->is_Invited(clio))
-                {
-                    chan->remove_Invited(clio);
-                } 
-                std::string msg_to_reply = ":" + admin->getPrefix() + " KICK " + chan->GetName() + clio->getnickname() + " " + reason + "\r\n" ;
-                chan->send_to_all(reply_message);
-                chan->remove_user(clio);
-            }
-            else 
-            {
-                std::string msg_to_send = ":" +  getServerIP() + ERR_NOTONCHANNEL(clio->getnickname(), chan_name);
-                send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
-            }
-            if (chan->is_Admin(admin) && !chan->is_Admin(clio))
-            {
-                if (chan->is_inChannel(clio))
-                {
-                    if (chan->is_Invited(clio))
-                        chan->remove_Invited(clio);
-                    std::string msg_to_reply = ":" + admin->getPrefix() + " KICK " + chan_name +  " " + clio->getnickname() + " " + reason + "\r\n";
-                    chan->send_to_all(msg_to_reply);
-                    chan->remove_user(clio);
-                } 
-                else
-                {
-                    std::string msg_to_reply =  ":" + getServerIP() + ERR_NOTONCHANNEL(clio->getnickname(), chan_name);
-                    ssendMessage( msg_to_reply , admin->get_clientfd());
-                }
-            }
-            else
-            {
-                std::string msg_to_reply = ":" + getServerIP() + ERR_CHANOPRIVSNEEDED(admin->getnickname(), chan_name);
-                ssendMessage( msg_to_reply  ,admin->get_clientfd() );
-            }
-
-        }
-        else
-        {
-            std::string msg_to_send = ":" +  getServerIP()  + ERR_NOTONCHANNEL(nick, chan_name);
-            send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
-        }
-    }
-    else
-    {
-        std::string msg_to_send = ":" +  getServerIP()  + ERR_NOSUCHCHANNEL(admin->getnickname(), chan_name);
+    // Handle invalid channel
+    if (!chan) {
+        std::string msg_to_send = ":" + getServerIP() + ERR_NOSUCHCHANNEL(admin->getnickname(), chan_name);
         send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
+        return;
     }
 
-}
+    // Handle client not found or not on the channel
+    if (!clio || !chan->onChannel(clio)) {
+        std::string msg_to_send = ":" + getServerIP() + ERR_NOTONCHANNEL(nick, chan_name);
+        send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
+        return;
+    }
 
+    // Check if admin has privileges to kick
+    if (!chan->is_Admin(admin)) {
+        std::string msg_to_send = ":" + getServerIP() + ERR_CHANOPRIVSNEEDED(admin->getnickname(), chan_name);
+        send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
+        return;
+    }
+
+    // Notify all clients in the channel about the kick
+    std::string msg_to_reply = ":" + admin->getPrefix() + " KICK " + chan->GetName() + " " + clio->getnickname() + " " + reason + "\r\n";
+    chan->send_to_all(msg_to_reply);
+
+    // Remove the client from all relevant lists in the channel
+    if (chan->is_Admin(clio)) {
+        chan->remove_admin(clio); // Remove from admin list if they are an admin
+    }
+    if (chan->is_Invited(clio)) {
+        chan->remove_Invited(clio); // Remove from invited list if they are invited
+    }
+    chan->remove_user(clio); // Remove from channel's users list
+}
 
 void Server::INVITE(Client *admin, std::string &line)
 {
@@ -656,58 +653,75 @@ void Server::TOPIC(Client *admin, std::string &line)
     ss >> chan_name;
     std::getline(ss, topic);
     trim(topic);
-    topic.erase(0, 1);
+    if (!topic.empty() && topic[0] == ':')
+    {
+        topic.erase(0, 1); // Remove the leading ':'
+    }
     Channel *chan = getChannel(chan_name);
+
+    if (topic.empty())
+    {
+        if(!chan->get_topic().empty())
+        {
+                reply_message = ":" +  getServerIP() + RPL_TOPIC(admin->getnickname(), chan->GetName(), chan->get_topic());
+                ssendMessage(reply_message, admin->get_clientfd());
+
+                reply_message = ":" + getServerIP() + RPL_TOPICWHOTIME(admin->getnickname(), chan->GetName(), admin->getnickname(), std::to_string(chan->get_topictime()));
+                ssendMessage(reply_message, admin->get_clientfd());
+        }
+        else
+        {
+            reply_message = ":" + getServerIP() + RPL_NOTOPIC(admin->getnickname(), chan->GetName());
+            ssendMessage(reply_message, admin->get_clientfd());
+        }
+        return;
+    }
+
     if (chan)
     {
+        if(chan->is_Admin(admin))
+        {
+            std::cout << "RECV topic :" << topic << std::endl;
+            chan->SetTopic(topic);
+            reply_message = ":" + admin->getPrefix() + " TOPIC " + chan->GetName() + " :" + topic + "\r\n";
+            chan->send_to_all(reply_message);
+            return;
+        }
+
         if(topic.find(':') == std::string::npos)
         {
             if (chan->is_inChannel(admin))
             {
-                if(chan->get_has_topic())
+                if(!chan->get_has_topic())
                 {
-                        reply_message = ":" +  getServerIP() + RPL_TOPIC(admin->getnickname(), chan->GetName(), topic);
-                        ssendMessage(reply_message, admin->get_clientfd());
+                        // reply_message = ":" +  getServerIP() + RPL_TOPIC(admin->getnickname(), chan->GetName(), topic);
+                        // ssendMessage(reply_message, admin->get_clientfd());
 
-                        reply_message = ":" + getServerIP() + RPL_TOPICWHOTIME(admin->getnickname(), chan->GetName(), admin->getnickname(), std::to_string(chan->get_topictime()));
-                        ssendMessage(reply_message, admin->get_clientfd());
+                        // reply_message = ":" + getServerIP() + RPL_TOPICWHOTIME(admin->getnickname(), chan->GetName(), admin->getnickname(), std::to_string(chan->get_topictime()));
+                        // ssendMessage(reply_message, admin->get_clientfd());
+                    chan->SetTopic(topic);
+                    reply_message = ":" + admin->getPrefix() + " TOPIC " + chan->GetName() + " " + topic + "\r\n";
+                    chan->send_to_all(reply_message);
+                    return;
                 }
                 else
                 {
-                    reply_message = ":" + getServerIP() + RPL_NOTOPIC(admin->getnickname(), chan->GetName());
+                    reply_message = ":" + getServerIP() + ERR_CHANOPRIVSNEEDED(admin->getnickname(), chan->GetName());
                     ssendMessage(reply_message, admin->get_clientfd());
                 }
             }
             else 
             {
-                std::string msg_to_send = ":" +  getServerIP()  + ERR_NOSUCHCHANNEL(admin->getnickname(), chan_name);
+                std::string msg_to_send = ":" +  getServerIP()  + ERR_NOTONCHANNEL(admin->getnickname(), chan_name);
                 send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
             }
             return;
         }
-
-
-        if(chan->is_Admin(admin))
-        {
-            std::cout <<  " 2 " << chan->get_modes().find('t') << std::endl;
-            if (chan->get_modes().find('t') != std::string::npos)
-            {
-                chan->SetTopic(topic);
-                reply_message = ":" + admin->getPrefix() + " TOPIC " + chan->GetName() + " " + topic + "\r\n";
-                chan->send_to_all(reply_message);
-            }
-            else
-            {
-                   std::string msg_to_send = ":" +  getServerIP()  + ERR_INVALIDMODEPARAM(admin->getnickname(), chan_name, "TOPIC", topic, "Channel Topic Restrection Are On");
-                send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
-            }
-        }
-
-        else
-        {
-            std::string msg_to_send = ":" +  getServerIP()  + ERR_CHANOPRIVSNEEDED(admin->getnickname(), chan_name);
-            send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
-        }
+        // else
+        // {
+        //     std::string msg_to_send = ":" +  getServerIP()  + ERR_CHANOPRIVSNEEDED(admin->getnickname(), chan_name);
+        //     send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
+        // }
     }
     else
     {
@@ -769,11 +783,20 @@ void Server::PART(Client *admin, std::string &line)
 // /////////////////////////////////////
 
 
-bool Channel::onChannel(Client *admin)
+// bool Channel::onChannel(Client *admin)
+// {
+//     if(std::find(Clients.begin(), Clients.end(), admin) != Clients.end())
+//         return true;
+//     return false;
+// }
+
+bool	Channel::onChannel(Client *admin) 
 {
-    if(std::find(Clients.begin(), Clients.end(), admin) != Clients.end())
-        return true;
-    return false;
+	for (size_t i = 0; i < Clients.size(); ++i) {
+		if (admin == Clients[i])
+			return true;
+	}
+	return false;
 }
 
 void Server::PRIVMSG(Client *admin, std::string &line)
@@ -800,7 +823,7 @@ void Server::PRIVMSG(Client *admin, std::string &line)
                 msg = msg.substr(pos + 1);
             }
             std::string msg_to_send = ":" + admin->getPrefix() + " PRIVMSG " + chan->GetName() + " : " + msg + "\r\n";
-            chan->send_to_all(msg_to_send);
+            chan->send_to_all_except_me(msg_to_send, admin);
         }
         else
         {
