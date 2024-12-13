@@ -6,13 +6,11 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/12 21:43:05 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/13 23:56:04 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
-
-// Canonical Form:
 
 Channel::Channel()
 {

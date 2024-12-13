@@ -37,6 +37,7 @@ class Client
 
     public:
     
+        struct sockaddr_in clientadd;
         // Canonical form:
             Client();
             Client(const Client& cli);

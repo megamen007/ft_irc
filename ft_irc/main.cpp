@@ -34,7 +34,7 @@ int main(int ac, char **av)
         }
         std::cout << " your server is Launching sir wait a moment ..." << std::endl ;
         Excalibur.Launching_server(std::atoi(av[1]), av[2]);
-        // Excalibur.cleanupServer();
+        Excalibur.cleanupServer();
 
     }
     catch(const std::exception& e)

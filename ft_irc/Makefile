@@ -1,6 +1,6 @@
 CC = c++
 
-CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98 #-fsanitize=address -g
 
 SRC = main.cpp server.cpp server_infos.cpp Channel.cpp Client.cpp  Channel_cmds.cpp 
 

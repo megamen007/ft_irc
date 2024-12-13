@@ -73,7 +73,7 @@ class Server
         std::vector <std::string> msg;
 
     public:
-
+    
         std::vector<Client *> Clients;
         std::vector<Channel *> Channels;
         std::vector<std::string> jokes;

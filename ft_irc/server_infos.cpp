@@ -108,8 +108,6 @@ Channel *Server::getChannel(std::string name)
     return NULL;
 }
 
-// Checks Functions
-
 bool Server::Port_valid(std::string port)
 {
     if (port.find_first_not_of("0123456789") != std::string::npos)
@@ -167,7 +165,6 @@ void Server::close_server_socket()
 void Server::Close_filedescriptors()
 {
     close_all_clients();
-    close_server_socket();
 }
 
 bool Server::Valid_nick_name(std::string& nickname)
@@ -197,7 +194,8 @@ Client *Server::findClientByFd(int fd)
 
 void Server::sendWelcome(int fd)
 {
-    std::string msg_to_reply = ":" + getServerIP() +  RPL_WELCOME(getClient(fd)->getnickname());
+    Client *clio = getClient(fd);
+    std::string msg_to_reply = ":" + clio->getIPaddress() +  RPL_WELCOME(getClient(fd)->getnickname());
     ssendMessage(msg_to_reply, fd);
 }
 

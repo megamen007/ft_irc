@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
+/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/13 20:44:27 by otelliq          ###   ########.fr       */
+/*   Updated: 2024/12/13 23:56:42 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,9 @@ void Server::cleanupServer()
 {
     Close_filedescriptors();
 
-    // Clean up all channels
     for (size_t i = 0; i < Channels.size(); ++i) {
         Channel* channel = Channels[i];
 
-        // Remove all users, operators, and invited clients from the channel
         for (std::vector<Client*>::iterator it = Clients.begin(); it != Clients.end(); ++it) {
             Client* client = *it;
             channel->remove_admin(client);
@@ -30,22 +28,17 @@ void Server::cleanupServer()
             channel->remove_Invited(client);
         }
 
-        // Free the channel memory
         delete channel;
     }
 
-    // Clear the channel list
     Channels.clear();
     
-    // Clean up all clients
     for (size_t i = 0; i < Clients.size(); ++i) {
         Client* client = Clients[i];
 
-        // Free the client memory
         delete client;
     }
 
-    // Clear the client list
     Clients.clear();
 }
 
@@ -171,7 +164,7 @@ void Server::Server_cycle()
             i++;
         }
     }
-    Close_filedescriptors();
+    // Close_filedescriptors();
 }
 
 
@@ -179,10 +172,10 @@ void Server::socket_Accepting()
 {
     Client *client = new Client();
     // client = getClient(fd);
-    struct sockaddr_in clientadd;
-    socklen_t len = sizeof(clientadd);
+    // struct sockaddr_in clientadd;
+    socklen_t len = sizeof(client->clientadd);
 
-    int coming_fd = accept(Serverfd, (sockaddr *)&(clientadd), &len);
+    int coming_fd = accept(Serverfd, (sockaddr *)&(client->clientadd), &len);
 
     if (coming_fd == -1)
         throw(std::runtime_error(" ---> accept stage failed "));
@@ -191,7 +184,6 @@ void Server::socket_Accepting()
     if (non_blocking_status < 0)
         throw(std::runtime_error(" ---> failed to make the socket non blocking "));
 
-    // client_socket_polling(coming_fd);
 
     struct pollfd NPoll;
 
@@ -199,11 +191,11 @@ void Server::socket_Accepting()
     NPoll.events = POLLIN;
     NPoll.revents = 0;
     client->setfd(coming_fd);
-    client->setIPaddress(inet_ntoa(clientadd.sin_addr));
+    client->setIPaddress(inet_ntoa(client->clientadd.sin_addr));
     Clients.push_back(client);
     fds.push_back(NPoll);
     
-    std::cout << " ---> Client connected " << std::endl;
+    std::cout << " ---> Client connected " << client->getIPaddress() << std::endl;
 }
 
 std::string Server::getServerIP()
@@ -218,6 +210,7 @@ std::string Server::getServerIP()
     }
 
     // Convert the address to a string
+    // std::cout <<  "dber--->" << std::string(inet_ntoa(client_address.sin_addr)) << std::endl;
     return std::string(inet_ntoa(server_address.sin_addr));
 }
 
@@ -241,8 +234,10 @@ void Server::socket_receiving(int client_fd)
             return;
             
         std::cerr << " --> receiving stage failed ... " << std::endl;
-        cleanupServer();
+        // cleanupServer();
         Remove_Client(client_fd);
+        close(client_fd);
+        // delete client;
     }
     else 
     {
@@ -381,13 +376,13 @@ void Server::executing_commands(int fd, std::string &cmd)
         }
         else
         {
-            std::string msg_to_reply =  ":" + getServerIP() + ERR_UNKNOWNCOMMAND(client->getnickname(), splited_cmd[0]);
+            std::string msg_to_reply =  ":" + client->getIPaddress() + ERR_UNKNOWNCOMMAND(client->getnickname(), splited_cmd[0]);
             ssendMessage(msg_to_reply , client->get_clientfd() );
         }        
     }
     else if (!client->getregistred() && (splited_cmd[0] == "USER" || splited_cmd[0] == "user"))
     {
-        std::string msg_to_reply =  ":" + getServerIP() + ERR_NOTREGISTERED(client->getnickname());
+        std::string msg_to_reply =  ":" + client->getIPaddress() + ERR_NOTREGISTERED(client->getnickname());
         ssendMessage(msg_to_reply , client->get_clientfd() );
     }
 }
