@@ -6,7 +6,7 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/11 23:19:34 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/12 21:43:05 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,8 @@ Channel::Channel(Channel const &src)
     *this = src;
 }
 
-Channel::~Channel(){
+Channel::~Channel()
+{
     Clients.clear();
     admins.clear();
     invites.clear();

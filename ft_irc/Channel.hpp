@@ -13,8 +13,9 @@
 // TOPIc error messages //
 #define RPL_NOTOPIC(cli, chan)							(" 331 " + cli + " " + chan + " :No topic is set\r\n")
 #define RPL_TOPIC(cli, chan, topic)						(" 332 " + cli + " " + chan  + " :" + topic + "\r\n")
+#define RPL_WELCOME(nick)						(" 001 " + nick + " :Welcome to the Hakuna Matata IRC Network, " + nick + "\r\n")
 
-#define RPL_WELCOME()									(" 001 :Welcome to the Internet Relay Network \r\n")
+// #define RPL_WELCOME()									(" 001 :Welcome to the Internet Relay Network \r\n")
 #define ERR_PASSWDMISMATCH()							(" 464 :Password incorrect\r\n")
 #define RPL_ENDOFWHOIS(cli, chan)						(" 315 " + cli + " " + chan + " :End of /WHOIS list\r\n")
 // #define RPL_ENDOFNAMES(cli, chan)					(" 366 " + cli + " " + chan + " :End of /NAMES list\r\n")

@@ -21,7 +21,9 @@
 #define ERR_INCORPASS(client)                           (" 464 " + client + " :Password incorrect\r\n")
 #define ERR_NOTENOUGHPARAM(client)                      (" 461 " + client + " :Not enough parameters\r\n")
 #define ERR_ALREADYREGISTERED(nick)						(" 462 " + nick + " :You may not reregister\r\n")
-#define RPL_WELCOME()									(" 001 :Welcome to the Internet Relay Network \r\n")
+#define RPL_WELCOME(nick)						(" 001 " + nick + " :Welcome to the Hakuna Matata IRC Network, " + nick + "\r\n")
+
+// #define RPL_WELCOME(nick)						(" 001 :Welcome to the " + "Hakuna Matata " + "IRC Network, " + nick + "\r\n")
 #define ERR_PASSWDMISMATCH()							(" 464 :Password incorrect\r\n")
 #define RPL_ENDOFWHOIS(cli, chan)						(" 315 " + cli + " " + chan + " :End of /WHOIS list\r\n")
 #define RPL_ENDOFNAMES(cli, chan)					(" 366 " + cli + " " + chan + " :End of /NAMES list\r\n")
@@ -89,7 +91,6 @@ class Server
         std::vector<Channel *> get_Channels();
 
         // Setters
-        void setpsdverified(bool verified);
         void setFd(int fd);
         void setPort(int port);
         void setPassword(std::string password);
@@ -121,12 +122,12 @@ class Server
         void removeChannel(Channel *chan);
 
         // Signal functions:
+        void cleanupServer();
         static void Signal_Handler(int signum);
 
         //Removing functions:
         void Remove_Client(int client_fd);
         void remove_c_from_pollfd(int id);
-        void remove_c_from_Vector(int id);
         void Close_filedescriptors();
         void close_all_clients();
         void close_server_socket();
@@ -137,18 +138,14 @@ class Server
         std::vector<std::string>  split_received_Buffer(std::string str);
         std::vector<std::string>  split_cmd(std::string &cmd);
 
-        void registerClient(int fd, std::string raw);
-        void processMessage(int fd, const std::string& command, const std::string &arg, const std::string &msg);
         Client* findClientByFd(int fd);
         Client* findClientByNick(const std::string& nickname);
         bool isNicknameInUse(const std::string& nickname);
         void sendWelcome(int fd);
         std::string  trim(std::string &str);
-        std::vector<std::string> splitByCRLF(const std::string& input);
         Channel * create_channel(Client *cl, std::string name, std::string pass);
 
         bool Valid_nick_name(std::string& nickname);
-
         bool Port_valid(std::string port);
         void ssendMessage(std::string message, int destination_fd);
 

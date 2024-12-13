@@ -2,7 +2,7 @@
 #include "Channel.hpp"
 #include "server.hpp"
 
-int main(int ac, char **av)
+int maino(int ac, char **av)
 {
     Server Excalibur ;
     if (ac != 3)
@@ -34,12 +34,19 @@ int main(int ac, char **av)
         }
         std::cout << " your server is Launching sir wait a moment ..." << std::endl ;
         Excalibur.Launching_server(std::atoi(av[1]), av[2]);
+        // Excalibur.cleanupServer();
+
     }
     catch(const std::exception& e)
     {
-        // Excalibur.Close_filedescriptors();
+        Excalibur.Close_filedescriptors();
         std::cerr << e.what() << std::endl;
     }
-
-    std::cout << "Saddly we inform u that your Server Closed until another announcement .... be safe" << std::endl;
+    std::cout << "Sadly we inform u that your Server Closed until another announcement .... be safe" << std::endl;
+    return 0;
+}
+int main(int ac, char **av){
+    maino(ac, av);
+    system("leaks ft_irc");
+    return 0;
 }

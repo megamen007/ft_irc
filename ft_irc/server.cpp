@@ -6,13 +6,48 @@
 /*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/10 20:58:27 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/13 00:59:05 by mboudrio         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "server.hpp"
 
 bool Server::Signal_status = 0;
+
+void Server::cleanupServer()
+{
+    Close_filedescriptors();
+
+    // Clean up all channels
+    for (size_t i = 0; i < Channels.size(); ++i) {
+        Channel* channel = Channels[i];
+
+        // Remove all users, operators, and invited clients from the channel
+        for (std::vector<Client*>::iterator it = Clients.begin(); it != Clients.end(); ++it) {
+            Client* client = *it;
+            channel->remove_admin(client);
+            channel->remove_user(client);
+            channel->remove_Invited(client);
+        }
+
+        // Free the channel memory
+        delete channel;
+    }
+
+    // Clear the channel list
+    Channels.clear();
+    
+    // Clean up all clients
+    for (size_t i = 0; i < Clients.size(); ++i) {
+        Client* client = Clients[i];
+
+        // Free the client memory
+        delete client;
+    }
+
+    // Clear the client list
+    Clients.clear();
+}
 
 void Server::Signal_Handler(int signum)
 {
@@ -136,7 +171,7 @@ void Server::Server_cycle()
             i++;
         }
     }
-    // Close_filedescriptors();
+    Close_filedescriptors();
 }
 
 
@@ -195,29 +230,44 @@ void Server::socket_receiving(int client_fd)
     Client *client = getClient(client_fd);
     memset(buffer, 0, sizeof(buffer));
 
+    if (!client)
+        return;
+        
     int r = recv(client_fd, buffer, sizeof(buffer), 0);
     RawData = buffer;
-    if (r < 0) 
+    if (r <= 0) 
     {
         if (errno == EAGAIN || errno  == EWOULDBLOCK)
             return;
             
         std::cerr << " --> receiving stage failed ... " << std::endl;
-        Remove_Client(client_fd);
-        close(client_fd);
+        for (size_t i = 0; i < Channels.size(); ++i)
+        {
+            if (Channels[i]->GetUser(client->getnickname()) || Channels[i]->getOperator(client->getnickname()))
+            {
+                Channels[i]->remove_admin(client);
+                Channels[i]->remove_user(client);
+                Channels[i]->remove_Invited(client);
 
-    }
-    else if (r == 0)
-    {
-        std::cout << " --> Connection closed by Icaruis ..." << std::endl;
+                if (Channels[i]->GetClientsNumber() == 0)
+                    removeChannel(Channels[i]);
+
+                std::vector<Client*>::iterator it = std::find(Clients.begin(), Clients.end(), client);
+                if (it != Clients.end())
+                {
+                    Clients.erase(it);
+                }
+                delete client;
+            }
+        }
+        Remove_Client(client_fd);
         close(client_fd);
     }
     else 
     {
-        std::cout << " Received " << r << "  bytes ... " << std::endl;
         std::cout << " Received Data :  " << getRawData() << std::endl;
         std::cout << client->get_clientfd() << std::endl;
-
+        
         cmd = split_received_Buffer(getRawData());
         for (size_t i = 0; i < cmd.size(); i++)
         {
@@ -350,7 +400,7 @@ void Server::executing_commands(int fd, std::string &cmd)
             ssendMessage(msg_to_reply , client->get_clientfd() );
         }        
     }
-    else if (!client->getregistred())
+    else if (!client->getregistred() && (splited_cmd[0] == "USER" || splited_cmd[0] == "user"))
     {
         std::string msg_to_reply =  ":" + getServerIP() + ERR_NOTREGISTERED(client->getnickname());
         ssendMessage(msg_to_reply , client->get_clientfd() );

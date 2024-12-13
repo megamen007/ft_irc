@@ -138,20 +138,10 @@ void Server::remove_c_from_pollfd(int id)
         i++;
     }
 }
-void Server::remove_c_from_Vector(int id)
-{
-    size_t i = 0;
-    while (i < Clients.size())
-    {
-        if (Clients[i]->get_clientfd() == id)
-            Clients.erase(Clients.begin() + i);
-        i++;
-    }
-}
+
 void Server::Remove_Client(int id)
 {
     remove_c_from_pollfd(id);
-    remove_c_from_Vector(id);
 }
 
 void Server::close_all_clients()
@@ -207,7 +197,8 @@ Client *Server::findClientByFd(int fd)
 
 void Server::sendWelcome(int fd)
 {
-    std::cout << "Client " << fd << " Welcome to the HAKUNA MATATA Realm $IRC SERVER$.\n";
+    std::string msg_to_reply = ":" + getServerIP() +  RPL_WELCOME(getClient(fd)->getnickname());
+    ssendMessage(msg_to_reply, fd);
 }
 
 
