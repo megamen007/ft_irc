@@ -83,6 +83,12 @@ std::string Client::getPrefix()
     // Format: :nickname!username@hostname
     return getnickname() + "!" + getusername() + "@" + getIPaddress();
 }
+
+std::string Client::getPrefixBot()
+{
+    // Format: :nickname!username@hostname
+    return "Alexa!Alexis@" + getIPaddress();
+} 
 int Client::get_clientfd()
 {
     return this->clientfd;

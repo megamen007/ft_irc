@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/13 00:59:05 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/13 20:44:27 by otelliq          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,27 +241,8 @@ void Server::socket_receiving(int client_fd)
             return;
             
         std::cerr << " --> receiving stage failed ... " << std::endl;
-        for (size_t i = 0; i < Channels.size(); ++i)
-        {
-            if (Channels[i]->GetUser(client->getnickname()) || Channels[i]->getOperator(client->getnickname()))
-            {
-                Channels[i]->remove_admin(client);
-                Channels[i]->remove_user(client);
-                Channels[i]->remove_Invited(client);
-
-                if (Channels[i]->GetClientsNumber() == 0)
-                    removeChannel(Channels[i]);
-
-                std::vector<Client*>::iterator it = std::find(Clients.begin(), Clients.end(), client);
-                if (it != Clients.end())
-                {
-                    Clients.erase(it);
-                }
-                delete client;
-            }
-        }
+        cleanupServer();
         Remove_Client(client_fd);
-        close(client_fd);
     }
     else 
     {
@@ -393,6 +374,10 @@ void Server::executing_commands(int fd, std::string &cmd)
         else if (splited_cmd[0] == "PART" || splited_cmd[0] == "part")
         {
             PART(client , cmd);
+        }
+        else if (splited_cmd[0] == "BOT" || splited_cmd[0] == "bot")
+        {
+            Bot_call(client, cmd);
         }
         else
         {

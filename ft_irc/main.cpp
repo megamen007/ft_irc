@@ -2,7 +2,7 @@
 #include "Channel.hpp"
 #include "server.hpp"
 
-int maino(int ac, char **av)
+int main(int ac, char **av)
 {
     Server Excalibur ;
     if (ac != 3)
@@ -43,10 +43,5 @@ int maino(int ac, char **av)
         std::cerr << e.what() << std::endl;
     }
     std::cout << "Sadly we inform u that your Server Closed until another announcement .... be safe" << std::endl;
-    return 0;
-}
-int main(int ac, char **av){
-    maino(ac, av);
-    system("leaks ft_irc");
     return 0;
 }

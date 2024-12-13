@@ -334,6 +334,7 @@ bool Server::isNicknameInUse(const std::string &nick)
 
 void Server::checkRegistration(Client *client)
 {
+    std::cout << "ppp" << client->getpsdverified() << std::endl;
     if (client->getpsdverified() && !client->getnickname().empty() && !client->getusername().empty())
     {
         client->setregistred(true);
@@ -923,6 +924,8 @@ void Server::QUIT(Client *clio, std::string &line)
             if (Channels[i]->GetClientsNumber() == 0)
                 removeChannel(Channels[i]);
 
+            close(clio->get_clientfd());
+
             std::vector<Client*>::iterator it = std::find(Clients.begin(), Clients.end(), clio);
             if (it != Clients.end())
             {
@@ -931,7 +934,6 @@ void Server::QUIT(Client *clio, std::string &line)
             delete clio;
         }
     }
-    close(clio->get_clientfd());
 }
 
 
@@ -972,4 +974,85 @@ void Server::MODE( Client *client, std::string &line)
             ssendMessage( reply_message, client->get_clientfd());
         }
     }
+}
+
+
+void Server::Bot_call(Client *admin, std::string line)
+{
+    std::string cmd, chan_name ,Order;
+    std::istringstream ss(line);
+    ss >> cmd;
+    ss >> chan_name;
+    std::getline(ss, Order);
+    trim(Order);
+    std::cout << "Order: " << Order << std::endl;
+    std::string reply_message;
+
+    std::vector<std::string> jokes;
+    jokes.push_back("Why did the scarecrow win an award? Because he was outstanding in his field!");
+    jokes.push_back("What do you get when you cross a snowman and a vampire? Frostbite.");
+    jokes.push_back("Why don't scientists trust atoms? Because they make up everything!");
+    jokes.push_back("What do you call a fish wearing a crown? A kingfish.");
+    jokes.push_back("What do you call a pile of cats? A meowtain.");
+    jokes.push_back("What do you call a bear with no teeth? A gummy bear.");
+    jokes.push_back("What do you call a cow with two legs? Lean beef.");
+    jokes.push_back("Why did the bicycle fall over? Because it was two-tired!");
+    jokes.push_back("How does a penguin build its house? Igloos it together!");
+
+    std::vector<std::string> insults;
+    insults.push_back("You're a grey sprinkle on a rainbow cupcake.");
+    insults.push_back("If you were a vegetable, you'd be a cabbitch.");
+    insults.push_back("You are more disappointing than an unsalted pretzel.");
+    insults.push_back("You're the human version of period cramps.");
+    insults.push_back("You're a pizza burn on the roof of the world's mouth.");
+    insults.push_back("You're a mistake of nature.");
+    insults.push_back("You're like a cloud. When you disappear, it's a beautiful day.");
+    insults.push_back("You have the perfect face for radio.");
+    insults.push_back("You're proof that even Google doesn't have all the answers.");
+
+    // Compliment vector (if you want this too)
+    std::vector<std::string> compliments;
+    compliments.push_back("You're doing amazing!");
+    compliments.push_back("Keep up the great work!");
+    compliments.push_back("You're a wonderful person!");
+    compliments.push_back("You make the world a better place!");
+    compliments.push_back("You're an inspiration!");
+
+    if (Order == "joke")
+    {
+        reply_message = jokes[rand() % jokes.size()];
+    }
+    else if (Order == "insult")
+    {
+        reply_message = insults[rand() % insults.size()];
+    }
+    else if (Order == "greet")
+    {
+        reply_message = "Hello everyone! Hope you're all having a great day!";
+        for (size_t i = 0; i < Clients.size(); ++i)
+        {
+            std::string msg_to_send = ":" + admin->getPrefixBot() + " PRIVMSG " + chan_name + " " + admin->getnickname() + " :" + reply_message + "\r\n";
+            ssendMessage(msg_to_send, Clients[i]->get_clientfd());
+        }
+        return;
+    }
+    else if (Order == "compliment")
+    {
+        reply_message = compliments[rand() % compliments.size()];
+    }
+    else if (Order == "help")
+    {
+        reply_message = "Available bot commands: \n"
+                        "- 'joke' -> Get a random joke\n"
+                        "- 'insult' -> Get a random insult\n"
+                        "- 'greet' -> Greet all users\n"
+                        "- 'compliment' -> Get a random compliment\n";
+    }
+    else
+    {
+        reply_message = "I don't understand that command. Please use 'joke', 'insult', 'greet', or 'compliment'.";
+    }
+
+    std::string msg_to_send = ":" + admin->getPrefixBot() + " PRIVMSG " + chan_name+ " " + Order + " :" + reply_message + "\r\n";
+    ssendMessage(msg_to_send, admin->get_clientfd());
 }

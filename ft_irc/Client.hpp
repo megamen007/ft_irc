@@ -67,6 +67,7 @@ class Client
             std::string getrealname();
             std::string getIPaddress();
             std::string getPrefix();
+            std::string getPrefixBot();
             bool getregistred();
             bool getoperatorstatus();
             bool getlogedstatus();

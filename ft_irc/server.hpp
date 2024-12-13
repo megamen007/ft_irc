@@ -76,7 +76,8 @@ class Server
 
         std::vector<Client *> Clients;
         std::vector<Channel *> Channels;
-
+        std::vector<std::string> jokes;
+        std::vector<std::string> insults;
         Server();
         Server(const Server& srv);
         Server &operator=(Server const &src);
@@ -167,6 +168,7 @@ class Server
         void PRIVMSG(Client *admin,std::string &line);
         void WHO(Client* admin, std::string &line);
         void QUIT(Client *clio, std::string &line);
+        void Bot_call(Client *admin, std::string param);//
         
 };
 
