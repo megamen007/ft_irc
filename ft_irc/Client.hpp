@@ -37,6 +37,7 @@ class Client
 
     public:
     
+        std::string  buffer; 
         struct sockaddr_in clientadd;
         // Canonical form:
             Client();

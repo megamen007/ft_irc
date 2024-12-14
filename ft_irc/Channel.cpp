@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Channel.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/11 05:39:28 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/13 23:56:04 by mboudrio         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Channel.hpp"
 
 Channel::Channel()
@@ -100,8 +88,6 @@ void Channel::SetTopic(std::string Topic)
 {
     topic_time = std::time(NULL);
     this->topic = Topic;
-    std::cout << "GET topic :" << Topic << std::endl;
-    std::cout << "GET topic :" << this->topic << std::endl;
 }
 
 void Channel::SetPassword(std::string passd)
@@ -130,7 +116,6 @@ std::string Channel::get_modes()
     modes += this->has_limit ? " " + size_tToString(this->max_users): "";
     modes += this->has_password ? " " + this->password: "";
     this->mode = modes;
-    std::cout << "get modes: " << modes << std::endl;
 
     return mode;
 }
@@ -159,7 +144,7 @@ void Channel::sendMessage(std::string message, int destination_fd)
     {
         int i = send(destination_fd, msg + sent, msg_len - sent, 0);
         if(i == -1)
-            throw std::runtime_error("send failed");
+           return ;
         sent += i;
     }
 }

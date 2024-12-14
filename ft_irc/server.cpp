@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mboudrio <mboudrio@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: otelliq <otelliq@student.1337.ma>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 00:27:58 by mboudrio          #+#    #+#             */
-/*   Updated: 2024/12/13 23:56:42 by mboudrio         ###   ########.fr       */
+/*   Updated: 2024/12/14 02:59:01 by otelliq          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,8 +171,6 @@ void Server::Server_cycle()
 void Server::socket_Accepting()
 {
     Client *client = new Client();
-    // client = getClient(fd);
-    // struct sockaddr_in clientadd;
     socklen_t len = sizeof(client->clientadd);
 
     int coming_fd = accept(Serverfd, (sockaddr *)&(client->clientadd), &len);
@@ -203,14 +201,11 @@ std::string Server::getServerIP()
     struct sockaddr_in server_address;
     socklen_t address_len = sizeof(server_address);
 
-    // Retrieve the address of the socket
     if (getsockname(Serverfd, (struct sockaddr*)&server_address, &address_len) == -1)
     {
         throw(std::runtime_error(" ---> Failed to get server IP address"));
     }
 
-    // Convert the address to a string
-    // std::cout <<  "dber--->" << std::string(inet_ntoa(client_address.sin_addr)) << std::endl;
     return std::string(inet_ntoa(server_address.sin_addr));
 }
 
@@ -230,26 +225,44 @@ void Server::socket_receiving(int client_fd)
     RawData = buffer;
     if (r <= 0) 
     {
-        if (errno == EAGAIN || errno  == EWOULDBLOCK)
-            return;
             
         std::cerr << " --> receiving stage failed ... " << std::endl;
         // cleanupServer();
         Remove_Client(client_fd);
         close(client_fd);
+        return;
         // delete client;
     }
     else 
     {
         std::cout << " Received Data :  " << getRawData() << std::endl;
         std::cout << client->get_clientfd() << std::endl;
-        
-        cmd = split_received_Buffer(getRawData());
-        for (size_t i = 0; i < cmd.size(); i++)
-        {
-            Parcing_and_Executing(client_fd, cmd[i]);
-        }
+        process_received_data(getRawData(), client_fd);
     } 
+}
+
+
+
+
+void Server::process_received_data(const std::string& raw_data, int client_fd)
+{
+    Client* cli = getClient(client_fd);
+
+    cli->buffer += raw_data;
+
+    size_t pos;
+    while ((pos = cli->buffer.find("\r\n")) != std::string::npos || (pos = cli->buffer.find("\n")) != std::string::npos)
+    {
+        std::string command = cli->buffer.substr(0, pos);
+
+        Parcing_and_Executing(client_fd, command);
+
+        if (cli->buffer[pos] == '\r' && pos + 1 < cli->buffer.size() && cli->buffer[pos + 1] == '\n')
+            cli->buffer.erase(0, pos + 2); // Remove "\r\n"
+        else
+            cli->buffer.erase(0, pos + 1); // Remove "\n"
+    }
+
 }
 
 std::vector<std::string>  Server::split_received_Buffer(std::string str)
@@ -406,7 +419,7 @@ void Server::ssendMessage(std::string message, int destination_fd)
     {
         int i = send(destination_fd, msg + sent, msg_len - sent, 0);
         if(i == -1)
-            throw std::runtime_error("send failed");
+            return ;
         sent += i;
     }
 }

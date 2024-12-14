@@ -39,7 +39,6 @@ int main(int ac, char **av)
     }
     catch(const std::exception& e)
     {
-        Excalibur.Close_filedescriptors();
         std::cerr << e.what() << std::endl;
     }
     std::cout << "Sadly we inform u that your Server Closed until another announcement .... be safe" << std::endl;

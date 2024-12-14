@@ -14,6 +14,7 @@ Client::~Client()
 Client::Client()
 {
     this->nickname = "";
+    this->buffer = "";
     this->username = "";
     this->hostname = "";
     this->servername = "";
@@ -35,6 +36,7 @@ Client &Client::operator=(Client const &src)
     if (this != &src)
     {
         this->nickname = src.nickname;
+        this->buffer = src.buffer;
         this->username = src.username;
         this->hostname = src.hostname;
         this->realname = src.realname;

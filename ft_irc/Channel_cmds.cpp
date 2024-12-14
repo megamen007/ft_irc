@@ -130,7 +130,6 @@ void Channel::changeKeyMode(Client *admin, std::string key, bool i, std::string 
              return (sendMessage(reply_message, admin->get_clientfd()));
             
         }
-        std::cout <<  " kingoooo --> " << key << std::endl;
         SetPassword(key);
         SetMode('k');
         this->has_password = true;
@@ -330,7 +329,6 @@ bool Server::isNicknameInUse(const std::string &nick)
 
 void Server::checkRegistration(Client *client)
 {
-    std::cout << "ppp" << client->getpsdverified() << std::endl;
     if (client->getpsdverified() && !client->getnickname().empty() && !client->getusername().empty())
     {
         client->setregistred(true);
@@ -480,14 +478,6 @@ void Server::KICK(Client *admin, std::string &line)
         return;
     }
 
-    // Handle client not found or not on the channel
-    if (!clio || !chan->onChannel(clio))
-    {
-        std::string msg_to_send = ":" + admin->getIPaddress() + ERR_NOTONCHANNEL(nick, chan_name);
-        send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
-        return;
-    }
-
     // Check if admin has privileges to kick
     if (!chan->is_Admin(admin))
     {
@@ -496,6 +486,13 @@ void Server::KICK(Client *admin, std::string &line)
         return;
     }
 
+    // Handle client not found or not on the channel
+    if (!clio || !chan->onChannel(clio))
+    {
+        std::string msg_to_send = ":" + admin->getIPaddress() + ERR_NOTONCHANNEL(nick, chan_name);
+        send(admin->get_clientfd(), msg_to_send.c_str(), msg_to_send.length(), 0);
+        return;
+    }
     // Notify all clients in the channel about the kick
     std::string msg_to_reply = ":" + admin->getPrefix() + " KICK " + chan->GetName() + " " + clio->getnickname() + " " + reason + "\r\n";
     chan->send_to_all(msg_to_reply);
@@ -603,7 +600,6 @@ void Server::TOPIC(Client *admin, std::string &line)
     {
         if(chan->is_Admin(admin))
         {
-            std::cout << "RECV topic :" << topic << std::endl;
             chan->SetTopic(topic);
             reply_message = ":" + admin->getPrefix() + " TOPIC " + chan->GetName() + " :" + topic + "\r\n";
             chan->send_to_all(reply_message);
@@ -647,7 +643,6 @@ void Server::TOPIC(Client *admin, std::string &line)
 
 void Server::PART(Client *admin, std::string &line)
 {
-    std::cout << " Ara wa7ed Part hna --#%& " << std::endl;
     std::string cmd , chan_name , reason;
 
     std::istringstream ss(line);
@@ -799,6 +794,11 @@ void Server::QUIT(Client *clio, std::string &line)
 
     if (reason.empty())
         reason = "Quit";
+    
+    if (reason == ":leaving")
+    {
+        
+    } 
 
     for (size_t i = 0; i < Channels.size(); ++i)
     {
@@ -807,6 +807,7 @@ void Server::QUIT(Client *clio, std::string &line)
             std::string msg_to_send = ":" + clio->getnickname() + "!~" + clio->getusername() + "@localhost QUIT " + reason + "\r\n";
 
             Channels[i]->send_to_all(msg_to_send);
+            
             Channels[i]->remove_admin(clio);
             Channels[i]->remove_user(clio);
             Channels[i]->remove_Invited(clio);
@@ -875,7 +876,6 @@ void Server::Bot_call(Client *admin, std::string line)
     ss >> chan_name;
     std::getline(ss, Order);
     trim(Order);
-    std::cout << "Order: " << Order << std::endl;
     std::string reply_message;
 
     std::vector<std::string> jokes;
@@ -900,7 +900,6 @@ void Server::Bot_call(Client *admin, std::string line)
     insults.push_back("You have the perfect face for radio.");
     insults.push_back("You're proof that even Google doesn't have all the answers.");
 
-    // Compliment vector (if you want this too)
     std::vector<std::string> compliments;
     compliments.push_back("You're doing amazing!");
     compliments.push_back("Keep up the great work!");

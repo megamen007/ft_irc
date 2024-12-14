@@ -135,6 +135,7 @@ class Server
         
         // Parsing received DATA
         void    Parcing_and_Executing(int fd ,std::string buffer);
+        void process_received_data(const std::string& raw_data, int client_fd);
 
         std::vector<std::string>  split_received_Buffer(std::string str);
         std::vector<std::string>  split_cmd(std::string &cmd);
